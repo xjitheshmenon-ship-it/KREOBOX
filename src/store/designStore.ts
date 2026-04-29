@@ -18,7 +18,8 @@ interface DesignState {
     name: string,
     clientName: string,
     flatType: Project['flatType'],
-    budget: number
+    budget: number,
+    customRooms?: Array<{ name: string; widthMM: number; depthMM: number }>
   ) => string
   setActiveProject: (id: string) => void
   setActiveRoom: (id: string) => void
@@ -50,9 +51,10 @@ export const useDesignStore = create<DesignState>()(
         return project.rooms.find(r => r.id === get().activeRoomId) ?? null
       },
 
-      createProject: (name, clientName, flatType, budget) => {
+      createProject: (name, clientName, flatType, budget, customRooms) => {
         const id = uuid()
-        const rooms: Room[] = (ROOM_TEMPLATES[flatType] ?? []).map(r => ({
+        const template = customRooms ?? ROOM_TEMPLATES[flatType] ?? []
+        const rooms: Room[] = template.map(r => ({
           ...r,
           id: uuid(),
           placedModules: [],
