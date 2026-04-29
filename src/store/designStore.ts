@@ -95,14 +95,14 @@ export const useDesignStore = create<DesignState>()(
           snapSide: 'free',
           selectedLaminateCode: mod.laminateCode,
         }
-        set(s => updateRoom(s, s.activeRoomId!, room => ({
+        set((s: DesignState) => updateRoom(s, s.activeRoomId!, room => ({
           ...room,
           placedModules: [...room.placedModules, instance],
         })))
       },
 
-      moveModule: (instanceId, x, y) => {
-        set(s => updateRoom(s, s.activeRoomId!, room => ({
+      moveModule: (instanceId: string, x: number, y: number) => {
+        set((s: DesignState) => updateRoom(s, s.activeRoomId!, room => ({
           ...room,
           placedModules: room.placedModules.map(m =>
             m.instanceId === instanceId ? { ...m, x, y } : m
@@ -110,8 +110,8 @@ export const useDesignStore = create<DesignState>()(
         })))
       },
 
-      removeModule: (instanceId) => {
-        set(s => updateRoom(s, s.activeRoomId!, room => ({
+      removeModule: (instanceId: string) => {
+        set((s: DesignState) => updateRoom(s, s.activeRoomId!, room => ({
           ...room,
           placedModules: room.placedModules.filter(m => m.instanceId !== instanceId),
         })))
@@ -119,8 +119,8 @@ export const useDesignStore = create<DesignState>()(
 
       selectModule: (instanceId) => set({ selectedInstanceId: instanceId }),
 
-      updateModuleLaminate: (instanceId, laminateCode) => {
-        set(s => updateRoom(s, s.activeRoomId!, room => ({
+      updateModuleLaminate: (instanceId: string, laminateCode: string) => {
+        set((s: DesignState) => updateRoom(s, s.activeRoomId!, room => ({
           ...room,
           placedModules: room.placedModules.map(m =>
             m.instanceId === instanceId ? { ...m, selectedLaminateCode: laminateCode } : m
@@ -128,8 +128,8 @@ export const useDesignStore = create<DesignState>()(
         })))
       },
 
-      rotateModule: (instanceId) => {
-        set(s => updateRoom(s, s.activeRoomId!, room => ({
+      rotateModule: (instanceId: string) => {
+        set((s: DesignState) => updateRoom(s, s.activeRoomId!, room => ({
           ...room,
           placedModules: room.placedModules.map(m => {
             if (m.instanceId !== instanceId) return m
@@ -141,7 +141,7 @@ export const useDesignStore = create<DesignState>()(
     }),
     {
       name: 'designos-v1',
-      partialize: (state) => ({ projects: state.projects }),
+      partialize: (state: DesignState) => ({ projects: state.projects }),
     }
   )
 )
