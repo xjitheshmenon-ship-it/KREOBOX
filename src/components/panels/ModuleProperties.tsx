@@ -21,21 +21,21 @@ export default function ModuleProperties({ instanceId }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider">
+        <h3 className="text-[10px] font-semibold text-ink-3 uppercase tracking-widest">
           Selected Module
         </h3>
         <button
           onClick={() => { removeModule(instanceId); selectModule(null) }}
-          className="p-1 text-red-400/60 hover:text-red-400 transition-colors"
+          className="p-1 text-red-400/60 hover:text-red-500 transition-colors"
         >
           <Trash2 size={13} />
         </button>
       </div>
 
-      <div className="bg-[#222] rounded-lg p-3 mb-4">
-        <p className="font-semibold text-sm text-white">{module.name}</p>
-        <p className="text-xs text-white/40 font-mono mt-0.5">{module.sku}</p>
-        <div className="flex gap-1.5 mt-2">
+      <div className="bg-canvas rounded-lg p-3 mb-4 border border-border">
+        <p className="font-semibold text-sm text-ink">{module.name}</p>
+        <p className="text-xs text-ink-3 font-mono mt-0.5">{module.sku}</p>
+        <div className="flex gap-1.5 mt-2 flex-wrap">
           <Chip>{module.width}mm W</Chip>
           <Chip>{module.height}mm H</Chip>
           <Chip>{module.depth}mm D</Chip>
@@ -47,10 +47,10 @@ export default function ModuleProperties({ instanceId }: Props) {
 
       {/* Rotation */}
       <div className="mb-4">
-        <p className="text-xs text-white/40 mb-2">Rotation: {placed.rotation}°</p>
+        <p className="text-xs text-ink-3 mb-2">Rotation: {placed.rotation}°</p>
         <button
           onClick={() => rotateModule(instanceId)}
-          className="flex items-center gap-1.5 text-xs text-white/60 hover:text-white bg-[#222] hover:bg-accent/20 px-3 py-2 rounded-lg transition-colors w-full"
+          className="flex items-center gap-1.5 text-xs text-ink-2 hover:text-ink bg-canvas hover:bg-accent/10 border border-border hover:border-accent/30 px-3 py-2 rounded-lg transition-colors w-full"
         >
           <RotateCw size={13} /> Rotate 90°
         </button>
@@ -58,7 +58,7 @@ export default function ModuleProperties({ instanceId }: Props) {
 
       {/* Laminate selector */}
       <div>
-        <p className="text-xs text-white/40 mb-2">Finish / Laminate</p>
+        <p className="text-xs text-ink-3 mb-2">Finish / Laminate</p>
         <div className="space-y-1.5">
           {module.laminateOptions.map(code => {
             const lam = LAMINATE_PALETTE[code]
@@ -67,16 +67,16 @@ export default function ModuleProperties({ instanceId }: Props) {
               <button
                 key={code}
                 onClick={() => updateLaminate(instanceId, code)}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors
-                  ${isActive ? 'bg-accent/20 border border-accent/40' : 'bg-[#222] border border-transparent hover:border-white/10'}`}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-colors border
+                  ${isActive ? 'bg-accent/10 border-accent/30' : 'bg-canvas border-border hover:border-accent/20'}`}
               >
                 <div
-                  className="w-4 h-4 rounded-full shrink-0 border border-white/20"
+                  className="w-4 h-4 rounded-full shrink-0 border border-border"
                   style={{ backgroundColor: lam?.hex ?? '#888' }}
                 />
                 <div>
-                  <p className="text-xs text-white font-medium">{lam?.name ?? code}</p>
-                  <p className="text-[10px] text-white/40 font-mono">{code}</p>
+                  <p className="text-xs text-ink font-medium">{lam?.name ?? code}</p>
+                  <p className="text-[10px] text-ink-3 font-mono">{code}</p>
                 </div>
               </button>
             )
@@ -85,17 +85,17 @@ export default function ModuleProperties({ instanceId }: Props) {
       </div>
 
       {/* Cut list preview */}
-      <div className="mt-4 pt-4 border-t border-white/5">
-        <p className="text-xs text-white/40 mb-2">{module.cutList.length} panels · {module.hardwareList.length} hardware items</p>
+      <div className="mt-4 pt-4 border-t border-border">
+        <p className="text-xs text-ink-3 mb-2">{module.cutList.length} panels · {module.hardwareList.length} hardware items</p>
         <div className="space-y-1">
           {module.cutList.slice(0, 4).map((p, i) => (
-            <div key={i} className="flex justify-between text-[10px] text-white/30">
+            <div key={i} className="flex justify-between text-[10px] text-ink-3">
               <span>{p.label} ×{p.qty}</span>
               <span className="font-mono">{p.length}×{p.width}×{p.thickness}</span>
             </div>
           ))}
           {module.cutList.length > 4 && (
-            <p className="text-[10px] text-white/20">+{module.cutList.length - 4} more panels in BOQ</p>
+            <p className="text-[10px] text-ink-3/60">+{module.cutList.length - 4} more panels in BOQ</p>
           )}
         </div>
       </div>
@@ -105,7 +105,7 @@ export default function ModuleProperties({ instanceId }: Props) {
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[10px] bg-white/8 text-white/50 px-2 py-0.5 rounded font-mono">
+    <span className="text-[10px] bg-card text-ink-3 px-2 py-0.5 rounded font-mono border border-border">
       {children}
     </span>
   )

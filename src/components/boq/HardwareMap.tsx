@@ -1,7 +1,6 @@
 import type { BOQ, HardwareItem } from '../../types'
 
 export default function HardwareMap({ boq }: { boq: BOQ }) {
-  // Aggregate hardware across all modules
   const hwMap = new Map<string, HardwareItem & { totalQty: number; totalCost: number; rooms: string[] }>()
 
   for (const li of boq.lineItems) {
@@ -29,13 +28,13 @@ export default function HardwareMap({ boq }: { boq: BOQ }) {
     <section className="mb-8">
       <div className="flex items-center gap-2 mb-4">
         <span className="w-2 h-2 bg-blue-400 rounded-full" />
-        <h2 className="text-base font-bold text-white">Hardware Map</h2>
-        <span className="text-xs text-white/30 ml-1">({items.length} line items)</span>
+        <h2 className="text-base font-semibold text-ink">Hardware Map</h2>
+        <span className="text-xs text-ink-3 ml-1">({items.length} line items)</span>
       </div>
-      <div className="bg-sidebar rounded-xl overflow-hidden border border-white/5">
+      <div className="bg-card rounded-xl overflow-hidden border border-border">
         <table className="w-full text-xs">
           <thead>
-            <tr className="bg-white/5 text-white/30 uppercase tracking-wider text-[10px]">
+            <tr className="bg-canvas text-ink-3 uppercase tracking-wider text-[10px]">
               <th className="text-left px-3 py-2.5">Item</th>
               <th className="text-left px-3 py-2.5">SKU</th>
               <th className="text-left px-3 py-2.5">Rooms</th>
@@ -46,23 +45,23 @@ export default function HardwareMap({ boq }: { boq: BOQ }) {
           </thead>
           <tbody>
             {items.map((hw, i) => (
-              <tr key={i} className="border-t border-white/5 hover:bg-white/2">
-                <td className="px-3 py-2 text-white">{hw.name}</td>
-                <td className="px-3 py-2 font-mono text-white/40 text-[10px]">{hw.sku}</td>
-                <td className="px-3 py-2 text-white/40">{hw.rooms.join(', ')}</td>
-                <td className="px-3 py-2 text-right font-bold text-white">{hw.totalQty}</td>
-                <td className="px-3 py-2 text-right text-white/60">
+              <tr key={i} className="border-t border-border hover:bg-canvas transition-colors">
+                <td className="px-3 py-2 text-ink">{hw.name}</td>
+                <td className="px-3 py-2 font-mono text-ink-3 text-[10px]">{hw.sku}</td>
+                <td className="px-3 py-2 text-ink-3">{hw.rooms.join(', ')}</td>
+                <td className="px-3 py-2 text-right font-bold text-ink">{hw.totalQty}</td>
+                <td className="px-3 py-2 text-right text-ink-2">
                   {hw.unitPriceINR.toLocaleString('en-IN')}
                 </td>
-                <td className="px-3 py-2 text-right font-semibold text-white">
+                <td className="px-3 py-2 text-right font-semibold text-ink">
                   {hw.totalCost.toLocaleString('en-IN')}
                 </td>
               </tr>
             ))}
           </tbody>
           <tfoot>
-            <tr className="bg-white/5 border-t border-white/10">
-              <td colSpan={5} className="px-3 py-2.5 text-xs font-semibold text-white">
+            <tr className="bg-canvas border-t border-border">
+              <td colSpan={5} className="px-3 py-2.5 text-xs font-semibold text-ink">
                 Hardware Total
               </td>
               <td className="px-3 py-2.5 text-right font-bold text-accent">

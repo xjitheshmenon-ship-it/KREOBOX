@@ -11,10 +11,10 @@ function SummaryCard({ label, value, sub, highlight }: {
   label: string; value: string; sub?: string; highlight?: boolean
 }) {
   return (
-    <div className={`rounded-xl p-4 border ${highlight ? 'bg-accent/10 border-accent/30' : 'bg-sidebar border-white/5'}`}>
-      <p className="text-xs text-white/40 mb-1">{label}</p>
-      <p className={`text-xl font-bold ${highlight ? 'text-accent' : 'text-white'}`}>{value}</p>
-      {sub && <p className="text-xs text-white/30 mt-0.5">{sub}</p>}
+    <div className={`rounded-xl p-4 border ${highlight ? 'bg-accent/10 border-accent/30' : 'bg-card border-border'}`}>
+      <p className="text-xs text-ink-3 mb-1">{label}</p>
+      <p className={`text-xl font-bold font-serif ${highlight ? 'text-accent' : 'text-ink'}`}>{value}</p>
+      {sub && <p className="text-xs text-ink-3 mt-0.5">{sub}</p>}
     </div>
   )
 }
@@ -27,7 +27,7 @@ export default function BOQExport() {
   if (!project) {
     return (
       <Layout>
-        <div className="flex items-center justify-center h-full text-white/40">
+        <div className="flex items-center justify-center h-full text-ink-3">
           Project not found.
         </div>
       </Layout>
@@ -49,19 +49,19 @@ export default function BOQExport() {
           <div>
             <button
               onClick={() => navigate(`/projects/${id}/design`)}
-              className="flex items-center gap-1.5 text-sm text-white/40 hover:text-white transition-colors mb-3"
+              className="flex items-center gap-1.5 text-sm text-ink-2 hover:text-ink transition-colors mb-3"
             >
               <ArrowLeft size={14} /> Back to Design
             </button>
-            <h1 className="text-2xl font-bold">{project.name}</h1>
-            <p className="text-white/40 text-sm mt-0.5">
+            <h1 className="font-serif text-3xl text-ink">{project.name}</h1>
+            <p className="text-ink-2 text-sm mt-0.5">
               BOQ &amp; Fabrication Pack · {project.flatType} · {project.clientName}
             </p>
-            <p className="text-xs text-white/20 mt-1">Generated {generatedDate}</p>
+            <p className="text-xs text-ink-3 mt-1">Generated {generatedDate}</p>
           </div>
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-2 px-4 py-2.5 border border-white/10 rounded-lg text-white/60 hover:text-white hover:border-white/20 transition-colors text-sm"
+            className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-ink-2 hover:text-ink hover:border-accent/30 transition-colors text-sm bg-card"
           >
             <Printer size={15} /> Print / PDF
           </button>
@@ -69,10 +69,10 @@ export default function BOQExport() {
 
         {/* Empty state */}
         {totalModules === 0 && (
-          <div className="border-2 border-dashed border-white/10 rounded-2xl p-16 text-center mb-8">
-            <Package size={32} className="mx-auto text-white/20 mb-3" />
-            <p className="text-white/40 font-medium">No modules placed yet</p>
-            <p className="text-sm text-white/20 mt-1">
+          <div className="border-2 border-dashed border-border rounded-2xl p-16 text-center mb-8">
+            <Package size={32} className="mx-auto text-ink-3 mb-3" />
+            <p className="text-ink-2 font-medium">No modules placed yet</p>
+            <p className="text-sm text-ink-3 mt-1">
               Go back to the design canvas and add some modules first.
             </p>
           </div>
@@ -82,7 +82,7 @@ export default function BOQExport() {
           <>
             {/* Summary cards */}
             <div className="grid grid-cols-4 gap-4 mb-8">
-              <SummaryCard label="Modules"       value={String(totalModules)}   sub="placed across all rooms" />
+              <SummaryCard label="Modules"       value={String(totalModules)}   sub={`${totalPanels} panels total`} />
               <SummaryCard label="Material Cost" value={`₹${(boq.totalMaterialINR / 100000).toFixed(2)}L`} />
               <SummaryCard label="Hardware Cost" value={`₹${(boq.totalHardwareINR / 100000).toFixed(2)}L`} />
               <SummaryCard label="Project Total" value={`₹${(boq.totalINR / 100000).toFixed(2)}L`} highlight sub={`of ₹${(project.totalBudgetINR/100000).toFixed(1)}L budget`} />
@@ -90,18 +90,18 @@ export default function BOQExport() {
 
             {/* Room summary */}
             <div className="mb-8">
-              <h2 className="text-sm font-semibold text-white/40 uppercase tracking-wider mb-3">Room Summary</h2>
+              <h2 className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">Room Summary</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {project.rooms.map(room => {
                   const roomItems = boq.lineItems.filter(li => li.roomName === room.name)
                   const roomTotal = roomItems.reduce((s, li) => s + li.unitPriceINR, 0)
                   return (
-                    <div key={room.id} className="bg-sidebar rounded-xl p-3 border border-white/5">
-                      <p className="text-xs font-semibold text-white mb-1">{room.name}</p>
-                      <p className="text-lg font-bold text-accent">
+                    <div key={room.id} className="bg-card rounded-xl p-3 border border-border">
+                      <p className="text-xs font-semibold text-ink mb-1">{room.name}</p>
+                      <p className="text-lg font-bold font-serif text-accent">
                         ₹{(roomTotal / 1000).toFixed(0)}K
                       </p>
-                      <p className="text-[10px] text-white/30 mt-0.5">
+                      <p className="text-[10px] text-ink-3 mt-0.5">
                         {roomItems.length} modules
                       </p>
                     </div>

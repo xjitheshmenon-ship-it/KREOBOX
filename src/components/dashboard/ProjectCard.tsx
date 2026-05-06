@@ -7,35 +7,36 @@ interface Props {
   onOpen: () => void
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  draft:     'bg-white/10 text-white/50',
-  designing: 'bg-blue-500/20 text-blue-400',
-  complete:  'bg-green-500/20 text-green-400',
+const STATUS: Record<string, { label: string; cls: string }> = {
+  draft:     { label: 'Draft',      cls: 'bg-border text-ink-2' },
+  designing: { label: 'Designing',  cls: 'bg-accent/10 text-accent' },
+  complete:  { label: 'Complete',   cls: 'bg-success-bg text-success' },
 }
 
 export default function ProjectCard({ project, onOpen }: Props) {
   const spent = getProjectSpend(project)
   const pct   = Math.min((spent / project.totalBudgetINR) * 100, 100)
   const totalModules = project.rooms.reduce((s, r) => s + r.placedModules.length, 0)
+  const { label, cls } = STATUS[project.status] ?? STATUS.draft
 
   return (
     <button
       onClick={onOpen}
-      className="bg-sidebar rounded-xl p-5 border border-white/5 hover:border-accent/30 text-left transition-all hover:bg-[#1E1E1E] group w-full"
+      className="bg-card rounded-xl p-5 border border-border hover:border-accent/40 hover:shadow-md text-left transition-all group w-full"
     >
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-2">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-white truncate group-hover:text-accent transition-colors">
+          <h3 className="font-serif text-lg text-ink group-hover:text-accent transition-colors truncate leading-snug">
             {project.name}
           </h3>
-          <p className="text-xs text-white/40 mt-0.5">{project.clientName}</p>
+          <p className="text-xs text-ink-2 mt-0.5">{project.clientName}</p>
         </div>
-        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ml-2 shrink-0 ${STATUS_COLORS[project.status]}`}>
-          {project.status}
+        <span className={`text-[11px] px-2.5 py-1 rounded-full font-medium ml-2 shrink-0 ${cls}`}>
+          {label}
         </span>
       </div>
 
-      <div className="flex items-center gap-3 mb-4 text-xs text-white/40">
+      <div className="flex items-center gap-3 mb-4 text-xs text-ink-3">
         <span className="flex items-center gap-1">
           <Home size={11} /> {project.flatType}
         </span>
@@ -47,17 +48,18 @@ export default function ProjectCard({ project, onOpen }: Props) {
 
       <div>
         <div className="flex justify-between text-xs mb-1.5">
-          <span className="text-white/40">Budget used</span>
-          <span className="text-white/60">
-            ₹{(spent / 100000).toFixed(1)}L / ₹{(project.totalBudgetINR / 100000).toFixed(1)}L
+          <span className="text-ink-3">Budget used</span>
+          <span className="text-ink-2 font-medium">
+            ₹{(spent / 100000).toFixed(1)}L
+            <span className="text-ink-3 font-normal"> / ₹{(project.totalBudgetINR / 100000).toFixed(1)}L</span>
           </span>
         </div>
-        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+        <div className="h-1 bg-border rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all"
             style={{
               width: `${pct}%`,
-              backgroundColor: pct < 60 ? '#22C55E' : pct < 85 ? '#F59E0B' : '#EF4444',
+              backgroundColor: pct < 60 ? '#3CAF6A' : pct < 85 ? '#F59E0B' : '#E85228',
             }}
           />
         </div>

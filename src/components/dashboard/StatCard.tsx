@@ -1,19 +1,27 @@
 interface Props {
   label: string
   value: string | number
-  icon: React.ReactNode
   sub?: string
+  progress?: number
+  progressColor?: string
 }
 
-export default function StatCard({ label, value, icon, sub }: Props) {
+export default function StatCard({ label, value, sub, progress, progressColor = '#E85228' }: Props) {
   return (
-    <div className="bg-sidebar rounded-xl p-5 border border-white/5">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-white/40 uppercase tracking-wider font-medium">{label}</span>
-        <span className="text-white/20">{icon}</span>
-      </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      {sub && <p className="text-xs text-white/40 mt-1">{sub}</p>}
+    <div className="bg-card rounded-xl p-5 border border-border">
+      <p className="text-[11px] text-ink-3 uppercase tracking-widest font-medium mb-3">{label}</p>
+      <p className="font-serif text-3xl font-normal text-ink leading-none mb-1">{value}</p>
+      {sub && <p className="text-xs text-ink-2 mt-1">{sub}</p>}
+      {progress !== undefined && (
+        <div className="mt-3">
+          <div className="h-1 bg-border rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all"
+              style={{ width: `${Math.min(progress, 100)}%`, backgroundColor: progressColor }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
