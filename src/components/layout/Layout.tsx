@@ -15,10 +15,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <span className="text-white font-semibold tracking-widest text-xs">KREOBOX</span>
         </Link>
 
-        {/* Platform modules */}
+        {/* Merchandise modules */}
         <div className="px-3 mt-2">
           <p className="text-[10px] text-white/30 uppercase tracking-widest font-medium px-2 mb-1">
-            Platform
+            Merchandise
           </p>
           <NavItem to="/customer"   label="Customer"   active={pathname === '/customer'} />
           <NavItem to="/contractor" label="Contractor"  active={pathname === '/contractor'} />
