@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useKreoboxStore } from '../store/kreoboxStore'
 import { inr, findShutter, findFrame, CATALOG } from '../data/catalog'
 import type { KBOrder, KBInventory } from '../types/kreobox'
@@ -39,9 +40,9 @@ export default function FactoryPage() {
       {/* Top bar */}
       <header style={{ height: 56, padding: '0 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${D.border}` }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={{ fontFamily: 'Fraunces', fontSize: 15, fontWeight: 500, letterSpacing: '0.12em' }}>KREOBOX</span>
+          <Link to="/contractor" style={{ fontFamily: 'Fraunces', fontSize: 15, fontWeight: 500, letterSpacing: '0.12em', color: D.text, textDecoration: 'none' }}>KREOBOX</Link>
           <span style={{ fontSize: 11, color: D.muted, borderLeft: `1px solid ${D.border}`, paddingLeft: 16, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>
-            Factory · Mysuru floor
+            Platform · Factory
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, fontFamily: 'JetBrains Mono', fontSize: 11, color: D.muted }}>
@@ -199,39 +200,63 @@ function CutListModal({ order, onClose }: { order: KBOrder; onClose: () => void 
       { id: `${order.id}-${String(lix++).padStart(3, '0')}`, sku: fid, part: 'Shutter', w: f.w - 4, h: f.h - 4, qty: 1, eb: '4L' },
     )
   })
+  const thStyle: React.CSSProperties = { padding: '10px 12px', fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#4a463f', borderBottom: '2px solid #e8e5df', textAlign: 'left', background: '#f5f3ee' }
+  const tdStyle: React.CSSProperties = { padding: '9px 12px', fontSize: 12, color: '#1c1a16', borderBottom: '1px solid #e8e5df' }
+  const monoTd: React.CSSProperties = { ...tdStyle, fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }
+
   return (
     <Modal onClose={onClose}>
-      <div style={{ padding: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--kb-line)' }}>
+      <div style={{ background: '#fff', borderRadius: 16, color: '#1c1a16' }}>
+        {/* Header */}
+        <div style={{ padding: '24px 28px 20px', borderBottom: '1px solid #e8e5df', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--kb-ink-soft)', fontWeight: 600 }}>Job card</div>
-            <h2 style={{ fontFamily: 'Fraunces', fontSize: 26, fontWeight: 400, margin: '6px 0 0' }}>{order.id} · Cut-list</h2>
-            <div style={{ fontSize: 12, color: 'var(--kb-ink-soft)', marginTop: 4 }}>
-              {order.customer.name} · {findShutter(order.config.shutter)?.label} · {lines.length} pieces
+            <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#c96442', fontWeight: 700 }}>Job card</div>
+            <h2 style={{ fontFamily: 'Fraunces', fontSize: 26, fontWeight: 400, margin: '6px 0 0', color: '#1c1a16' }}>{order.id} · Cut-list</h2>
+            <div style={{ fontSize: 13, color: '#4a463f', marginTop: 4 }}>
+              {order.customer.name} · <strong>{findShutter(order.config.shutter)?.label}</strong> · {lines.length} pieces
             </div>
           </div>
-          <button onClick={onClose} style={{ fontSize: 20, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--kb-ink-soft)', padding: 4 }}>×</button>
+          <button onClick={onClose} style={{ fontSize: 22, background: 'none', border: 'none', cursor: 'pointer', color: '#4a463f', padding: '4px 8px', lineHeight: 1 }}>×</button>
         </div>
-        <table className="kb-crisp-table" style={{ width: '100%' }}>
-          <thead>
-            <tr><th>Barcode</th><th>SKU</th><th>Part</th><th>W (mm)</th><th>H (mm)</th><th>Qty</th><th>Edge band</th></tr>
-          </thead>
-          <tbody>
-            {lines.map(l => (
-              <tr key={l.id}>
-                <td style={{ fontFamily: 'JetBrains Mono', fontSize: 11 }}>{l.id}</td>
-                <td style={{ fontFamily: 'JetBrains Mono', fontSize: 11 }}>{l.sku}</td>
-                <td style={{ fontSize: 13 }}>{l.part}</td>
-                <td style={{ fontFamily: 'JetBrains Mono' }}>{l.w}</td>
-                <td style={{ fontFamily: 'JetBrains Mono' }}>{l.h}</td>
-                <td style={{ fontFamily: 'JetBrains Mono' }}>{l.qty}</td>
-                <td style={{ fontFamily: 'JetBrains Mono', fontSize: 11 }}>{l.eb}</td>
+
+        {/* Table */}
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={thStyle}>Barcode</th>
+                <th style={thStyle}>SKU</th>
+                <th style={thStyle}>Part</th>
+                <th style={{ ...thStyle, textAlign: 'right' }}>W (mm)</th>
+                <th style={{ ...thStyle, textAlign: 'right' }}>H (mm)</th>
+                <th style={{ ...thStyle, textAlign: 'right' }}>Qty</th>
+                <th style={thStyle}>Edge band</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 8, background: 'var(--kb-bg)', fontSize: 11, color: 'var(--kb-ink-soft)' }}>
-          Each row prints as a Zebra label (50×30mm) with QR code · scans into the install module.
+            </thead>
+            <tbody>
+              {lines.map((l, i) => (
+                <tr key={l.id} style={{ background: i % 2 === 0 ? '#fff' : '#fafaf7' }}>
+                  <td style={monoTd}>{l.id}</td>
+                  <td style={{ ...monoTd, color: '#c96442' }}>{l.sku}</td>
+                  <td style={{ ...tdStyle, fontWeight: 600 }}>{l.part}</td>
+                  <td style={{ ...monoTd, textAlign: 'right' }}>{l.w}</td>
+                  <td style={{ ...monoTd, textAlign: 'right' }}>{l.h}</td>
+                  <td style={{ ...monoTd, textAlign: 'right' }}>{l.qty}</td>
+                  <td style={{ ...monoTd, color: l.eb === '4L' ? '#c96442' : '#1c1a16' }}>{l.eb}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer */}
+        <div style={{ padding: '14px 28px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ flex: 1, padding: '10px 14px', borderRadius: 8, background: '#f5f3ee', fontSize: 11, color: '#4a463f' }}>
+            📦 Each row prints as a Zebra label (50×30mm) with QR · scans into install module.
+          </div>
+          <button onClick={() => window.print()} style={{ padding: '9px 18px', borderRadius: 8, border: '1px solid #e8e5df', background: '#1c1a16', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+            🖨 Print
+          </button>
         </div>
       </div>
     </Modal>

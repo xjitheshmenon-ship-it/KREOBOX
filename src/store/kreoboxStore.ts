@@ -13,6 +13,7 @@ interface KreoboxState {
   setInventory: (inv: KBInventory | ((prev: KBInventory) => KBInventory)) => void
   showToast: (msg: string) => void
   clearToast: () => void
+  resetDemo: () => void
 }
 
 export const useKreoboxStore = create<KreoboxState>()(
@@ -46,6 +47,11 @@ export const useKreoboxStore = create<KreoboxState>()(
       },
 
       clearToast: () => set({ toast: null }),
+
+      resetDemo: () => {
+        set({ orders: seedOrders(), inventory: seedInventory() })
+        get().showToast('Demo reset — fresh seed data loaded')
+      },
     }),
     {
       name: 'kreobox-v1',

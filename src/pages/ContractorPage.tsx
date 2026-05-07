@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { useKreoboxStore } from '../store/kreoboxStore'
 import { inr, generatePanels } from '../data/catalog'
 import type { KBOrder, Lead, OrderConfig } from '../types/kreobox'
@@ -87,7 +88,9 @@ const EMPTY_DRAFT: ProjectDraft = { kind: 'home', flatType: '', rooms: [], clien
 export default function ContractorPage({ pendingLead, clearLead }: ContractorPageProps) {
   const orders = useKreoboxStore(s => s.orders)
   const addOrder = useKreoboxStore(s => s.addOrder)
+  const updateOrderStage = useKreoboxStore(s => s.updateOrderStage)
   const [step, setStep] = useState<FlowStep>(pendingLead ? 'design' : 'list')
+  const [listTab, setListTab] = useState<'incoming' | 'active'>('incoming')
   const [draft, setDraft] = useState<ProjectDraft>(EMPTY_DRAFT)
 
   useEffect(() => { if (pendingLead) setStep('design') }, [pendingLead])
@@ -257,12 +260,20 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
   )
 
   // ── Studio list view ───────────────────────────────────────────────────
+  const quoted   = orders.filter(o => o.stage === 'Quoted')
+  const active   = orders.filter(o => o.stage !== 'Quoted')
+
   return (
     <div style={S.page} className="kb-font-body">
       <header style={S.topbar}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={{ fontFamily: 'Fraunces', fontSize: 15, fontWeight: 500, letterSpacing: '0.12em' }}>KREOBOX</span>
-          <span style={{ fontSize: 11, color: 'var(--kb-ink-soft)', borderLeft: '1px solid var(--kb-line)', paddingLeft: 16, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>DesignOS · Studio</span>
+          <Link to="/contractor" style={{ fontFamily: 'Fraunces', fontSize: 15, fontWeight: 500, letterSpacing: '0.12em', color: 'inherit', textDecoration: 'none' }}>KREOBOX</Link>
+          <span style={{ fontSize: 11, color: 'var(--kb-ink-soft)', borderLeft: '1px solid var(--kb-line)', paddingLeft: 16, letterSpacing: '0.14em', textTransform: 'uppercase' as const, fontWeight: 600 }}>DesignOS · Studio</span>
+          {quoted.length > 0 && (
+            <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 99, background: 'var(--kb-accent)', color: '#fff', fontWeight: 700 }}>
+              {quoted.length} new {quoted.length === 1 ? 'order' : 'orders'}
+            </span>
+          )}
         </div>
         <button onClick={() => setStep('kind')} className="kb-btn" style={{ padding: '8px 18px', borderRadius: 8, background: 'var(--kb-accent)', color: '#fff', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
           + New project
@@ -270,59 +281,120 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
       </header>
 
       <div style={S.content}>
-        <div style={{ marginBottom: 8 }}>
-          <div style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--kb-accent)', fontWeight: 700 }}>DesignOS</div>
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: 'var(--kb-accent)', fontWeight: 700 }}>DesignOS</div>
           <h1 className="kb-font-display" style={{ fontSize: 44, fontWeight: 300, letterSpacing: '-0.025em', margin: '6px 0 0', lineHeight: 0.95 }}>Studio</h1>
-          <p style={{ fontSize: 13, marginTop: 10, color: 'var(--kb-ink-soft)' }}>Design homes and offices · Configure merchandise · Dispatch to factory.</p>
+          <p style={{ fontSize: 13, marginTop: 10, color: 'var(--kb-ink-soft)' }}>Design homes and offices · Confirm orders · Send to factory.</p>
+        </div>
+
+        {/* KPIs */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 28 }}>
+          <KPI label="Awaiting confirmation" value={quoted.length} accent={quoted.length > 0} />
+          <KPI label="In production" value={orders.filter(o => ['Confirmed','In Cut-list','Cut','Edge-banded'].includes(o.stage)).length} />
+          <KPI label="At site" value={orders.filter(o => ['Dispatched','Installing'].includes(o.stage)).length} />
+          <KPI label="GMV" value={inr(orders.reduce((s, o) => s + o.total, 0))} mono accent />
         </div>
 
         {/* Two entry points */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 32, marginBottom: 32 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 28 }}>
           <ProjectKindCard kind="home" onClick={() => { setDraft(d => ({ ...d, kind: 'home' })); setStep('flat-type') }} />
           <ProjectKindCard kind="office" onClick={() => { setDraft(d => ({ ...d, kind: 'office' })); setStep('flat-type') }} />
         </div>
 
-        {/* KPIs */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 28 }}>
-          <KPI label="Active projects" value={orders.filter(o => !['Installed', 'Dispatched'].includes(o.stage)).length} />
-          <KPI label="Pending site visit" value={orders.filter(o => o.stage === 'Confirmed').length} />
-          <KPI label="GMV this month" value={inr(orders.reduce((s, o) => s + o.total, 0))} mono accent />
+        {/* Tabs */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 16 }}>
+          {([
+            { id: 'incoming' as const, label: 'Incoming', count: quoted.length, alert: quoted.length > 0 },
+            { id: 'active' as const, label: 'All projects', count: active.length, alert: false },
+          ]).map(t => (
+            <button key={t.id} onClick={() => setListTab(t.id)} style={{
+              padding: '8px 16px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+              background: listTab === t.id ? 'var(--kb-ink)' : 'transparent',
+              color: listTab === t.id ? 'var(--kb-paper)' : 'var(--kb-ink-soft)',
+              border: `1px solid ${listTab === t.id ? 'var(--kb-ink)' : 'var(--kb-line-2)'}`,
+              display: 'flex', alignItems: 'center', gap: 8,
+            }}>
+              {t.label}
+              <span style={{ fontFamily: 'JetBrains Mono', fontSize: 10, padding: '1px 6px', borderRadius: 99, background: t.alert ? 'var(--kb-accent)' : 'transparent', color: t.alert ? '#fff' : 'inherit' }}>{t.count}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Orders table */}
-        <div style={{ background: 'var(--kb-paper)', borderRadius: 14, overflow: 'hidden', border: '1px solid var(--kb-line)' }}>
-          <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--kb-line)', background: 'var(--kb-bg)' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' }}>My projects</div>
-            <div className="kb-font-mono" style={{ fontSize: 11, color: 'var(--kb-ink-soft)' }}>{orders.length} total</div>
+        {/* Incoming — quoted orders needing confirmation */}
+        {listTab === 'incoming' && (
+          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 10 }}>
+            {quoted.length === 0 ? (
+              <div style={{ background: 'var(--kb-paper)', borderRadius: 12, padding: '48px', textAlign: 'center' as const, color: 'var(--kb-ink-soft)', fontSize: 13, border: '1px solid var(--kb-line)' }}>
+                No incoming orders — new customer orders appear here automatically.
+              </div>
+            ) : quoted.map(o => (
+              <div key={o.id} style={{ background: 'var(--kb-paper)', borderRadius: 12, padding: '20px 24px', border: '2px solid rgba(201,100,66,0.3)', display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                    <span className="kb-font-mono" style={{ fontSize: 12 }}>{o.id}</span>
+                    <StagePill stage={o.stage} />
+                    <span style={{ fontSize: 11, textTransform: 'capitalize' as const, color: 'var(--kb-ink-soft)' }}>{o.type}</span>
+                  </div>
+                  <div style={{ fontSize: 16, fontWeight: 700 }}>{o.customer.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--kb-ink-soft)', marginTop: 2 }}>
+                    {o.customer.phone} · {o.customer.area}, {o.customer.city}
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--kb-ink-soft)', marginTop: 4 }}>
+                    {o.config.frames.length} frame{o.config.frames.length !== 1 ? 's' : ''} · Advance paid: {inr(o.advance)}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' as const, marginRight: 16 }}>
+                  <div className="kb-font-mono" style={{ fontSize: 16, fontWeight: 600 }}>{inr(o.total)}</div>
+                  <div style={{ fontSize: 10, color: 'var(--kb-ink-soft)', marginTop: 2 }}>order value</div>
+                  <div style={{ fontSize: 11, color: 'var(--kb-ink-soft)', marginTop: 4 }}>{o.createdAt}</div>
+                </div>
+                <button
+                  onClick={() => updateOrderStage(o.id, 'Confirmed')}
+                  style={{ padding: '12px 22px', borderRadius: 10, border: 'none', background: 'var(--kb-accent)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' as const }}
+                >
+                  Confirm & send to factory →
+                </button>
+              </div>
+            ))}
           </div>
-          {orders.length === 0 ? (
-            <div style={{ padding: '48px', textAlign: 'center', color: 'var(--kb-ink-soft)', fontSize: 13 }}>
-              No projects yet — start a new home or office design above.
+        )}
+
+        {/* Active — all non-quoted orders */}
+        {listTab === 'active' && (
+          <div style={{ background: 'var(--kb-paper)', borderRadius: 14, overflow: 'hidden', border: '1px solid var(--kb-line)' }}>
+            <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--kb-line)', background: 'var(--kb-bg)' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const }}>All projects</div>
+              <div className="kb-font-mono" style={{ fontSize: 11, color: 'var(--kb-ink-soft)' }}>{active.length} total</div>
             </div>
-          ) : (
-            <table className="kb-crisp-table" style={{ width: '100%' }}>
-              <thead><tr>
-                <th>Project ID</th><th>Client</th><th>Type</th><th>Created</th><th>Stage</th>
-                <th style={{ textAlign: 'right' }}>Value</th>
-              </tr></thead>
-              <tbody>
-                {orders.map(o => (
-                  <tr key={o.id} style={{ background: 'var(--kb-paper)' }}>
-                    <td className="kb-font-mono" style={{ fontSize: 12 }}>{o.id}</td>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{o.customer.name}</div>
-                      <div style={{ fontSize: 11, color: 'var(--kb-ink-soft)', marginTop: 1 }}>{o.customer.area}, {o.customer.city}</div>
-                    </td>
-                    <td style={{ textTransform: 'capitalize', fontSize: 12 }}>{o.type}</td>
-                    <td className="kb-font-mono" style={{ fontSize: 12, color: 'var(--kb-ink-soft)' }}>{o.createdAt}</td>
-                    <td><StagePill stage={o.stage} /></td>
-                    <td className="kb-font-mono" style={{ textAlign: 'right' }}>{inr(o.total)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+            {active.length === 0 ? (
+              <div style={{ padding: '48px', textAlign: 'center' as const, color: 'var(--kb-ink-soft)', fontSize: 13 }}>
+                No active projects yet.
+              </div>
+            ) : (
+              <table className="kb-crisp-table" style={{ width: '100%' }}>
+                <thead><tr>
+                  <th>Project ID</th><th>Client</th><th>Type</th><th>Created</th><th>Stage</th>
+                  <th style={{ textAlign: 'right' }}>Value</th>
+                </tr></thead>
+                <tbody>
+                  {active.map(o => (
+                    <tr key={o.id} style={{ background: 'var(--kb-paper)' }}>
+                      <td className="kb-font-mono" style={{ fontSize: 12 }}>{o.id}</td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{o.customer.name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--kb-ink-soft)', marginTop: 1 }}>{o.customer.area}, {o.customer.city}</div>
+                      </td>
+                      <td style={{ textTransform: 'capitalize' as const, fontSize: 12 }}>{o.type}</td>
+                      <td className="kb-font-mono" style={{ fontSize: 12, color: 'var(--kb-ink-soft)' }}>{o.createdAt}</td>
+                      <td><StagePill stage={o.stage} /></td>
+                      <td className="kb-font-mono" style={{ textAlign: 'right' as const }}>{inr(o.total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

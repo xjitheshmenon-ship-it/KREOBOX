@@ -355,6 +355,46 @@ export function generatePanels(config: { type: ProductType; frames: string[]; wa
 /* ── Seed data ── */
 export function seedOrders(): KBOrder[] {
   return [
+    // Quoted — customer placed, awaiting contractor confirmation
+    {
+      id: 'ORD-1048',
+      customer: { name: 'Meera Pillai', phone: '+91 91XXX 44210', city: 'Bengaluru', area: 'Koramangala' },
+      contractor: 'Unassigned',
+      type: 'wardrobe',
+      config: { type: 'wardrobe', wallWidth: 1800, height: 2100, frames: ['W-900-2100', 'W-900-2100'], walls: [], shutter: 'S-OAK', preset: 'WP-1' },
+      advance: 31500, total: 58000, stage: 'Quoted', createdAt: '2026-05-07',
+      panels: [],
+    },
+    {
+      id: 'ORD-1047',
+      customer: { name: 'Rakesh Menon', phone: '+91 99XXX 77650', city: 'Bengaluru', area: 'Whitefield' },
+      contractor: 'Unassigned',
+      type: 'kitchen',
+      config: { type: 'kitchen', wallWidth: 2700, height: 720, frames: ['K-B-600', 'K-B-900', 'K-B-600'], walls: ['K-W-600', 'K-W-900'], shutter: 'S-WHITE', preset: 'KP-B1' },
+      advance: 44100, total: 84000, stage: 'Quoted', createdAt: '2026-05-06',
+      panels: [],
+    },
+    // Confirmed — contractor reviewed, sent to factory
+    {
+      id: 'ORD-1046',
+      customer: { name: 'Divya Krishnan', phone: '+91 88XXX 55320', city: 'Bengaluru', area: 'Jayanagar' },
+      contractor: 'Suresh Modulars',
+      type: 'office',
+      config: { type: 'office', wallWidth: 3600, height: 1200, frames: ['O-D-1800', 'O-P-3D'], walls: [], shutter: 'S-STONE', preset: 'OP-2' },
+      advance: 24360, total: 69600, stage: 'Confirmed', createdAt: '2026-05-04',
+      panels: [],
+    },
+    // In Cut-list — factory preparing cut-list
+    {
+      id: 'ORD-1045',
+      customer: { name: 'Arun Sharma', phone: '+91 97XXX 11870', city: 'Bengaluru', area: 'Banashankari' },
+      contractor: 'Visruth Interiors',
+      type: 'wardrobe',
+      config: { type: 'wardrobe', wallWidth: 2700, height: 2400, frames: ['W-900-2400', 'W-900-2400', 'W-900-2400'], walls: [], shutter: 'S-WALNUT', preset: 'WP-3' },
+      advance: 73500, total: 105000, stage: 'In Cut-list', createdAt: '2026-05-02',
+      panels: [],
+    },
+    // Cut — panels on cutting table
     {
       id: 'ORD-1042',
       customer: { name: 'Anita Reddy', phone: '+91 98XXX 12340', city: 'Bengaluru', area: 'HSR Layout' },
@@ -363,16 +403,37 @@ export function seedOrders(): KBOrder[] {
       config: { type: 'wardrobe', wallWidth: 2400, height: 2100, frames: ['W-750-2100', 'W-900-2100', 'W-750-2100'], walls: [], shutter: 'S-WALNUT', preset: 'WP-2' },
       advance: 65000, total: 92400, stage: 'Cut', createdAt: '2026-04-29',
       panels: [
-        { id: 'P-1042-01', name: 'Side panel L', qty: 4, lam: 'S-WALNUT', status: 'cut' },
-        { id: 'P-1042-02', name: 'Side panel R', qty: 4, lam: 'S-WALNUT', status: 'cut' },
-        { id: 'P-1042-03', name: 'Top panel',    qty: 3, lam: 'S-WALNUT', status: 'cut' },
-        { id: 'P-1042-04', name: 'Bottom panel', qty: 3, lam: 'S-WALNUT', status: 'cut' },
-        { id: 'P-1042-05', name: 'Back panel',   qty: 3, lam: 'S-WALNUT', status: 'cut' },
+        { id: 'P-1042-01', name: 'Side panel L',  qty: 4, lam: 'S-WALNUT', status: 'cut' },
+        { id: 'P-1042-02', name: 'Side panel R',  qty: 4, lam: 'S-WALNUT', status: 'cut' },
+        { id: 'P-1042-03', name: 'Top panel',     qty: 3, lam: 'S-WALNUT', status: 'cut' },
+        { id: 'P-1042-04', name: 'Bottom panel',  qty: 3, lam: 'S-WALNUT', status: 'cut' },
+        { id: 'P-1042-05', name: 'Back panel',    qty: 3, lam: 'S-WALNUT', status: 'cut' },
         { id: 'P-1042-06', name: 'Shutter',       qty: 6, lam: 'S-WALNUT', status: 'pending' },
         { id: 'P-1042-07', name: 'Drawer fronts', qty: 9, lam: 'S-WALNUT', status: 'pending' },
         { id: 'P-1042-08', name: 'Shelves',       qty: 9, lam: 'S-WALNUT', status: 'pending' },
       ],
     },
+    // Edge-banded
+    {
+      id: 'ORD-1043',
+      customer: { name: 'Sunil Bhat', phone: '+91 94XXX 23410', city: 'Bengaluru', area: 'Malleshwaram' },
+      contractor: 'Banasri Builds',
+      type: 'kitchen',
+      config: { type: 'kitchen', wallWidth: 3600, height: 720, frames: ['K-B-600', 'K-B-900', 'K-B-900', 'K-B-600'], walls: ['K-W-600', 'K-W-900', 'K-W-600'], shutter: 'S-STONE', preset: 'KP-B3' },
+      advance: 88200, total: 126000, stage: 'Edge-banded', createdAt: '2026-04-27',
+      panels: [],
+    },
+    // Packed — ready for dispatch
+    {
+      id: 'ORD-1044',
+      customer: { name: 'Priya Venkat', phone: '+91 93XXX 99870', city: 'Bengaluru', area: 'Electronic City' },
+      contractor: 'Suresh Modulars',
+      type: 'wardrobe',
+      config: { type: 'wardrobe', wallWidth: 1800, height: 2100, frames: ['W-900-2100', 'W-900-2100'], walls: [], shutter: 'S-WHITE', preset: 'WP-1' },
+      advance: 42000, total: 60000, stage: 'Packed', createdAt: '2026-04-25',
+      panels: [],
+    },
+    // Dispatched — on the way
     {
       id: 'ORD-1041',
       customer: { name: 'Karthik Nair', phone: '+91 96XXX 88210', city: 'Bengaluru', area: 'Indiranagar' },
@@ -382,6 +443,17 @@ export function seedOrders(): KBOrder[] {
       advance: 99400, total: 142000, stage: 'Dispatched', createdAt: '2026-04-22',
       panels: [],
     },
+    // Installing
+    {
+      id: 'ORD-1040',
+      customer: { name: 'Kavitha Subbu', phone: '+91 95XXX 43210', city: 'Bengaluru', area: 'JP Nagar' },
+      contractor: 'Banasri Builds',
+      type: 'wardrobe',
+      config: { type: 'wardrobe', wallWidth: 2400, height: 2400, frames: ['W-750-2400', 'W-900-2400', 'W-750-2400'], walls: [], shutter: 'S-GLOSS', preset: 'WP-2' },
+      advance: 71400, total: 102000, stage: 'Installing', createdAt: '2026-04-18',
+      panels: [],
+    },
+    // Installed — done
     {
       id: 'ORD-1039',
       customer: { name: 'Pooja Iyer', phone: '+91 97XXX 30120', city: 'Mysuru', area: 'Vijayanagar' },

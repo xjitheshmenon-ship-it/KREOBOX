@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useKreoboxStore } from '../store/kreoboxStore'
 import { inr, CATALOG, findShutter } from '../data/catalog'
-import type { KBOrder, KBInventory, LaminateStock, HardwareStock } from '../types/kreobox'
+import type { KBOrder, KBInventory, LaminateStock, HardwareStock, OrderStage } from '../types/kreobox'
 import StagePill from '../components/kreobox/StagePill'
 
 const S = {
@@ -28,9 +29,11 @@ export default function AdminPage() {
   const orders = useKreoboxStore(s => s.orders)
   const inventory = useKreoboxStore(s => s.inventory)
   const updateOrderStage = useKreoboxStore(s => s.updateOrderStage)
-  const [view, setView] = useState<'dashboard' | 'installer'>('dashboard')
+  const resetDemo = useKreoboxStore(s => s.resetDemo)
+  const [view, setView] = useState<'pipeline' | 'dashboard' | 'installer'>('pipeline')
 
   const tabs = [
+    { id: 'pipeline' as const, label: 'Live pipeline' },
     { id: 'dashboard' as const, label: 'Founder dashboard' },
     { id: 'installer' as const, label: 'Installer view' },
   ]
@@ -39,11 +42,14 @@ export default function AdminPage() {
     <div style={S.page} className="kb-font-body">
       <header style={S.topbar}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={S.logo}>KREOBOX</span>
+          <Link to="/contractor" style={{ ...S.logo, color: 'inherit', textDecoration: 'none' }}>KREOBOX</Link>
           <span style={{ fontSize: 11, color: 'var(--kb-ink-soft)', borderLeft: '1px solid var(--kb-line)', paddingLeft: 16, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>
-            Admin
+            Platform · Admin
           </span>
         </div>
+        <button onClick={resetDemo} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid var(--kb-line)', background: 'transparent', color: 'var(--kb-ink-soft)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>
+          ↺ Reset demo
+        </button>
       </header>
 
       <div style={S.content}>
@@ -70,6 +76,7 @@ export default function AdminPage() {
           ))}
         </div>
 
+        {view === 'pipeline' && <PipelineKanban orders={orders} updateOrderStage={updateOrderStage} />}
         {view === 'dashboard' && <FounderDashboard orders={orders} inventory={inventory} />}
         {view === 'installer' && <InstallerView orders={orders} updateOrderStage={updateOrderStage} />}
       </div>
@@ -282,6 +289,82 @@ function InstallerView({ orders, updateOrderStage }: { orders: KBOrder[]; update
           <div>📍 Auto-locate on arrival</div>
           <div>🔔 WhatsApp to customer on install complete</div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Pipeline Kanban ────────────────────────────────────────────────────────
+
+const ALL_STAGES: OrderStage[] = ['Quoted', 'Confirmed', 'In Cut-list', 'Cut', 'Edge-banded', 'Packed', 'Dispatched', 'Installing', 'Installed']
+
+const STAGE_NEXT: Partial<Record<OrderStage, OrderStage>> = {
+  'Quoted':      'Confirmed',
+  'Confirmed':   'In Cut-list',
+  'In Cut-list': 'Cut',
+  'Cut':         'Edge-banded',
+  'Edge-banded': 'Packed',
+  'Packed':      'Dispatched',
+  'Dispatched':  'Installing',
+  'Installing':  'Installed',
+}
+
+const STAGE_COLOR: Record<string, string> = {
+  'Quoted':      '#e8a820',
+  'Confirmed':   '#4a90d9',
+  'In Cut-list': '#7c63d4',
+  'Cut':         '#c96442',
+  'Edge-banded': '#d47a32',
+  'Packed':      '#2a9d8f',
+  'Dispatched':  '#2196a6',
+  'Installing':  '#1f8a5b',
+  'Installed':   '#1f8a5b',
+}
+
+function PipelineKanban({ orders, updateOrderStage }: { orders: KBOrder[]; updateOrderStage: (id: string, stage: OrderStage) => void }) {
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: 'var(--kb-ink-soft)', marginBottom: 20 }}>
+        Full order journey from customer quote to installation. Click <strong>→ Stage</strong> to advance any order.
+      </p>
+      <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 12 }}>
+        {ALL_STAGES.map(stage => {
+          const stageOrders = orders.filter(o => o.stage === stage)
+          return (
+            <div key={stage} style={{ minWidth: 195, flexShrink: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: STAGE_COLOR[stage], flexShrink: 0, display: 'inline-block' }} />
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: 'var(--kb-ink-soft)' }}>{stage}</span>
+                <span style={{ fontFamily: 'JetBrains Mono', fontSize: 10, marginLeft: 'auto', color: 'var(--kb-ink-3)' }}>{stageOrders.length}</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+                {stageOrders.length === 0 ? (
+                  <div style={{ borderRadius: 10, border: '1px dashed var(--kb-line)', padding: '20px 12px', textAlign: 'center' as const, color: 'var(--kb-ink-3)', fontSize: 11 }}>—</div>
+                ) : stageOrders.map(o => {
+                  const next = STAGE_NEXT[stage]
+                  return (
+                    <div key={o.id} style={{ background: 'var(--kb-paper)', borderRadius: 10, padding: '12px 14px', border: '1px solid var(--kb-line)', borderLeft: `3px solid ${STAGE_COLOR[stage]}` }}>
+                      <div className="kb-font-mono" style={{ fontSize: 10, color: 'var(--kb-ink-3)', marginBottom: 4 }}>{o.id}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 2 }}>{o.customer.name}</div>
+                      <div style={{ fontSize: 11, color: 'var(--kb-ink-soft)', textTransform: 'capitalize' as const, marginBottom: 8 }}>{o.type} · {inr(o.total)}</div>
+                      {next ? (
+                        <button onClick={() => updateOrderStage(o.id, next)} style={{
+                          width: '100%', padding: '6px 10px', borderRadius: 6, border: 'none',
+                          background: STAGE_COLOR[next] + '20',
+                          color: STAGE_COLOR[next], fontSize: 11, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
+                        }}>
+                          → {next}
+                        </button>
+                      ) : (
+                        <div style={{ fontSize: 11, color: '#1f8a5b', fontWeight: 700 }}>✓ Complete</div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
