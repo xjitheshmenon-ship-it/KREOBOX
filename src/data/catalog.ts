@@ -25,6 +25,39 @@ interface CatalogCategory {
 }
 
 export const CATALOG: Record<string, CatalogCategory> = {
+  office: {
+    label: 'Office',
+    frames: [
+      { id: 'O-D-1200',  type: 'desk',        w: 1200, h: 720,  d: 750,  price: 18500 },
+      { id: 'O-D-1500',  type: 'desk',        w: 1500, h: 720,  d: 750,  price: 22000 },
+      { id: 'O-D-1800',  type: 'desk',        w: 1800, h: 720,  d: 750,  price: 26500 },
+      { id: 'O-L-1800',  type: 'l-desk',      w: 1800, h: 720,  d: 1500, price: 42000 },
+      { id: 'O-L-2100',  type: 'l-desk',      w: 2100, h: 720,  d: 1800, price: 52000 },
+      { id: 'O-WS-2',    type: 'workstation', w: 1200, h: 720,  d: 1200, price: 38000 },
+      { id: 'O-WS-4',    type: 'workstation', w: 2400, h: 720,  d: 1200, price: 68000 },
+      { id: 'O-WS-6',    type: 'workstation', w: 3600, h: 720,  d: 1200, price: 96000 },
+      { id: 'O-P-3D',    type: 'pedestal',    w: 400,  h: 600,  d: 500,  price: 8800 },
+      { id: 'O-P-2D',    type: 'pedestal',    w: 400,  h: 500,  d: 500,  price: 6500 },
+      { id: 'O-S-800',   type: 'storage',     w: 800,  h: 1800, d: 400,  price: 16500 },
+      { id: 'O-S-1200',  type: 'storage',     w: 1200, h: 1800, d: 400,  price: 22000 },
+      { id: 'O-S-1600',  type: 'storage',     w: 1600, h: 1800, d: 400,  price: 28500 },
+      { id: 'O-C-1200',  type: 'credenza',    w: 1200, h: 740,  d: 450,  price: 19500 },
+      { id: 'O-C-1800',  type: 'credenza',    w: 1800, h: 740,  d: 450,  price: 26000 },
+      { id: 'O-M-4P',    type: 'meeting',     w: 1600, h: 720,  d: 800,  price: 32000 },
+      { id: 'O-M-6P',    type: 'meeting',     w: 2400, h: 720,  d: 900,  price: 48000 },
+      { id: 'O-M-10P',   type: 'meeting',     w: 3600, h: 720,  d: 1200, price: 72000 },
+      { id: 'O-PT-1200', type: 'partition',   w: 1200, h: 1200, d: 60,   price: 9800 },
+      { id: 'O-PT-1800', type: 'partition',   w: 1800, h: 1200, d: 60,   price: 13500 },
+    ],
+    presets: [
+      { id: 'OP-1', label: 'Desk only',        desc: 'Worktop + modesty panel + cable tray',        price: 3500 },
+      { id: 'OP-2', label: 'Desk + pedestal',  desc: 'Worktop + 3-drawer mobile pedestal',          price: 5800 },
+      { id: 'OP-3', label: 'Executive setup',  desc: 'L-desk + pedestal + wall bookshelf',          price: 9200 },
+      { id: 'OP-4', label: 'Workstation kit',  desc: 'Shared worktop + divider screen + pedestals', price: 7500 },
+      { id: 'OP-5', label: 'Meeting room pack',desc: 'Table + power box + credenza',                price: 6400 },
+      { id: 'OP-6', label: 'Storage wall',     desc: '3 bookshelves + 1 credenza, full bay',        price: 4200 },
+    ],
+  },
   wardrobe: {
     label: 'Wardrobe',
     frames: [
@@ -198,6 +231,30 @@ export const SHOWROOM: ShowroomItem[] = [
     frames: ['K-B-600', 'K-B-900', 'K-B-600', 'K-B-750', 'K-T-600-2400', 'K-B-600', 'K-B-900', 'K-B-750'],
     walls: ['K-W-600', 'K-W-900', 'K-W-600-750', 'K-W-750', 'K-W-600', 'K-W-900', 'K-W-750'],
     shutter: 'S-WHITE', preset: 'KP-B1', basePrice: 248000,
+  },
+  {
+    id: 'SR-11', type: 'office', title: 'Executive Corner', subtitle: 'L-desk + walnut storage wall + pedestal',
+    w: 2100, h: 1800,
+    frames: ['O-L-2100', 'O-P-3D', 'O-S-1200'],
+    shutter: 'S-WALNUT', preset: 'OP-3', basePrice: 98000,
+  },
+  {
+    id: 'SR-12', type: 'office', title: '4-Seat Workstation', subtitle: 'Back-to-back open plan, oak finish',
+    w: 2400, h: 1200,
+    frames: ['O-WS-4', 'O-P-3D', 'O-P-3D'],
+    shutter: 'S-OAK', preset: 'OP-4', basePrice: 84000,
+  },
+  {
+    id: 'SR-13', type: 'office', title: 'Boardroom 6P', subtitle: '6-person meeting table + credenza',
+    w: 3600, h: 1200,
+    frames: ['O-M-6P', 'O-C-1800'],
+    shutter: 'S-WHITE', preset: 'OP-5', basePrice: 82000,
+  },
+  {
+    id: 'SR-14', type: 'office', title: 'Director Cabin', subtitle: '1800 desk + storage wall + meeting unit',
+    w: 3600, h: 2400,
+    frames: ['O-D-1800', 'O-P-3D', 'O-S-1600', 'O-M-4P'],
+    shutter: 'S-STONE', preset: 'OP-3', basePrice: 148000,
   },
   {
     id: 'SR-10', type: 'kitchen', title: 'Chai Walnut L', subtitle: 'Walnut shutter L-kitchen, corner carousel',

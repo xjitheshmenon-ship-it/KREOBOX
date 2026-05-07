@@ -28,6 +28,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <NavItem to="/contractor" label="Contractor"  active={pathname === '/contractor'} />
           <NavItem to="/factory"    label="Factory"     active={pathname === '/factory'} />
           <NavItem to="/admin"      label="Admin"       active={pathname === '/admin'} />
+          <NavItem to="/office"     label="Office"      active={pathname === '/office'} />
         </div>
 
         {/* DesignOS section */}

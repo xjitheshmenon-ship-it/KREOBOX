@@ -1,4 +1,4 @@
-export type ProductType = 'wardrobe' | 'kitchen'
+export type ProductType = 'wardrobe' | 'kitchen' | 'office'
 
 export type OrderStage =
   | 'Quoted'

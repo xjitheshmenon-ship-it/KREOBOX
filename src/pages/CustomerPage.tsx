@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { SHOWROOM, SHUTTERS, inr, findShutter } from '../data/catalog'
+import { SHOWROOM, inr, findShutter, generatePanels } from '../data/catalog'
 import type { ShowroomItem } from '../data/catalog'
 import CabinetPreview from '../components/kreobox/CabinetPreview'
 import Modal from '../components/kreobox/Modal'
-import type { Lead, KBCustomer } from '../types/kreobox'
+import type { Lead, KBCustomer, KBOrder } from '../types/kreobox'
+import { useKreoboxStore } from '../store/kreoboxStore'
 
 const S = {
   page: {
@@ -30,9 +31,11 @@ interface CustomerPageProps {
 }
 
 export default function CustomerPage({ onCheckout }: CustomerPageProps) {
-  const [tab, setTab] = useState<'all' | 'wardrobe' | 'kitchen'>('all')
+  const [tab, setTab] = useState<'all' | 'wardrobe' | 'kitchen' | 'office'>('all')
   const [selected, setSelected] = useState<ShowroomItem | null>(null)
   const [stage, setStage] = useState<'browse' | 'quote' | 'pay' | 'done'>('browse')
+  const [confirmedOrderId, setConfirmedOrderId] = useState<string>('')
+  const addOrder = useKreoboxStore(s => s.addOrder)
 
   const items = SHOWROOM.filter(s => tab === 'all' || s.type === tab)
 
@@ -72,6 +75,7 @@ export default function CustomerPage({ onCheckout }: CustomerPageProps) {
             { id: 'all', label: 'All collections' },
             { id: 'wardrobe', label: 'Wardrobes' },
             { id: 'kitchen', label: 'Kitchens' },
+            { id: 'office', label: 'Office' },
           ] as const).map(t => (
             <button
               key={t.id}
@@ -115,20 +119,30 @@ export default function CustomerPage({ onCheckout }: CustomerPageProps) {
           item={selected}
           onBack={() => setStage('quote')}
           onPaid={(form) => {
-            const lead: Lead = {
-              id: 'ORD-' + Math.floor(1050 + Math.random() * 50),
+            const orderId = 'ORD-' + Math.floor(1050 + Math.random() * 900)
+            const advance = Math.round(selected.basePrice * 0.35)
+            const panels = generatePanels({ type: selected.type, frames: selected.frames, walls: selected.walls, shutter: selected.shutter })
+            const order: KBOrder = {
+              id: orderId,
               customer: form,
+              contractor: 'Unassigned',
               type: selected.type,
-              showroomId: selected.id,
-              advance: Math.round(selected.basePrice * 0.35),
+              config: { type: selected.type, wallWidth: selected.w, height: selected.h, frames: selected.frames, walls: selected.walls ?? [], shutter: selected.shutter, preset: selected.preset },
+              advance,
               total: selected.basePrice,
+              stage: 'Quoted',
+              createdAt: new Date().toISOString().slice(0, 10),
+              panels,
             }
+            addOrder(order)
+            setConfirmedOrderId(orderId)
+            const lead: Lead = { id: orderId, customer: form, type: selected.type, showroomId: selected.id, advance, total: selected.basePrice }
             setStage('done')
-            setTimeout(() => onCheckout(lead), 1200)
+            setTimeout(() => onCheckout(lead), 2000)
           }}
         />
       )}
-      {selected && stage === 'done' && <SuccessCard />}
+      {selected && stage === 'done' && <SuccessCard orderId={confirmedOrderId} />}
     </div>
   )
 }
@@ -159,7 +173,7 @@ function CatalogCard({ item, onClick }: { item: ShowroomItem; onClick: () => voi
           padding: '4px 10px', borderRadius: 999,
           background: 'rgba(250,250,247,0.92)', color: 'var(--kb-ink-soft)',
         }}>
-          {item.type === 'kitchen' ? 'Kitchen' : 'Wardrobe'}
+          {item.type === 'kitchen' ? 'Kitchen' : item.type === 'office' ? 'Office' : 'Wardrobe'}
         </div>
         {shutter && (
           <div style={{
@@ -327,7 +341,7 @@ function PayAdvance({ item, onBack, onPaid }: { item: ShowroomItem; onBack: () =
   )
 }
 
-function SuccessCard() {
+function SuccessCard({ orderId }: { orderId: string }) {
   return (
     <Modal>
       <div style={{ padding: '48px 56px', maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
@@ -336,18 +350,22 @@ function SuccessCard() {
         </div>
         <h2 className="kb-font-display" style={{ fontSize: 28, fontWeight: 400, margin: 0 }}>Advance received.</h2>
         <p style={{ marginTop: 10, fontSize: 14, color: 'var(--kb-ink-soft)', lineHeight: 1.55 }}>
-          A KREOBOX-certified contractor in your area is being assigned to your order.
+          Your order is live. A KREOBOX-certified contractor will be assigned shortly.
         </p>
+        <div style={{ marginTop: 16, padding: '10px 20px', background: 'var(--kb-bg)', borderRadius: 8, display: 'inline-block' }}>
+          <span style={{ fontSize: 11, color: 'var(--kb-ink-soft)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Order ID </span>
+          <span className="kb-font-mono" style={{ fontSize: 15, fontWeight: 600, color: 'var(--kb-accent)' }}>{orderId}</span>
+        </div>
         <div style={{ marginTop: 20, padding: 16, borderRadius: 10, textAlign: 'left', fontSize: 12, background: 'var(--kb-bg)' }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Next steps</div>
+          <div style={{ fontWeight: 600, marginBottom: 8 }}>What happens next</div>
           <ol style={{ margin: 0, padding: '0 0 0 16px', color: 'var(--kb-ink-soft)', lineHeight: 2 }}>
-            <li>Contractor will WhatsApp you within 2 hours.</li>
-            <li>Site measurement visit within 48 hours.</li>
-            <li>Final design locked in DesignOS.</li>
+            <li>Order appears in Contractor queue immediately.</li>
+            <li>Contractor WhatsApps you within 2 hours.</li>
+            <li>Site measurement within 48 hours.</li>
             <li>Panels cut and dispatched in 8 working days.</li>
           </ol>
         </div>
-        <div style={{ marginTop: 16, fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--kb-ink-soft)' }}>Switching to contractor view…</div>
+        <div style={{ marginTop: 16, fontSize: 11, fontFamily: 'JetBrains Mono', color: 'var(--kb-ink-soft)' }}>Opening contractor view…</div>
       </div>
     </Modal>
   )
