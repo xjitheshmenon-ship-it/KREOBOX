@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -19,6 +19,80 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: #B0A898; }
 
 input[type='range'] { accent-color: #E85228; }
+
+/* ── Kreobox module CSS variables (Precut Laminate design system) ── */
+:root {
+  --kb-bg:       #f0eee9;
+  --kb-paper:    #fafaf7;
+  --kb-ink:      #1a1815;
+  --kb-ink-soft: #4a463f;
+  --kb-line:     rgba(26,24,21,0.10);
+  --kb-line-2:   rgba(26,24,21,0.18);
+  --kb-accent:   #c96442;
+  --kb-good:     #1f8a5b;
+  --kb-warn:     #b45309;
+  --kb-dark:     #0e0d0b;
+  --kb-dark-2:   #1a1612;
+}
+
+.kb-font-display { font-family: 'Fraunces', Georgia, serif; font-feature-settings: 'ss01'; }
+.kb-font-mono    { font-family: 'JetBrains Mono', monospace; }
+.kb-font-body    { font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+.kb-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.kb-pill-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.kb-btn { transition: all 120ms ease; cursor: pointer; }
+.kb-btn:active { transform: translateY(1px); }
+
+.kb-lift { transition: transform 200ms ease, box-shadow 200ms ease; }
+.kb-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(15,17,21,0.06); }
+
+.kb-crisp-table { border-collapse: collapse; }
+.kb-crisp-table th, .kb-crisp-table td {
+  border-bottom: 1px solid var(--kb-line);
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 13px;
+}
+.kb-crisp-table th {
+  font-weight: 500;
+  color: var(--kb-ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  background: var(--kb-paper-2);
+}
+
+@keyframes kb-slideIn {
+  from { transform: translateY(8px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+.kb-slide-in { animation: kb-slideIn 240ms ease-out both; }
+
+@keyframes kb-stripe {
+  0%   { background-position: 0 0; }
+  100% { background-position: 28px 0; }
+}
+.kb-stripe {
+  background-image: repeating-linear-gradient(45deg, var(--kb-accent) 0 8px, transparent 8px 14px);
+  animation: kb-stripe 1.2s linear infinite;
+  opacity: 0.15;
+}
 
 @media print {
   body { background: white; color: black; }
