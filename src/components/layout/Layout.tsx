@@ -19,6 +19,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="px-3 mt-1">
           <p className="text-[10px] text-white/30 uppercase tracking-widest font-medium px-2 mb-1">DesignOS</p>
           <NavItem to="/contractor" label="Studio"      active={pathname === '/contractor'} dot />
+          <NavItem to="/planner"    label="Planner"     active={pathname === '/planner'} dot />
           <NavItem to="/"           label="Overview"    active={pathname === '/'} />
         </div>
 

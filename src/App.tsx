@@ -10,6 +10,7 @@ import ContractorPage from './pages/ContractorPage'
 import FactoryPage from './pages/FactoryPage'
 import AdminPage from './pages/AdminPage'
 import OfficePage from './pages/OfficePage'
+import PlannerPage from './pages/PlannerPage'
 import { useKreoboxStore } from './store/kreoboxStore'
 import type { Lead } from './types/kreobox'
 
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/factory" element={<FactoryPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/office" element={<OfficePage />} />
+        <Route path="/planner" element={<PlannerPage />} />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
