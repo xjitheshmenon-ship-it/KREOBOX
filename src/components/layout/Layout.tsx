@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Package } from 'lucide-react'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation()
@@ -20,20 +19,24 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <span className="text-white font-semibold tracking-widest text-xs">KREOBOX</span>
         </div>
 
-        {/* My Home section */}
+        {/* Platform modules */}
         <div className="px-3 mt-2">
           <p className="text-[10px] text-white/30 uppercase tracking-widest font-medium px-2 mb-1">
-            My Home
+            Platform
           </p>
-          <NavItem to="/" label="Overview" active={pathname === '/'} dot />
-          <NavItem to="/modules" label="Modules" active={pathname === '/modules'} />
+          <NavItem to="/customer"   label="Customer"   active={pathname === '/customer'} />
+          <NavItem to="/contractor" label="Contractor"  active={pathname === '/contractor'} />
+          <NavItem to="/factory"    label="Factory"     active={pathname === '/factory'} />
+          <NavItem to="/admin"      label="Admin"       active={pathname === '/admin'} />
         </div>
 
-        {/* Project section */}
+        {/* DesignOS section */}
         <div className="px-3 mt-5">
           <p className="text-[10px] text-white/30 uppercase tracking-widest font-medium px-2 mb-1">
-            Design
+            DesignOS
           </p>
+          <NavItem to="/"           label="Overview"    active={pathname === '/'} dot />
+          <NavItem to="/modules"    label="Modules"     active={pathname === '/modules'} />
           <NavItem to="/projects/new" label="New Project" active={pathname === '/projects/new'} />
         </div>
 
