@@ -7,13 +7,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen bg-canvas overflow-hidden">
       <nav className="w-56 bg-sidebar flex flex-col shrink-0">
         {/* Logo */}
-        <div className="px-5 py-5 flex items-center gap-2.5">
+        <Link to="/" className="px-5 py-5 flex items-center gap-2.5 hover:opacity-80 transition-opacity">
           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 shrink-0">
             <path fillRule="evenodd" clipRule="evenodd" d="M16 28 H84 V84 Q84 90 78 90 H22 Q16 90 16 84 Z M30 42 V76 H70 V42 Z" fill="#c96442"/>
             <rect x="20" y="10" width="68" height="14" rx="3" transform="rotate(-8 54 17)" fill="#c96442" fillOpacity="0.7"/>
           </svg>
           <span className="text-white font-semibold tracking-widest text-xs">KREOBOX</span>
-        </div>
+        </Link>
 
         {/* Platform modules */}
         <div className="px-3 mt-2">
