@@ -8,14 +8,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <nav className="w-56 bg-sidebar flex flex-col shrink-0">
         {/* Logo */}
         <div className="px-5 py-5 flex items-center gap-2.5">
-          <div className="w-7 h-7 bg-accent rounded flex items-center justify-center shrink-0">
-            <svg viewBox="0 0 14 14" fill="none" className="w-4 h-4">
-              <rect x="1" y="1" width="5" height="5" rx="1" fill="white"/>
-              <rect x="8" y="1" width="5" height="5" rx="1" fill="white" opacity=".6"/>
-              <rect x="1" y="8" width="5" height="5" rx="1" fill="white" opacity=".6"/>
-              <rect x="8" y="8" width="5" height="5" rx="1" fill="white" opacity=".3"/>
-            </svg>
-          </div>
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 shrink-0">
+            <path fillRule="evenodd" clipRule="evenodd" d="M16 28 H84 V84 Q84 90 78 90 H22 Q16 90 16 84 Z M30 42 V76 H70 V42 Z" fill="#c96442"/>
+            <rect x="20" y="10" width="68" height="14" rx="3" transform="rotate(-8 54 17)" fill="#c96442" fillOpacity="0.7"/>
+          </svg>
           <span className="text-white font-semibold tracking-widest text-xs">KREOBOX</span>
         </div>
 
