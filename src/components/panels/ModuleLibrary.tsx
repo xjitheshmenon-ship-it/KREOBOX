@@ -4,9 +4,10 @@ import { MODULE_CATALOG } from '../../data/modules'
 import type { Module } from '../../types'
 
 const CATEGORIES = [
-  { key: 'wardrobe',      label: 'Wardrobes',   color: '#C8A87A' },
+  { key: 'wardrobe',      label: 'Wardrobes',    color: '#C8A87A' },
   { key: 'kitchen-base',  label: 'Kitchen Base', color: '#6B8FA3' },
   { key: 'kitchen-wall',  label: 'Kitchen Wall', color: '#5A7E96' },
+  { key: 'tall-column',   label: 'Tall Column',  color: '#D4956A' },
   { key: 'tv-unit',       label: 'TV Units',     color: '#8A7AB5' },
   { key: 'utility',       label: 'Utility',      color: '#6AA87A' },
 ]

@@ -2,10 +2,11 @@ export type ModuleCategory =
   | 'wardrobe'
   | 'kitchen-base'
   | 'kitchen-wall'
+  | 'tall-column'
   | 'tv-unit'
   | 'utility'
 
-export type StandardWidth = 300 | 450 | 600 | 900
+export type StandardWidth = 300 | 450 | 600 | 750 | 900
 
 export interface Panel {
   label: string

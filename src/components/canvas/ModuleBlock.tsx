@@ -11,6 +11,7 @@ const CATEGORY_BG: Record<string, string> = {
   'wardrobe':      'rgba(200,168,122,0.85)',
   'kitchen-base':  'rgba(107,143,163,0.85)',
   'kitchen-wall':  'rgba(90,126,150,0.85)',
+  'tall-column':   'rgba(212,149,106,0.85)',
   'tv-unit':       'rgba(138,122,181,0.85)',
   'utility':       'rgba(106,168,122,0.85)',
 }
@@ -19,6 +20,7 @@ const CATEGORY_BORDER: Record<string, string> = {
   'wardrobe':      'rgba(180,140,90,0.9)',
   'kitchen-base':  'rgba(80,120,145,0.9)',
   'kitchen-wall':  'rgba(65,108,135,0.9)',
+  'tall-column':   'rgba(190,120,75,0.9)',
   'tv-unit':       'rgba(110,95,160,0.9)',
   'utility':       'rgba(80,145,95,0.9)',
 }

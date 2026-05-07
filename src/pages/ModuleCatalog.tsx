@@ -9,6 +9,7 @@ const CATEGORIES: { key: ModuleCategory | 'all'; label: string }[] = [
   { key: 'wardrobe',     label: 'Wardrobes' },
   { key: 'kitchen-base', label: 'Kitchen Base' },
   { key: 'kitchen-wall', label: 'Kitchen Wall' },
+  { key: 'tall-column',  label: 'Tall Column' },
   { key: 'tv-unit',      label: 'TV Units' },
   { key: 'utility',      label: 'Utility' },
 ]
@@ -17,6 +18,7 @@ const CAT_COLOR: Record<string, string> = {
   'wardrobe':      '#C8A87A',
   'kitchen-base':  '#6B8FA3',
   'kitchen-wall':  '#5A7E96',
+  'tall-column':   '#D4956A',
   'tv-unit':       '#8A7AB5',
   'utility':       '#6AA87A',
 }
