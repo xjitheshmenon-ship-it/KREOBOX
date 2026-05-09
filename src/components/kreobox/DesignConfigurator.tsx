@@ -11,9 +11,11 @@ interface Props {
   lead: Lead | null
   onBack: () => void
   onConfirm: (config: OrderConfig, total: number) => void
+  confirmLabel?: string
+  roomContext?: { label: string; icon: string; current: number; total: number }
 }
 
-export default function DesignConfigurator({ lead, onBack, onConfirm }: Props) {
+export default function DesignConfigurator({ lead, onBack, onConfirm, confirmLabel, roomContext }: Props) {
   const startType: ProductType = lead?.type ?? 'wardrobe'
   const [step, setStep] = useState(1)
   const [type, setType] = useState<ProductType>(startType)
@@ -48,6 +50,21 @@ export default function DesignConfigurator({ lead, onBack, onConfirm }: Props) {
       <button onClick={onBack} style={{ fontSize: 12, color: 'var(--kb-ink-soft)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 16 }}>
         ← Back to orders
       </button>
+
+      {roomContext && (
+        <div style={{ marginBottom: 20, padding: '12px 16px', borderRadius: 10, background: 'rgba(201,100,66,0.06)', border: '1.5px solid rgba(201,100,66,0.2)', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: 22 }}>{roomContext.icon}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--kb-accent)' }}>{roomContext.label}</div>
+            <div style={{ fontSize: 11, color: 'var(--kb-ink-soft)', marginTop: 1 }}>Space {roomContext.current} of {roomContext.total} · configure and save to continue</div>
+          </div>
+          <div style={{ display: 'flex', gap: 3 }}>
+            {Array.from({ length: roomContext.total }, (_, i) => (
+              <div key={i} style={{ width: 8, height: 8, borderRadius: 99, background: i < roomContext.current ? 'var(--kb-accent)' : i === roomContext.current - 1 ? 'var(--kb-accent)' : 'var(--kb-line)', opacity: i === roomContext.current - 1 ? 1 : 0.4 }} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {lead && (
         <div style={{ marginBottom: 20, padding: 16, borderRadius: 10, background: 'var(--kb-paper)', borderLeft: '3px solid var(--kb-accent)', display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -126,7 +143,7 @@ export default function DesignConfigurator({ lead, onBack, onConfirm }: Props) {
           {step === 3 && <StepFrames frames={frames} walls={walls} type={type} onNext={() => setStep(4)} onBack={() => setStep(2)} />}
           {step === 4 && <StepShutter shutter={shutter} setShutter={setShutter} onNext={() => setStep(5)} onBack={() => setStep(3)} />}
           {step === 5 && <StepPreset preset={preset} setPreset={setPreset} type={type} onNext={() => setStep(6)} onBack={() => setStep(4)} />}
-          {step === 6 && <StepBOQ config={config} total={total} onConfirm={() => onConfirm(config, total)} onBack={() => setStep(5)} />}
+          {step === 6 && <StepBOQ config={config} total={total} onConfirm={() => onConfirm(config, total)} onBack={() => setStep(5)} confirmLabel={confirmLabel} />}
         </div>
       </div>
     </div>
@@ -292,7 +309,7 @@ function StepPreset({ preset, setPreset, type, onNext, onBack }: { preset: strin
   )
 }
 
-function StepBOQ({ config, total, onConfirm, onBack }: { config: OrderConfig; total: number; onConfirm: () => void; onBack: () => void }) {
+function StepBOQ({ config, total, onConfirm, onBack, confirmLabel }: { config: OrderConfig; total: number; onConfirm: () => void; onBack: () => void; confirmLabel?: string }) {
   const cat = CATALOG[config.type]
   const allFrames = [...config.frames, ...config.walls]
   const allObjs = allFrames.map(id => cat.frames.find(f => f.id === id)).filter(Boolean) as typeof cat.frames
@@ -332,7 +349,7 @@ function StepBOQ({ config, total, onConfirm, onBack }: { config: OrderConfig; to
           <li>WhatsApp updates to customer</li>
         </ul>
       </div>
-      <NavBtns onBack={onBack} onNext={onConfirm} nextLabel="Confirm order →" />
+      <NavBtns onBack={onBack} onNext={onConfirm} nextLabel={confirmLabel ?? 'Confirm order →'} />
     </div>
   )
 }

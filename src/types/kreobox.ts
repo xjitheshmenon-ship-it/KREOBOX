@@ -36,12 +36,22 @@ export interface OrderPanel {
   status: 'pending' | 'cut' | 'edge-banded' | 'packed'
 }
 
+export interface RoomConfig {
+  roomId: string
+  roomLabel: string
+  roomIcon: string
+  config: OrderConfig
+  total: number
+}
+
 export interface KBOrder {
   id: string
   customer: KBCustomer
   contractor: string
   type: ProductType
   config: OrderConfig
+  rooms?: RoomConfig[]      // multi-room project: each selected space
+  projectType?: string      // e.g. '2BHK', 'Villa', 'Startup Pod'
   advance: number
   total: number
   stage: OrderStage

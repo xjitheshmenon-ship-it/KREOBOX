@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useKreoboxStore } from '../store/kreoboxStore'
 import { inr, generatePanels } from '../data/catalog'
-import type { KBOrder, Lead, OrderConfig } from '../types/kreobox'
+import type { KBOrder, Lead, OrderConfig, RoomConfig } from '../types/kreobox'
 import StagePill from '../components/kreobox/StagePill'
 import KPI from '../components/kreobox/KPI'
 import DesignConfigurator from '../components/kreobox/DesignConfigurator'
@@ -73,7 +73,7 @@ interface ContractorPageProps {
   clearLead: () => void
 }
 
-type FlowStep = 'list' | 'kind' | 'flat-type' | 'rooms' | 'design'
+type FlowStep = 'list' | 'kind' | 'flat-type' | 'rooms' | 'design' | 'summary'
 
 interface ProjectDraft {
   kind: ProjectKind
@@ -92,6 +92,8 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
   const [step, setStep] = useState<FlowStep>(pendingLead ? 'design' : 'list')
   const [listTab, setListTab] = useState<'incoming' | 'active'>('incoming')
   const [draft, setDraft] = useState<ProjectDraft>(EMPTY_DRAFT)
+  const [roomConfigs, setRoomConfigs] = useState<Record<string, { config: OrderConfig; total: number }>>({})
+  const [activeRoomIdx, setActiveRoomIdx] = useState(0)
 
   useEffect(() => { if (pendingLead) setStep('design') }, [pendingLead])
 
@@ -101,6 +103,7 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
   const toggleRoom = (id: string) =>
     setDraft(d => ({ ...d, rooms: d.rooms.includes(id) ? d.rooms.filter(r => r !== id) : [...d.rooms, id] }))
 
+  // single-room path (pendingLead from customer catalog)
   const handleConfirm = (config: OrderConfig, total: number) => {
     const newOrder: KBOrder = {
       id: pendingLead?.id ?? 'ORD-' + Math.floor(1050 + Math.random() * 900),
@@ -124,6 +127,52 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
     setStep('list')
   }
 
+  // multi-room path: save each room config and advance
+  const handleSaveRoom = (config: OrderConfig, total: number) => {
+    const roomId = draft.rooms[activeRoomIdx]
+    const updated = { ...roomConfigs, [roomId]: { config, total } }
+    setRoomConfigs(updated)
+    if (activeRoomIdx < draft.rooms.length - 1) {
+      setActiveRoomIdx(prev => prev + 1)
+    } else {
+      setStep('summary')
+    }
+  }
+
+  // create single project order from all room configs
+  const handleCreateProjectOrder = () => {
+    const rooms: RoomConfig[] = draft.rooms.map(roomId => {
+      const meta = roomOptions.find(r => r.id === roomId)!
+      const rc   = roomConfigs[roomId]
+      return { roomId, roomLabel: meta.label, roomIcon: meta.icon, config: rc.config, total: rc.total }
+    })
+    const combinedTotal  = rooms.reduce((s, r) => s + r.total, 0)
+    const primaryConfig  = rooms[0].config
+    const combinedPanels = rooms.flatMap(r => generatePanels(r.config))
+    const flatLabel      = typeOptions.find(t => t.id === draft.flatType)?.label
+
+    const newOrder: KBOrder = {
+      id: 'ORD-' + Math.floor(1050 + Math.random() * 900),
+      customer: { name: draft.clientName || 'Walk-in client', phone: draft.clientPhone || '—', city: 'Bengaluru', area: '—' },
+      contractor: 'Suresh Modulars',
+      type: primaryConfig.type,
+      config: primaryConfig,
+      rooms,
+      projectType: flatLabel,
+      advance: Math.round(combinedTotal * 0.35),
+      total: combinedTotal,
+      stage: 'Confirmed',
+      createdAt: new Date().toISOString().slice(0, 10),
+      panels: combinedPanels,
+    }
+    addOrder(newOrder)
+    clearLead()
+    setDraft(EMPTY_DRAFT)
+    setRoomConfigs({})
+    setActiveRoomIdx(0)
+    setStep('list')
+  }
+
   const topbarLabel = (s: FlowStep) =>
     s === 'kind'      ? 'DesignOS · New Project' :
     s === 'flat-type' ? `DesignOS · ${draft.kind === 'office' ? 'Office' : 'Home'} Project` :
@@ -131,7 +180,93 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
     s === 'design'    ? 'DesignOS · Design & Place' :
     'DesignOS · Studio'
 
-  // ── Design & merchandise placement ────────────────────────────────────
+  // ── Multi-room design (new project flow) ──────────────────────────────
+  if (step === 'design' && !pendingLead && draft.rooms.length > 0) {
+    const activeRoomId   = draft.rooms[activeRoomIdx]
+    const activeRoomMeta = roomOptions.find(r => r.id === activeRoomId)
+    const isLastRoom     = activeRoomIdx === draft.rooms.length - 1
+    const flatLabel      = typeOptions.find(t => t.id === draft.flatType)?.label ?? 'Project'
+    const selectedRooms  = draft.rooms.map(id => roomOptions.find(r => r.id === id)!).filter(Boolean)
+    const configuredTotal = Object.values(roomConfigs).reduce((s, rc) => s + rc.total, 0)
+
+    return (
+      <div style={{ ...S.page, display: 'flex', flexDirection: 'column', height: '100vh' }} className="kb-font-body">
+        <header style={S.topbar}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            <span style={{ fontFamily: 'Fraunces', fontSize: 15, fontWeight: 500, letterSpacing: '0.12em' }}>KREOBOX</span>
+            <span style={{ fontSize: 11, color: 'var(--kb-accent)', borderLeft: '1px solid var(--kb-line)', paddingLeft: 16, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
+              {flatLabel} · {activeRoomMeta?.icon} {activeRoomMeta?.label} ({activeRoomIdx + 1}/{draft.rooms.length})
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {Object.keys(roomConfigs).length > 0 && (
+              <button onClick={() => setStep('summary')}
+                style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid rgba(201,100,66,0.4)', background: 'rgba(201,100,66,0.08)', color: 'var(--kb-accent)', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit', fontWeight: 700 }}>
+                View summary ({Object.keys(roomConfigs).length} done) →
+              </button>
+            )}
+            <button onClick={() => activeRoomIdx === 0 ? setStep('rooms') : setActiveRoomIdx(prev => prev - 1)} style={backBtnStyle}>
+              ← {activeRoomIdx === 0 ? 'Room selection' : 'Previous room'}
+            </button>
+          </div>
+        </header>
+        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+          {/* Room progress sidebar */}
+          <div style={{ width: 220, borderRight: '1px solid var(--kb-line)', padding: '20px 14px', background: 'var(--kb-paper)', display: 'flex', flexDirection: 'column', overflowY: 'auto', flexShrink: 0 }}>
+            <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--kb-ink-soft)', fontWeight: 700, marginBottom: 12 }}>Project rooms</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, flex: 1 }}>
+              {selectedRooms.map((room, i) => {
+                const done   = !!roomConfigs[room.id]
+                const active = i === activeRoomIdx
+                const rTotal = roomConfigs[room.id]?.total
+                return (
+                  <button key={room.id} onClick={() => setActiveRoomIdx(i)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 10px', borderRadius: 8, cursor: 'pointer',
+                      border: active ? '2px solid var(--kb-accent)' : '1px solid transparent',
+                      background: active ? 'rgba(201,100,66,0.06)' : done ? 'rgba(31,138,91,0.05)' : 'transparent',
+                      textAlign: 'left', fontFamily: 'inherit' }}>
+                    <span style={{ fontSize: 16 }}>{room.icon}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: active ? 'var(--kb-accent)' : 'var(--kb-ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{room.label}</div>
+                      {rTotal ? (
+                        <div style={{ fontSize: 10, color: '#1f8a5b', fontFamily: 'JetBrains Mono', marginTop: 1 }}>{inr(rTotal)}</div>
+                      ) : (
+                        <div style={{ fontSize: 10, color: 'var(--kb-ink-soft)', marginTop: 1 }}>{active ? 'Configuring…' : 'Pending'}</div>
+                      )}
+                    </div>
+                    {done && <span style={{ width: 16, height: 16, borderRadius: '50%', background: '#1f8a5b', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>✓</span>}
+                    {active && !done && <span style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--kb-accent)', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>→</span>}
+                  </button>
+                )
+              })}
+            </div>
+            {configuredTotal > 0 && (
+              <div style={{ marginTop: 16, padding: '12px', borderRadius: 8, background: 'var(--kb-bg)', border: '1px solid var(--kb-line)' }}>
+                <div style={{ fontSize: 9, color: 'var(--kb-ink-soft)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  {Object.keys(roomConfigs).length}/{draft.rooms.length} configured
+                </div>
+                <div style={{ fontFamily: 'JetBrains Mono', fontSize: 15, fontWeight: 700, color: 'var(--kb-accent)', marginTop: 4 }}>{inr(configuredTotal)}</div>
+                <div style={{ fontSize: 9, color: 'var(--kb-ink-soft)', marginTop: 1 }}>running total</div>
+              </div>
+            )}
+          </div>
+          {/* Configurator area */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '32px 40px' }}>
+            <DesignConfigurator
+              key={activeRoomId}
+              lead={null}
+              onBack={() => activeRoomIdx === 0 ? setStep('rooms') : setActiveRoomIdx(prev => prev - 1)}
+              onConfirm={handleSaveRoom}
+              confirmLabel={isLastRoom ? 'Save & review all rooms →' : `Save ${activeRoomMeta?.label ?? 'room'} & continue →`}
+              roomContext={{ label: activeRoomMeta?.label ?? '', icon: activeRoomMeta?.icon ?? '', current: activeRoomIdx + 1, total: draft.rooms.length }}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Single-room design (pendingLead from customer catalog) ─────────────
   if (step === 'design') return (
     <div style={S.page} className="kb-font-body">
       <header style={S.topbar}>
@@ -140,19 +275,8 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
           <span style={{ fontSize: 11, color: 'var(--kb-accent)', borderLeft: '1px solid var(--kb-line)', paddingLeft: 16, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>
             {topbarLabel(step)}
           </span>
-          {draft.rooms.length > 0 && (
-            <div style={{ display: 'flex', gap: 4 }}>
-              {draft.rooms.slice(0, 3).map(r => {
-                const room = roomOptions.find(o => o.id === r)
-                return room ? <span key={r} style={{ fontSize: 10, padding: '2px 8px', background: 'rgba(201,100,66,0.12)', color: 'var(--kb-accent)', borderRadius: 99, fontWeight: 600 }}>{room.icon} {room.label}</span> : null
-              })}
-              {draft.rooms.length > 3 && <span style={{ fontSize: 10, padding: '2px 8px', background: 'var(--kb-line)', borderRadius: 99, color: 'var(--kb-ink-soft)' }}>+{draft.rooms.length - 3}</span>}
-            </div>
-          )}
         </div>
-        <button onClick={() => { clearLead(); setStep('rooms') }} style={{ padding: '7px 14px', borderRadius: 8, border: '1px solid var(--kb-line)', background: 'transparent', cursor: 'pointer', fontSize: 12, fontFamily: 'inherit' }}>
-          ← Rooms
-        </button>
+        <button onClick={() => { clearLead(); setStep('rooms') }} style={backBtnStyle}>← Rooms</button>
       </header>
       <div style={S.content}>
         <div style={{ marginBottom: 24, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -163,10 +287,9 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
           <Link to="/planner"
             style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 10,
               background: 'rgba(201,100,66,0.08)', border: '1.5px solid rgba(201,100,66,0.3)', color: 'var(--kb-accent)',
-              textDecoration: 'none', fontSize: 13, fontWeight: 700, letterSpacing: '0.02em' }}>
+              textDecoration: 'none', fontSize: 13, fontWeight: 700 }}>
             <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={2}>
-              <rect x={3} y={3} width={18} height={18} rx={2}/>
-              <path d="M3 9h18M9 21V9"/>
+              <rect x={3} y={3} width={18} height={18} rx={2}/><path d="M3 9h18M9 21V9"/>
             </svg>
             Open 3D Planner →
           </Link>
@@ -175,6 +298,85 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
       </div>
     </div>
   )
+
+  // ── Project summary — all rooms configured, single order ───────────────
+  if (step === 'summary') {
+    const selectedRooms  = draft.rooms.map(id => roomOptions.find(r => r.id === id)!).filter(Boolean)
+    const combinedTotal  = Object.values(roomConfigs).reduce((s, rc) => s + rc.total, 0)
+    const flatLabel      = typeOptions.find(t => t.id === draft.flatType)?.label ?? 'Project'
+    const allConfigured  = draft.rooms.every(id => !!roomConfigs[id])
+    return (
+      <div style={S.page} className="kb-font-body">
+        <header style={S.topbar}>
+          <TitleBar label={`${flatLabel} · Project Summary`} />
+          <button onClick={() => { setActiveRoomIdx(draft.rooms.length - 1); setStep('design') }} style={backBtnStyle}>← Edit rooms</button>
+        </header>
+        <div style={{ ...S.content, maxWidth: 860 }}>
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: 'var(--kb-accent)', fontWeight: 700 }}>One project · One order</div>
+            <h2 style={{ fontSize: 30, fontWeight: 600, margin: '6px 0 4px', letterSpacing: '-0.02em' }}>
+              {draft.clientName || 'New project'} · {flatLabel}
+            </h2>
+            <p style={{ fontSize: 13, color: 'var(--kb-ink-soft)' }}>
+              {draft.rooms.length} spaces · all interconnected under one order that flows to factory, dispatch and site.
+            </p>
+          </div>
+
+          {/* Per-room summary cards */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+            {selectedRooms.map((room, i) => {
+              const rc = roomConfigs[room.id]
+              return (
+                <div key={room.id} style={{ background: 'var(--kb-paper)', borderRadius: 12, padding: '16px 20px', border: '1px solid var(--kb-line)', display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <span style={{ fontSize: 24 }}>{room.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>{room.label}</div>
+                    {rc ? (
+                      <div style={{ fontSize: 12, color: 'var(--kb-ink-soft)', marginTop: 2 }}>
+                        {rc.config.type} · {rc.config.wallWidth}mm wall · {rc.config.frames.length} frame{rc.config.frames.length !== 1 ? 's' : ''} · {rc.config.shutter} shutter
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: 12, color: '#e8a820', marginTop: 2 }}>Not yet configured</div>
+                    )}
+                  </div>
+                  {rc ? (
+                    <div className="kb-font-mono" style={{ fontSize: 15, fontWeight: 700 }}>{inr(rc.total)}</div>
+                  ) : (
+                    <span style={{ fontSize: 12, color: 'var(--kb-ink-soft)' }}>—</span>
+                  )}
+                  <button onClick={() => { setActiveRoomIdx(i); setStep('design') }}
+                    style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--kb-line)', background: 'transparent', cursor: 'pointer', fontSize: 11, fontFamily: 'inherit', color: 'var(--kb-ink-soft)' }}>
+                    {rc ? 'Edit' : 'Configure'}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Combined total */}
+          <div style={{ background: 'rgba(201,100,66,0.06)', borderRadius: 14, padding: '22px 28px', border: '2px solid rgba(201,100,66,0.25)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: 'var(--kb-accent)' }}>Project total</div>
+              <div style={{ fontSize: 12, color: 'var(--kb-ink-soft)', marginTop: 3 }}>
+                {draft.rooms.length} spaces · supply + install · 35% advance = {inr(Math.round(combinedTotal * 0.35))}
+              </div>
+            </div>
+            <div className="kb-font-display" style={{ fontSize: 40, fontWeight: 300, letterSpacing: '-0.02em' }}>{inr(combinedTotal)}</div>
+          </div>
+
+          {!allConfigured && (
+            <div style={{ padding: '12px 16px', borderRadius: 8, background: 'rgba(232,168,32,0.1)', border: '1px solid rgba(232,168,32,0.3)', marginBottom: 16, fontSize: 13, color: '#7a6010' }}>
+              Some rooms are not yet configured. Configure all rooms before confirming the order.
+            </div>
+          )}
+
+          <PrimaryBtn disabled={!allConfigured} onClick={handleCreateProjectOrder}>
+            Confirm project order — {inr(combinedTotal)} →
+          </PrimaryBtn>
+        </div>
+      </div>
+    )
+  }
 
   // ── Room selector ──────────────────────────────────────────────────────
   if (step === 'rooms') return (
@@ -200,8 +402,8 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
             )
           })}
         </div>
-        <PrimaryBtn disabled={draft.rooms.length === 0} onClick={() => setStep('design')}>
-          Continue to design → ({draft.rooms.length} space{draft.rooms.length !== 1 ? 's' : ''} selected)
+        <PrimaryBtn disabled={draft.rooms.length === 0} onClick={() => { setRoomConfigs({}); setActiveRoomIdx(0); setStep('design') }}>
+          Configure each room → ({draft.rooms.length} space{draft.rooms.length !== 1 ? 's' : ''} selected)
         </PrimaryBtn>
       </div>
     </div>
@@ -351,9 +553,20 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
                   <div style={{ fontSize: 12, color: 'var(--kb-ink-soft)', marginTop: 2 }}>
                     {o.customer.phone} · {o.customer.area}, {o.customer.city}
                   </div>
-                  <div style={{ fontSize: 12, color: 'var(--kb-ink-soft)', marginTop: 4 }}>
-                    {o.config.frames.length} frame{o.config.frames.length !== 1 ? 's' : ''} · Advance paid: {inr(o.advance)}
-                  </div>
+                  {o.rooms ? (
+                    <div style={{ fontSize: 12, color: 'var(--kb-ink-soft)', marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                      {o.rooms.map(r => (
+                        <span key={r.roomId} style={{ padding: '1px 7px', borderRadius: 99, background: 'var(--kb-bg)', border: '1px solid var(--kb-line)', fontSize: 11 }}>
+                          {r.roomIcon} {r.roomLabel}
+                        </span>
+                      ))}
+                      <span style={{ fontSize: 11, color: 'var(--kb-ink-soft)' }}>· Advance: {inr(o.advance)}</span>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 12, color: 'var(--kb-ink-soft)', marginTop: 4 }}>
+                      {o.config.frames.length} frame{o.config.frames.length !== 1 ? 's' : ''} · Advance paid: {inr(o.advance)}
+                    </div>
+                  )}
                 </div>
                 <div style={{ textAlign: 'right' as const, marginRight: 16 }}>
                   <div className="kb-font-mono" style={{ fontSize: 16, fontWeight: 600 }}>{inr(o.total)}</div>
@@ -396,7 +609,10 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
                         <div style={{ fontWeight: 600 }}>{o.customer.name}</div>
                         <div style={{ fontSize: 11, color: 'var(--kb-ink-soft)', marginTop: 1 }}>{o.customer.area}, {o.customer.city}</div>
                       </td>
-                      <td style={{ textTransform: 'capitalize' as const, fontSize: 12 }}>{o.type}</td>
+                      <td style={{ fontSize: 12 }}>
+                    <span style={{ textTransform: 'capitalize' as const }}>{o.projectType ?? o.type}</span>
+                    {o.rooms && <span style={{ marginLeft: 5, fontSize: 10, padding: '1px 6px', borderRadius: 99, background: 'rgba(201,100,66,0.1)', color: 'var(--kb-accent)', fontWeight: 600 }}>{o.rooms.length} rooms</span>}
+                  </td>
                       <td className="kb-font-mono" style={{ fontSize: 12, color: 'var(--kb-ink-soft)' }}>{o.createdAt}</td>
                       <td><StagePill stage={o.stage} /></td>
                       <td className="kb-font-mono" style={{ textAlign: 'right' as const }}>{inr(o.total)}</td>
