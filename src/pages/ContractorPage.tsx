@@ -259,6 +259,7 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
               onConfirm={handleSaveRoom}
               confirmLabel={isLastRoom ? 'Save & review all rooms →' : `Save ${activeRoomMeta?.label ?? 'room'} & continue →`}
               roomContext={{ label: activeRoomMeta?.label ?? '', icon: activeRoomMeta?.icon ?? '', current: activeRoomIdx + 1, total: draft.rooms.length }}
+              lockedType={activeRoomMeta?.type === 'office' ? 'wardrobe' : activeRoomMeta?.type}
             />
           </div>
         </div>

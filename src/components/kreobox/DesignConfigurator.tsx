@@ -13,11 +13,12 @@ interface Props {
   onConfirm: (config: OrderConfig, total: number) => void
   confirmLabel?: string
   roomContext?: { label: string; icon: string; current: number; total: number }
+  lockedType?: ProductType
 }
 
-export default function DesignConfigurator({ lead, onBack, onConfirm, confirmLabel, roomContext }: Props) {
-  const startType: ProductType = lead?.type ?? 'wardrobe'
-  const [step, setStep] = useState(1)
+export default function DesignConfigurator({ lead, onBack, onConfirm, confirmLabel, roomContext, lockedType }: Props) {
+  const startType: ProductType = lockedType ?? lead?.type ?? 'wardrobe'
+  const [step, setStep] = useState(lockedType ? 2 : 1)
   const [type, setType] = useState<ProductType>(startType)
   const [wall, setWall] = useState({ width: 2400, height: 2100 })
   const [frames, setFrames] = useState<string[]>([])
@@ -84,7 +85,12 @@ export default function DesignConfigurator({ lead, onBack, onConfirm, confirmLab
       <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr 300px', gap: 20 }}>
         {/* Left: Stepper */}
         <div style={{ background: 'var(--kb-paper)', borderRadius: 12, padding: 16, border: '1px solid var(--kb-line)', height: 'fit-content' }}>
-          <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--kb-ink-soft)', fontWeight: 600, marginBottom: 12 }}>Configurator</div>
+          <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--kb-ink-soft)', fontWeight: 600, marginBottom: 8 }}>Configurator</div>
+          {lockedType && (
+            <div style={{ marginBottom: 10, padding: '6px 10px', borderRadius: 7, background: 'rgba(201,100,66,0.08)', border: '1px solid rgba(201,100,66,0.2)', fontSize: 11, fontWeight: 700, color: 'var(--kb-accent)', textTransform: 'capitalize' as const }}>
+              {lockedType === 'kitchen' ? '🍳' : lockedType === 'office' ? '🏢' : '🚪'} {lockedType}
+            </div>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {[
               { n: 1, label: 'Type' },
@@ -93,7 +99,7 @@ export default function DesignConfigurator({ lead, onBack, onConfirm, confirmLab
               { n: 4, label: 'Shutter finish' },
               { n: 5, label: 'Interior preset' },
               { n: 6, label: 'BOQ & confirm' },
-            ].map(s => (
+            ].filter(s => !(lockedType && s.n === 1)).map(s => (
               <button
                 key={s.n}
                 onClick={() => setStep(s.n)}
