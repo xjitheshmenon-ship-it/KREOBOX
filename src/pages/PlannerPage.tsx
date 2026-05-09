@@ -27,17 +27,20 @@ type WardLayout  = 'standard' | 'full-hang' | 'drawer-heavy' | 'loft-hang' | 'pa
 type ShutterFin  = 'matt' | 'gloss' | 'membrane' | 'glass'
 type HandleType  = 'none' | 'bar' | 'knob' | 'j-pull'
 type Interior    = 'basic' | 'premium' | 'homeoffice' | 'kids'
+type ModuleType  = 'hang-full' | 'hang-half' | 'shelves' | 'drawers' | 'shoe' | 'trouser' | 'mirror' | 'empty'
 
 interface WardConfig {
   type: WardType; width: number; height: number; depth: number
   layout: WardLayout; shutterColor: string; shutterFinish: ShutterFin
   handle: HandleType; interior: Interior
+  interiorSections: string[]
 }
 
 const DFLT: WardConfig = {
   type:'swing', width:900, height:2100, depth:600,
   layout:'standard', shutterColor:'#f0ece4',
   shutterFinish:'matt', handle:'bar', interior:'basic',
+  interiorSections: ['hang-half', 'shelves'],
 }
 
 const WIDTH_OPTS  = [450,600,750,900,1050,1200,1500,1800,2100,2400,2700]
@@ -50,6 +53,135 @@ const SHUTTER_COLORS = [
   { hex:'#9a7050', name:'Teak' },       { hex:'#3a3a3a', name:'Charcoal' },
   { hex:'#1a2a4a', name:'Navy' },       { hex:'#5a1a1a', name:'Burgundy' },
 ]
+
+// ── interior designer helpers ─────────────────────────────────────────────────
+function getSectionCount(width: number): number {
+  if (width <= 600)  return 1
+  if (width <= 1050) return 2
+  if (width <= 1500) return 3
+  if (width <= 2100) return 4
+  return Math.ceil(width / 600)
+}
+
+function resizeSections(sections: string[], count: number): string[] {
+  if (!sections.length) return Array(count).fill('hang-half')
+  if (sections.length >= count) return sections.slice(0, count)
+  return [...sections, ...Array(count - sections.length).fill(sections[sections.length - 1])]
+}
+
+const MODULES: { id: ModuleType; label: string; sub: string }[] = [
+  { id:'hang-full', label:'Full Hang',  sub:'Full-height rail' },
+  { id:'hang-half', label:'Half Hang',  sub:'Rail + shelf below' },
+  { id:'shelves',   label:'Shelves',    sub:'Fixed shelf stack' },
+  { id:'drawers',   label:'Drawers',    sub:'3 drawer chest' },
+  { id:'shoe',      label:'Shoe',       sub:'Angled shoe racks' },
+  { id:'trouser',   label:'Trouser',    sub:'Pull-out trouser bars' },
+  { id:'mirror',    label:'Mirror',     sub:'Full-length mirror' },
+  { id:'empty',     label:'Empty',      sub:'Open reach-in space' },
+]
+
+const PRESET_MODELS: { label: string; sections: string[] }[] = [
+  { label:'Classic',    sections:['hang-half','shelves'] },
+  { label:'His & Hers', sections:['hang-full','hang-full'] },
+  { label:'Organiser',  sections:['drawers','shelves','drawers'] },
+  { label:'Kids',       sections:['hang-half','shoe','shelves'] },
+  { label:'Linen',      sections:['shelves','shelves'] },
+  { label:'Dressing',   sections:['mirror','hang-half','drawers'] },
+]
+
+function drawModule(id: string, x: number, y: number, w: number, h: number, accent = '#c96442'): React.ReactNode {
+  const cx = x + w / 2
+  const sh = '#e8e6e1'
+  const mu = 'rgba(255,255,255,0.2)'
+  switch (id) {
+    case 'hang-full':
+      return <g key="hf">
+        <line x1={x+w*0.15} y1={y+h*0.08} x2={x+w*0.85} y2={y+h*0.08} stroke={sh} strokeWidth={1.2}/>
+        <line x1={cx} y1={y+h*0.08} x2={cx} y2={y+h*0.22} stroke={sh} strokeWidth={0.8}/>
+        <line x1={cx-3} y1={y+h*0.22} x2={cx+3} y2={y+h*0.22} stroke={sh} strokeWidth={0.8}/>
+        <line x1={cx-6} y1={y+h*0.28} x2={cx-6} y2={y+h*0.65} stroke={sh} strokeWidth={0.8}/>
+        <line x1={cx+6} y1={y+h*0.28} x2={cx+6} y2={y+h*0.65} stroke={sh} strokeWidth={0.8}/>
+      </g>
+    case 'hang-half':
+      return <g key="hh">
+        <line x1={x+w*0.15} y1={y+h*0.08} x2={x+w*0.85} y2={y+h*0.08} stroke={sh} strokeWidth={1.2}/>
+        <line x1={cx} y1={y+h*0.08} x2={cx} y2={y+h*0.18} stroke={sh} strokeWidth={0.8}/>
+        <line x1={cx-5} y1={y+h*0.25} x2={cx+5} y2={y+h*0.25} stroke={sh} strokeWidth={0.8}/>
+        <line x1={x} y1={y+h*0.5} x2={x+w} y2={y+h*0.5} stroke={sh} strokeWidth={1}/>
+        {[0.62,0.74,0.86].map((yp,i)=><line key={i} x1={x+4} y1={y+h*yp} x2={x+w-4} y2={y+h*yp} stroke={mu} strokeWidth={0.8}/>)}
+      </g>
+    case 'shelves':
+      return <g key="sh">
+        {[0.18,0.32,0.46,0.60,0.74,0.88].map((yp,i)=>(
+          <line key={i} x1={x+4} y1={y+h*yp} x2={x+w-4} y2={y+h*yp} stroke={sh} strokeWidth={0.9}/>
+        ))}
+      </g>
+    case 'drawers':
+      return <g key="dr">
+        {[0,1,2].map(i=>{
+          const dy = y + h*(0.15 + i*0.27)
+          const dh = h*0.22
+          return <g key={i}>
+            <rect x={x+4} y={dy} width={w-8} height={dh} rx={1} fill={mu}/>
+            <line x1={cx-4} y1={dy+dh/2} x2={cx+4} y2={dy+dh/2} stroke={sh} strokeWidth={1}/>
+          </g>
+        })}
+      </g>
+    case 'shoe':
+      return <g key="sh2">
+        {[0.2,0.38,0.56,0.74].map((yp,i)=>(
+          <line key={i} x1={x+4} y1={y+h*yp} x2={x+w-4} y2={y+h*(yp+0.1)} stroke={sh} strokeWidth={0.9}/>
+        ))}
+      </g>
+    case 'trouser':
+      return <g key="tr">
+        {[0.2,0.4,0.6,0.8].map((yp,i)=>(
+          <g key={i}>
+            <line x1={x+6} y1={y+h*yp} x2={x+w-6} y2={y+h*yp} stroke={sh} strokeWidth={0.8}/>
+            <line x1={cx} y1={y+h*yp} x2={cx} y2={y+h*(yp+0.1)} stroke={mu} strokeWidth={0.6}/>
+          </g>
+        ))}
+      </g>
+    case 'mirror':
+      return <g key="mi">
+        <rect x={x+6} y={y+h*0.06} width={w-12} height={h*0.88} rx={2}
+          fill="rgba(180,210,230,0.15)" stroke="rgba(180,210,230,0.5)" strokeWidth={1}/>
+        <line x1={x+10} y1={y+h*0.12} x2={x+w-10} y2={y+h*0.94} stroke="rgba(255,255,255,0.08)" strokeWidth={0.8}/>
+      </g>
+    default:
+      return <g key="em">
+        <line x1={x+8} y1={y+8} x2={x+w-8} y2={y+h-8} stroke={mu} strokeWidth={0.6}/>
+        <line x1={x+w-8} y1={y+8} x2={x+8} y2={y+h-8} stroke={mu} strokeWidth={0.6}/>
+      </g>
+  }
+}
+
+function WardrobeFrontSVG({ sections, selectedIdx, onClick, scale = 1 }: {
+  sections: string[]; selectedIdx?: number | null; onClick?: (i: number) => void; scale?: number
+}) {
+  const n   = sections.length
+  const SW  = 56 * n   // total width per section
+  const SH  = 120
+  const TW  = SW * scale
+  const TH  = SH * scale
+  return (
+    <svg viewBox={`0 0 ${SW} ${SH}`} width={TW} height={TH} style={{ display:'block' }}>
+      <rect x={0} y={0} width={SW} height={SH} rx={2} fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.2)" strokeWidth={1}/>
+      {sections.map((sec, i) => {
+        const sx = i * 56
+        const isActive = selectedIdx === i
+        return (
+          <g key={i} style={{ cursor: onClick ? 'pointer' : 'default' }} onClick={() => onClick?.(i)}>
+            {isActive && <rect x={sx} y={0} width={56} height={SH} fill="rgba(201,100,66,0.18)"/>}
+            {i > 0 && <line x1={sx} y1={2} x2={sx} y2={SH-2} stroke="rgba(255,255,255,0.18)" strokeWidth={0.8}/>}
+            {drawModule(sec, sx+2, 2, 52, SH-4)}
+            {isActive && <rect x={sx} y={0} width={56} height={SH} fill="none" stroke="#c96442" strokeWidth={1.5}/>}
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
 
 // ── BOQ ───────────────────────────────────────────────────────────────────────
 function calcPrice(c: WardConfig) {
@@ -152,8 +284,16 @@ interface ConfigPanelProps {
 }
 
 function ConfigPanel({ config, setConfig, step, setStep, onPlace, onClose, clientName, setClientName, clientPhone, setClientPhone }: ConfigPanelProps) {
-  const set = (patch: Partial<WardConfig>) => setConfig({ ...config, ...patch })
+  const set = (patch: Partial<WardConfig>) => {
+    const next = { ...config, ...patch }
+    if (patch.width !== undefined) {
+      const n = getSectionCount(next.width)
+      next.interiorSections = resizeSections(next.interiorSections, n)
+    }
+    setConfig(next)
+  }
   const boq = calcBOQ(config)
+  const [selectedSection, setSelectedSection] = useState<number | null>(null)
 
   const PANEL_BG   = '#1a1714'
   const BORDER     = 'rgba(255,255,255,0.08)'
@@ -373,35 +513,69 @@ function ConfigPanel({ config, setConfig, step, setStep, onPlace, onClose, clien
           </div>
         )}
 
-        {/* ── 05 Interior preset ── */}
-        {step===4 && (
-          <div>
-            <h3 style={{ fontSize:15, fontWeight:700, color:TEXT, margin:'0 0 4px' }}>Interior preset</h3>
-            <p style={{ fontSize:11, color:MUTED, margin:'0 0 18px' }}>How the inside is organised and finished</p>
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              {([
-                { id:'basic',      icon:'📦', label:'Basic',      sub:'Standard shelves + hanging · functional, no frills', price:0 },
-                { id:'premium',    icon:'✨', label:'Premium',    sub:'Velvet-lined drawers · LED strip · mirror panel',    price:'+20%' },
-                { id:'homeoffice', icon:'💼', label:'Home Office',sub:'Pull-out desk shelf · cable management · USB ports',  price:'+15%' },
-                { id:'kids',       icon:'🎒', label:'Kids',       sub:'Low rails + activity shelf · rounded corners',       price:'+8%' },
-              ] as const).map(p => (
-                <div key={p.id} onClick={() => set({ interior:p.id })}
-                  style={{ display:'flex', gap:12, padding:'14px 14px', borderRadius:10, cursor:'pointer',
-                    border:`1.5px solid ${config.interior===p.id?ACCENT:'rgba(255,255,255,0.1)'}`,
-                    background:config.interior===p.id?'rgba(201,100,66,0.1)':'rgba(255,255,255,0.03)' }}>
-                  <span style={{ fontSize:24 }}>{p.icon}</span>
-                  <div style={{ flex:1 }}>
-                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                      <span style={{ fontSize:13, fontWeight:700, color:config.interior===p.id?ACCENT:TEXT }}>{p.label}</span>
-                      {p.price && <span style={{ fontSize:10, color:'#6ab87a', fontWeight:600 }}>{p.price}</span>}
+        {/* ── 05 Interior designer ── */}
+        {step===4 && (() => {
+          const n = getSectionCount(config.width)
+          const sections = resizeSections(config.interiorSections, n)
+          const scale = Math.min(1.1, 270 / (n * 56))
+          return (
+            <div>
+              <h3 style={{ fontSize:15, fontWeight:700, color:TEXT, margin:'0 0 4px' }}>Interior designer</h3>
+              <p style={{ fontSize:11, color:MUTED, margin:'0 0 14px' }}>Design each section — pick a preset or customise</p>
+
+              {/* Default models */}
+              <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:MUTED, marginBottom:8 }}>Quick presets</div>
+              <div style={{ display:'flex', gap:7, flexWrap:'wrap', marginBottom:18 }}>
+                {PRESET_MODELS.map(m => (
+                  <div key={m.label} onClick={() => {
+                    const adapted = resizeSections(m.sections, n)
+                    set({ interiorSections: adapted })
+                    setSelectedSection(null)
+                  }} style={{ cursor:'pointer', textAlign:'center' }}>
+                    <div style={{ border:`1.5px solid rgba(255,255,255,0.15)`, borderRadius:6, padding:'4px 3px', background:'rgba(255,255,255,0.04)',
+                      width:68 }}>
+                      <WardrobeFrontSVG sections={resizeSections(m.sections, Math.min(m.sections.length, 3))} scale={68 / (Math.min(m.sections.length, 3) * 56)}/>
                     </div>
-                    <div style={{ fontSize:10, color:MUTED, marginTop:4, lineHeight:1.5 }}>{p.sub}</div>
+                    <div style={{ fontSize:8, color:MUTED, marginTop:3, lineHeight:1.2 }}>{m.label}</div>
                   </div>
+                ))}
+              </div>
+
+              {/* Live canvas */}
+              <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:MUTED, marginBottom:6 }}>Your layout</div>
+              <div style={{ background:'rgba(255,255,255,0.03)', borderRadius:8, padding:'12px 8px', marginBottom:10, display:'flex', justifyContent:'center' }}>
+                <WardrobeFrontSVG sections={sections} selectedIdx={selectedSection} scale={scale} onClick={i => setSelectedSection(selectedSection===i ? null : i)}/>
+              </div>
+              <div style={{ fontSize:9, color:MUTED, textAlign:'center', marginBottom:12 }}>
+                {selectedSection === null ? 'Click a section to configure it' : `Section ${selectedSection+1} selected — choose a module:`}
+              </div>
+
+              {/* Module picker */}
+              {selectedSection !== null && (
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6 }}>
+                  {MODULES.map(m => {
+                    const isCur = sections[selectedSection] === m.id
+                    return (
+                      <div key={m.id} onClick={() => {
+                        const updated = [...sections]
+                        updated[selectedSection] = m.id
+                        set({ interiorSections: updated })
+                      }} style={{ cursor:'pointer', textAlign:'center',
+                        border:`1.5px solid ${isCur ? ACCENT : 'rgba(255,255,255,0.1)'}`,
+                        borderRadius:7, padding:'5px 3px', background:isCur?'rgba(201,100,66,0.12)':'rgba(255,255,255,0.03)' }}>
+                        <svg viewBox={`0 0 56 80`} width={42} height={60} style={{ display:'block', margin:'0 auto' }}>
+                          <rect width={56} height={80} fill="rgba(255,255,255,0.04)"/>
+                          {drawModule(m.id, 2, 2, 52, 76)}
+                        </svg>
+                        <div style={{ fontSize:8, fontWeight:isCur?700:500, color:isCur?ACCENT:MUTED, marginTop:2 }}>{m.label}</div>
+                      </div>
+                    )
+                  })}
                 </div>
-              ))}
+              )}
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* ── 06 BOQ & Confirm ── */}
         {step===5 && (
@@ -441,6 +615,30 @@ function ConfigPanel({ config, setConfig, step, setStep, onPlace, onClose, clien
                 </div>
               ))}
             </div>
+
+            {/* Interior layout preview */}
+            {(() => {
+              const n = getSectionCount(config.width)
+              const sections = resizeSections(config.interiorSections, n)
+              const scale = Math.min(1, (322) / (n * 56))
+              const MODULE_LABELS: Record<string, string> = {
+                'hang-full':'Full Hang','hang-half':'Half Hang','shelves':'Shelves',
+                'drawers':'Drawers','shoe':'Shoe','trouser':'Trouser','mirror':'Mirror','empty':'Empty',
+              }
+              return (
+                <div style={{ background:'rgba(255,255,255,0.04)', borderRadius:10, padding:'10px 12px', marginBottom:14 }}>
+                  <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:MUTED, marginBottom:8 }}>Interior layout</div>
+                  <WardrobeFrontSVG sections={sections} scale={scale}/>
+                  <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginTop:7 }}>
+                    {sections.map((s,i) => (
+                      <span key={i} style={{ fontSize:8, padding:'2px 6px', borderRadius:99, background:'rgba(255,255,255,0.08)', color:MUTED }}>
+                        S{i+1}: {MODULE_LABELS[s]??s}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
 
             {/* Total */}
             <div style={{ background:'rgba(201,100,66,0.12)', borderRadius:10, padding:'14px 16px', marginBottom:18, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
