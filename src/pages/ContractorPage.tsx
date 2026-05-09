@@ -155,9 +155,21 @@ export default function ContractorPage({ pendingLead, clearLead }: ContractorPag
         </button>
       </header>
       <div style={S.content}>
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--kb-accent)', fontWeight: 700 }}>Step 3 · Place merchandise</div>
-          <div style={{ fontSize: 20, fontWeight: 600, marginTop: 4 }}>Configure & price each space</div>
+        <div style={{ marginBottom: 24, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--kb-accent)', fontWeight: 700 }}>Step 3 · Place merchandise</div>
+            <div style={{ fontSize: 20, fontWeight: 600, marginTop: 4 }}>Configure & price each space</div>
+          </div>
+          <Link to="/planner"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 10,
+              background: 'rgba(201,100,66,0.08)', border: '1.5px solid rgba(201,100,66,0.3)', color: 'var(--kb-accent)',
+              textDecoration: 'none', fontSize: 13, fontWeight: 700, letterSpacing: '0.02em' }}>
+            <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={2}>
+              <rect x={3} y={3} width={18} height={18} rx={2}/>
+              <path d="M3 9h18M9 21V9"/>
+            </svg>
+            Open 3D Planner →
+          </Link>
         </div>
         <DesignConfigurator lead={pendingLead} onBack={() => { clearLead(); setStep('rooms') }} onConfirm={handleConfirm} />
       </div>
