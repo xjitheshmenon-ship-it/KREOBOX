@@ -11,7 +11,7 @@ const ACCENT = '#c96442'
 
 type ProductMode = 'kitchen' | 'wardrobe' | 'office'
 type ViewMode    = '2D plan' | 'Elevation' | '3D view'
-type FilterTab   = 'All' | 'Cabinets' | 'Surfaces' | 'Hardware' | 'Appliances' | 'Lighting'
+type FilterTab   = 'All' | 'Cabinets' | 'Surfaces' | 'Hardware' | 'Appliances' | 'Lighting' | 'Desks' | 'Workstations' | 'Storage' | 'Meeting' | 'Packages'
 
 // ── Catalog types ─────────────────────────────────────────────────
 interface CatalogEntry {
@@ -150,35 +150,99 @@ const WARDROBE_CATALOG: CatalogEntry[] = [
 ]
 
 const OFFICE_CATALOG: CatalogEntry[] = [
+  // DESKS
   {
-    id:'o-desk-1400', name:'Standing desk, 1400', code:'KBX-DSK-1400',
-    category:'desk', filterTag:'Cabinets', sectionLabel:'DESKS',
-    width:1400, height:750, depth:700, price:38000, color:'#c8bda0',
-    provenance:'Electric height adjust 650–1300mm. Bamboo top. Cable management tray.',
+    id:'o-desk-1500', name:'Straight desk, 1500', code:'KBX-D-1500',
+    category:'desk', filterTag:'Desks', sectionLabel:'DESKS',
+    width:1500, height:750, depth:700, price:32000, color:'#c8bda0',
+    provenance:'18mm HDF top, powder-coat steel frame. Under-desk cable tray included.',
   },
   {
-    id:'o-desk-1800', name:'L-shape desk, 1800', code:'KBX-DSK-1800',
-    category:'desk', filterTag:'Cabinets', sectionLabel:'DESKS',
-    width:1800, height:750, depth:700, price:52000, color:'#c8bda0',
-    provenance:'Corner return 900×700. Powder-coat steel frame. Under-desk pedestal included.',
+    id:'o-desk-1800', name:'Straight desk, 1800', code:'KBX-D-1800',
+    category:'desk', filterTag:'Desks', sectionLabel:'DESKS',
+    width:1800, height:750, depth:750, price:42000, color:'#c8bda0',
+    provenance:'Extra-deep surface. Modesty panel. 3-way cable spine.',
   },
   {
-    id:'o-storage-wall', name:'Storage wall · A', code:'KBX-OF-SW-4B',
-    category:'storage', filterTag:'Cabinets', sectionLabel:'STORAGE',
+    id:'o-ldsk-2100', name:'L-desk, 2100', code:'KBX-LD-2100',
+    category:'desk', filterTag:'Desks', sectionLabel:'DESKS',
+    width:2100, height:750, depth:700, price:58000, color:'#c0b49a',
+    provenance:'Corner return 900×700. Under-desk pedestal bay. FSC-certified board.',
+  },
+  {
+    id:'o-standdesk', name:'Standing desk, 1400', code:'KBX-SD-1400',
+    category:'desk', filterTag:'Desks', sectionLabel:'DESKS',
+    width:1400, height:1300, depth:700, price:68000, color:'#b8b0a0',
+    provenance:'Electric height 650–1300mm. Memory handset, 3 presets. Bamboo top.',
+  },
+  // WORKSTATIONS
+  {
+    id:'o-ws-2', name:'2-seat workstation', code:'KBX-WS-2S',
+    category:'desk', filterTag:'Workstations', sectionLabel:'WORKSTATIONS',
+    width:1600, height:750, depth:1500, price:74000, color:'#c8bda0',
+    provenance:'Back-to-back 1600mm. Shared cable spine. Privacy screens included.',
+  },
+  {
+    id:'o-ws-4', name:'4-seat workstation', code:'KBX-WS-4S',
+    category:'desk', filterTag:'Workstations', sectionLabel:'WORKSTATIONS',
+    width:3200, height:750, depth:1500, price:138000, color:'#c0b49a',
+    provenance:'Cluster of 4 back-to-back. Fabric screens 400h. Power totem per pair.',
+  },
+  {
+    id:'o-cabin-panel', name:'Cabin partition, 1800h', code:'KBX-PT-1800',
+    category:'desk', filterTag:'Workstations', sectionLabel:'WORKSTATIONS',
+    width:1800, height:1800, depth:80, price:18500, color:'#d4c9b0',
+    provenance:'Fabric-faced 50mm panel. Aluminium frame. Floor-to-ceiling option.',
+  },
+  // STORAGE
+  {
+    id:'o-storage-wall', name:'Storage wall · A', code:'KBX-SW-4B',
+    category:'storage', filterTag:'Storage', sectionLabel:'STORAGE',
     width:2200, height:2100, depth:600, price:218000, color:'#b8b0a0',
     provenance:'18mm HDHMR carcass. Hettich push-to-open fittings. Powder-coated steel accents.',
   },
   {
-    id:'o-bookshelf-900', name:'Bookshelf, 900', code:'KBX-BSH-900',
-    category:'storage', filterTag:'Cabinets', sectionLabel:'STORAGE',
-    width:900, height:2100, depth:350, price:22000, color:'#d4c9b0',
-    provenance:'Open shelves, adjustable pitch 32mm. Powder-coat back panel.',
+    id:'o-credenza-1800', name:'Credenza, 1800', code:'KBX-CR-1800',
+    category:'storage', filterTag:'Storage', sectionLabel:'STORAGE',
+    width:1800, height:750, depth:500, price:62000, color:'#c8bda0',
+    provenance:'4-door with adjustable shelf. Lockable. Top surface usable.',
   },
   {
-    id:'o-filing-600', name:'Filing cabinet, 600', code:'KBX-FIL-600',
-    category:'storage', filterTag:'Cabinets', sectionLabel:'STORAGE',
+    id:'o-bookshelf-900', name:'Open bookshelf, 900', code:'KBX-BSH-900',
+    category:'storage', filterTag:'Storage', sectionLabel:'STORAGE',
+    width:900, height:2100, depth:350, price:22000, color:'#d4c9b0',
+    provenance:'Open shelves, 32mm pitch adjustable. Powder-coat back panel.',
+  },
+  {
+    id:'o-filing-600', name:'Filing cabinet, 3-drawer', code:'KBX-FIL-600',
+    category:'storage', filterTag:'Storage', sectionLabel:'STORAGE',
     width:600, height:1200, depth:500, price:18000, color:'#b8b0a0',
-    provenance:'3-drawer lateral file. A4/Foolscap. Lockable top drawer.',
+    provenance:'Lateral file A4/Foolscap. Lockable top drawer. Anti-tilt.',
+  },
+  {
+    id:'o-pedestal', name:'Under-desk pedestal', code:'KBX-PD-3D',
+    category:'storage', filterTag:'Storage', sectionLabel:'STORAGE',
+    width:450, height:680, depth:500, price:9800, color:'#c0b8a8',
+    provenance:'3-drawer on castors. Lockable. Cushion top. Matches desk finish.',
+  },
+  // MEETING
+  {
+    id:'o-mtg-4p', name:'Meeting table, 4-person', code:'KBX-MT-4P',
+    category:'desk', filterTag:'Meeting', sectionLabel:'MEETING',
+    width:1800, height:750, depth:900, price:48000, color:'#d4c9b0',
+    provenance:'Rectangular 1800×900. Cable port centre. Powder-coat base.',
+  },
+  {
+    id:'o-mtg-6p', name:'Conference table, 6-person', code:'KBX-MT-6P',
+    category:'desk', filterTag:'Meeting', sectionLabel:'MEETING',
+    width:2400, height:750, depth:1100, price:78000, color:'#c8bda0',
+    provenance:'Boat-shape 2400×1100. Integrated power × 4. Modesty panel.',
+  },
+  {
+    id:'o-mtg-8p', name:'Conference table, 8-person', code:'KBX-MT-8P',
+    category:'desk', filterTag:'Meeting', sectionLabel:'MEETING',
+    width:3000, height:750, depth:1200, price:112000, color:'#c0b49a',
+    provenance:'Executive format. Veneer top. 8 power sockets, HDMI centre pod.',
   },
 ]
 
@@ -188,17 +252,39 @@ const CATALOGS: Record<ProductMode, CatalogEntry[]> = {
   office: OFFICE_CATALOG,
 }
 
-const CATALOG_TITLES: Record<ProductMode, string> = {
-  kitchen:  'Add to your kitchen',
-  wardrobe: 'What goes inside',
-  office:   'Build your workspace',
+interface CatalogMeta {
+  eyebrow: string
+  heading: string
+  headingItalic: string
+  subtitle: string
+}
+
+const CATALOG_META: Record<ProductMode, CatalogMeta> = {
+  kitchen: {
+    eyebrow: 'KREO KITCHEN',
+    heading: 'Add to your kitchen',
+    headingItalic: '',
+    subtitle: 'Base cabinets, wall units, islands, appliances — all pre-cut and ready to install.',
+  },
+  wardrobe: {
+    eyebrow: 'KREO WARDROBE',
+    heading: 'What goes inside',
+    headingItalic: '',
+    subtitle: 'Hang space, drawers, shelves and baskets — configured to your bay width.',
+  },
+  office: {
+    eyebrow: 'KREO OFFICE',
+    heading: 'Office interiors,',
+    headingItalic: 'pre-cut and precise.',
+    subtitle: 'Desks, workstations, storage walls, conference tables — all from pre-cut laminated panels. Finish selection, BOQ, and install in one flow.',
+  },
 }
 
 // ── Filter tabs per product ───────────────────────────────────────
 const FILTER_TABS: Record<ProductMode, FilterTab[]> = {
-  kitchen:  ['All', 'Cabinets', 'Surfaces', 'Hardware', 'Appliances', 'Lighting'],
+  kitchen:  ['All', 'Cabinets', 'Surfaces', 'Appliances', 'Hardware', 'Lighting'],
   wardrobe: ['All', 'Cabinets', 'Hardware', 'Lighting'],
-  office:   ['All', 'Cabinets', 'Surfaces', 'Hardware', 'Lighting'],
+  office:   ['All', 'Desks', 'Workstations', 'Storage', 'Meeting', 'Packages'],
 }
 
 // ── Room configs (mm) ─────────────────────────────────────────────
@@ -576,9 +662,12 @@ function CatalogPanel({
   const [filter, setFilter] = useState<FilterTab>('All')
   const [search, setSearch] = useState('')
 
+  // Reset filter when product changes
+  useEffect(() => { setFilter('All'); setSearch('') }, [product])
+
   const catalog = CATALOGS[product]
   const tabs = FILTER_TABS[product]
-  const title = CATALOG_TITLES[product]
+  const meta = CATALOG_META[product]
 
   const filtered = catalog.filter(e => {
     const matchTab = filter === 'All' || e.filterTag === filter
@@ -595,22 +684,51 @@ function CatalogPanel({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
-      <div style={{ padding: '18px 16px 0' }}>
-        <div style={{ fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTE, fontWeight: 600, marginBottom: 6 }}>
-          CATALOG
+      <div style={{ padding: '20px 18px 0' }}>
+        {/* Eyebrow brand label */}
+        <div style={{
+          fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase',
+          color: ACCENT, fontWeight: 700, marginBottom: 10,
+        }}>
+          {meta.eyebrow}
         </div>
-        <div style={{ fontFamily: '"Fraunces", serif', fontSize: 22, fontWeight: 600, color: INK, letterSpacing: '-0.02em', lineHeight: 1.15, marginBottom: 14 }}>
-          {title}
+
+        {/* Heading — supports optional bold-italic second line */}
+        <div style={{
+          fontFamily: '"Fraunces", serif', letterSpacing: '-0.025em',
+          lineHeight: 1.08, marginBottom: meta.subtitle ? 10 : 14,
+        }}>
+          <span style={{ fontSize: 24, fontWeight: 400, color: INK, display: 'block' }}>
+            {meta.heading}
+          </span>
+          {meta.headingItalic && (
+            <span style={{
+              fontSize: 24, fontWeight: 700, fontStyle: 'italic',
+              color: INK, display: 'block',
+            }}>
+              {meta.headingItalic}
+            </span>
+          )}
         </div>
+
+        {/* Subtitle */}
+        {meta.subtitle && (
+          <p style={{
+            fontSize: 12, color: MUTE, lineHeight: 1.55,
+            marginBottom: 14, marginTop: 0,
+          }}>
+            {meta.subtitle}
+          </p>
+        )}
 
         {/* Filter tabs */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
           {tabs.map(tab => (
             <button key={tab} onClick={() => setFilter(tab)} style={{
-              padding: '5px 13px', borderRadius: 20, fontSize: 11.5, fontWeight: 600,
-              border: `1.5px solid ${tab === filter ? INK : LINE}`,
+              padding: '6px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600,
+              border: `1.5px solid ${tab === filter ? INK : 'rgba(26,24,21,0.2)'}`,
               background: tab === filter ? INK : 'transparent',
-              color: tab === filter ? PAPER : MUTE,
+              color: tab === filter ? PAPER : '#4a463f',
               cursor: 'pointer', fontFamily: 'inherit',
             }}>{tab}</button>
           ))}

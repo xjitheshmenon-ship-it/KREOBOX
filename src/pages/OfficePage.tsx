@@ -115,9 +115,9 @@ export default function OfficePage() {
       {/* Hero */}
       <div style={{ padding: '64px 40px 40px', maxWidth: 1280, margin: '0 auto' }}>
         <div style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#c96442', fontWeight: 700, marginBottom: 14 }}>Kreo Office</div>
-        <h1 style={{ fontFamily: 'Fraunces', fontSize: 64, fontWeight: 300, lineHeight: 0.95, letterSpacing: '-0.03em', margin: 0 }}>
+        <h1 style={{ fontFamily: 'Fraunces', fontSize: 62, lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, fontWeight: 400 }}>
           Office interiors,<br />
-          <em style={{ fontStyle: 'italic', fontWeight: 400 }}>pre-cut and precise.</em>
+          <em style={{ fontStyle: 'italic', fontWeight: 700 }}>pre-cut and precise.</em>
         </h1>
         <p style={{ marginTop: 20, maxWidth: 520, fontSize: 15, lineHeight: 1.6, color: '#4a463f' }}>
           Desks, workstations, storage walls, conference tables — all from pre-cut laminated panels. Finish selection, BOQ, and install in one flow.
