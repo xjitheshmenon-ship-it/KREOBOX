@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useKreoboxStore } from './store/kreoboxStore'
 
+import LandingPage      from './pages/LandingPage'
 import PortalSelector   from './pages/PortalSelector'
 import CustomerPage     from './pages/CustomerPage'
 import ContractorPage   from './pages/ContractorPage'
@@ -25,8 +26,9 @@ export default function App() {
   return (
     <>
       <Routes>
-        {/* ── Root portal selector ───────────────────────────────────────── */}
-        <Route path="/" element={<PortalSelector />} />
+        {/* ── Root: customer landing page ────────────────────────────────── */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/portal" element={<PortalSelector />} />
 
         {/* ── Frontend portal: /app/* ────────────────────────────────────── */}
         <Route path="/app/studio"   element={<FrontendLayout><ContractorPage /></FrontendLayout>} />
