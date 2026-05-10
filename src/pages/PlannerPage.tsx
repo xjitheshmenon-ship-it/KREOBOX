@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 // ── Design tokens ─────────────────────────────────────────────────
@@ -10,7 +10,123 @@ const LINE   = 'rgba(26,24,21,0.09)'
 const ACCENT = '#c96442'
 
 type ProductMode = 'kitchen' | 'wardrobe' | 'office'
-type ViewMode    = '2D plan' | 'Elevation' | '3D walk'
+type ViewMode    = '2D plan' | 'Elevation' | '3D view'
+
+// ── Catalog types ─────────────────────────────────────────────────
+interface CatalogEntry {
+  id: string; name: string; code: string
+  category: 'base' | 'upper' | 'tall' | 'island' | 'fridge' | 'wardrobe' | 'desk' | 'storage'
+  width: number; height: number; depth: number; price: number
+  hasHob?: boolean; hasSink?: boolean; isIsland?: boolean
+  color: string
+}
+
+interface PlacedItem {
+  uid: string
+  entry: CatalogEntry
+  x: number; y: number   // mm from room origin
+  width: number
+  finish: string
+  hardware: string
+}
+
+// ── Catalogs ──────────────────────────────────────────────────────
+const KITCHEN_CATALOG: CatalogEntry[] = [
+  { id:'k-base-600',  name:'Base Cabinet',     code:'BSC-600',  category:'base',   width:600,  height:870, depth:600, price:18900, color:'#d4c9b0' },
+  { id:'k-base-900',  name:'Base Cabinet',     code:'BSC-900',  category:'base',   width:900,  height:870, depth:600, price:24500, color:'#d4c9b0' },
+  { id:'k-drawer-1000', name:'Drawer Unit',    code:'DRW-1000', category:'base',   width:1000, height:870, depth:600, price:32000, color:'#c8bda0' },
+  { id:'k-sink-1200', name:'Sink Cabinet',     code:'SNK-1200', category:'base',   width:1200, height:870, depth:600, price:28000, hasSink:true, color:'#d4c9b0' },
+  { id:'k-hob-900',   name:'Hob Unit',         code:'HOB-900',  category:'base',   width:900,  height:870, depth:600, price:22000, hasHob:true, color:'#d4c9b0' },
+  { id:'k-pantry-600',name:'Pantry Tower',     code:'PNT-600',  category:'tall',   width:600,  height:2400,depth:600, price:42000, color:'#c0b49a' },
+  { id:'k-fridge-600',name:'Fridge Surround',  code:'FRG-600',  category:'fridge', width:600,  height:2100,depth:650, price:15000, color:'#b8b0a0' },
+  { id:'k-upper-600', name:'Wall Unit',        code:'WLC-600',  category:'upper',  width:600,  height:700, depth:300, price:12000, color:'#e0d8c8' },
+  { id:'k-upper-900', name:'Wall Unit',        code:'WLC-900',  category:'upper',  width:900,  height:700, depth:300, price:16000, color:'#e0d8c8' },
+  { id:'k-island',    name:'Kitchen Island',   code:'ISL-2200', category:'island', width:2200, height:900, depth:900, price:85000, isIsland:true, color:'#1a1815' },
+]
+
+const WARDROBE_CATALOG: CatalogEntry[] = [
+  { id:'w-frame-600',  name:'Wardrobe Frame',  code:'WDF-600',  category:'wardrobe', width:600,  height:2400, depth:600, price:18000, color:'#c8bda0' },
+  { id:'w-frame-900',  name:'Wardrobe Frame',  code:'WDF-900',  category:'wardrobe', width:900,  height:2400, depth:600, price:24000, color:'#c8bda0' },
+  { id:'w-frame-1200', name:'Wardrobe Frame',  code:'WDF-1200', category:'wardrobe', width:1200, height:2400, depth:600, price:30000, color:'#c8bda0' },
+  { id:'w-drawer-600', name:'Drawer Module',   code:'WDD-600',  category:'storage',  width:600,  height:400,  depth:560, price:9500,  color:'#d4c9b0' },
+  { id:'w-shelf',      name:'Shelf Module',    code:'WDS-600',  category:'storage',  width:600,  height:200,  depth:560, price:4500,  color:'#e0d8c8' },
+]
+
+const OFFICE_CATALOG: CatalogEntry[] = [
+  { id:'o-desk-1400',  name:'Standing Desk',   code:'DSK-1400', category:'desk',    width:1400, height:750, depth:700, price:38000, color:'#c8bda0' },
+  { id:'o-desk-1800',  name:'L-Shape Desk',    code:'DSK-1800', category:'desk',    width:1800, height:750, depth:700, price:52000, color:'#c8bda0' },
+  { id:'o-shelf-900',  name:'Bookshelf',        code:'BSH-900',  category:'storage', width:900,  height:2100,depth:350, price:22000, color:'#d4c9b0' },
+  { id:'o-cabinet-600',name:'Filing Cabinet',  code:'FIL-600',  category:'storage', width:600,  height:1200,depth:500, price:18000, color:'#b8b0a0' },
+]
+
+const CATALOGS: Record<ProductMode, CatalogEntry[]> = {
+  kitchen: KITCHEN_CATALOG,
+  wardrobe: WARDROBE_CATALOG,
+  office: OFFICE_CATALOG,
+}
+
+// ── Room configs (mm) ─────────────────────────────────────────────
+const ROOMS = {
+  kitchen:  { w: 3800, d: 2840, wallH: 2400 },
+  wardrobe: { w: 2700, d: 600,  wallH: 2400 },
+  office:   { w: 5400, d: 3400, wallH: 2600 },
+}
+
+// ── Finishes / hardware ───────────────────────────────────────────
+const FINISHES  = ['Bali Oak', 'Espresso', 'Bone Matte', 'Sand Grey']
+const HARDWARES = ['Push-to-open', 'Soft-close hinge', 'Handle pull']
+
+// ── Default kitchen layout ─────────────────────────────────────────
+const defaultKitchenItems: PlacedItem[] = [
+  { uid:'di-1', entry: KITCHEN_CATALOG[2], x:0,    y:0,    width:1000, finish:'Bali Oak',   hardware:'Push-to-open' },
+  { uid:'di-2', entry: KITCHEN_CATALOG[3], x:1000, y:0,    width:1200, finish:'Bali Oak',   hardware:'Push-to-open' },
+  { uid:'di-3', entry: KITCHEN_CATALOG[4], x:2200, y:0,    width:900,  finish:'Bali Oak',   hardware:'Push-to-open' },
+  { uid:'di-4', entry: KITCHEN_CATALOG[5], x:3200, y:0,    width:600,  finish:'Bali Oak',   hardware:'Soft-close hinge' },
+  { uid:'di-5', entry: KITCHEN_CATALOG[6], x:0,    y:870,  width:600,  finish:'Bone Matte', hardware:'Push-to-open' },
+  { uid:'di-6', entry: KITCHEN_CATALOG[9], x:800,  y:1600, width:2200, finish:'Espresso',   hardware:'Push-to-open' },
+]
+
+// ── SVG canvas constants ──────────────────────────────────────────
+const SVG_W = 620
+const SVG_H = 440
+const ROOM_OX = 70
+const ROOM_OY = 40
+const MAX_ROOM_W = SVG_W - ROOM_OX - 10
+const MAX_ROOM_H = SVG_H - ROOM_OY - 30
+
+function getScale(room: { w: number; d: number }, zoom: number) {
+  return Math.min(MAX_ROOM_W / room.w, MAX_ROOM_H / room.d) * zoom
+}
+
+// ── ISO 3D constants ──────────────────────────────────────────────
+const ISO_SX = Math.cos(Math.PI / 6)
+const ISO_SY = Math.sin(Math.PI / 6)
+const ISO_SCALE_3D = 0.055
+
+function iso(mx: number, my: number, mz: number, cx: number, cy: number) {
+  return {
+    x: cx + (mx - mz) * ISO_SX * ISO_SCALE_3D,
+    y: cy - (mx + mz) * ISO_SY * ISO_SCALE_3D + my * ISO_SCALE_3D,
+  }
+}
+
+function hexToRgb(hex: string) {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return { r, g, b }
+}
+
+function lighten(hex: string, d: number) {
+  if (!hex.startsWith('#') || hex.length < 7) return hex
+  const { r, g, b } = hexToRgb(hex)
+  const clamp = (v: number) => Math.min(255, Math.max(0, v))
+  return `rgb(${clamp(r + d)},${clamp(g + d)},${clamp(b + d)})`
+}
+
+function darken(hex: string, d: number) {
+  return lighten(hex, -d)
+}
 
 // ── Logo ──────────────────────────────────────────────────────────
 function KreoboxLogo({ size = 22 }: { size?: number }) {
@@ -44,7 +160,7 @@ function ProductSwitch({ active, onChange }: { active: ProductMode; onChange: (m
 }
 
 function ViewToggle({ active, onChange }: { active: ViewMode; onChange: (v: ViewMode) => void }) {
-  const opts: ViewMode[] = ['2D plan', 'Elevation', '3D walk']
+  const opts: ViewMode[] = ['2D plan', 'Elevation', '3D view']
   return (
     <div style={{ display: 'flex', background: 'rgba(26,24,21,0.05)', borderRadius: 8, padding: 3 }}>
       {opts.map(o => (
@@ -60,497 +176,802 @@ function ViewToggle({ active, onChange }: { active: ViewMode; onChange: (v: View
   )
 }
 
-// ── Catalog helpers ───────────────────────────────────────────────
-function CatalogSection({ title }: { title: string }) {
-  return (
-    <div style={{ padding: '14px 10px 8px', fontSize: 10, letterSpacing: '0.18em',
-      textTransform: 'uppercase' as const, color: MUTE, fontWeight: 600 }}>{title}</div>
-  )
+// ── 2D Floor Plan Canvas ───────────────────────────────────────────
+interface Plan2DProps {
+  product: ProductMode
+  items: PlacedItem[]
+  selectedUid: string | null
+  zoom: number
+  dragOverPos: { x: number; y: number } | null
+  ghostEntry: CatalogEntry | null
+  onSelect: (uid: string | null) => void
+  onDrop: (entry: CatalogEntry, mmX: number, mmY: number) => void
+  onDragOver: (mmX: number, mmY: number) => void
+  onDragLeave: () => void
+  onMoveItem: (uid: string, mmX: number, mmY: number) => void
 }
 
-function CatalogItem({ name, code, width, dragging }: { name: string; code: string; width: string; dragging?: boolean }) {
-  return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: 10, padding: '10px 8px', borderRadius: 8,
-      background: dragging ? 'rgba(201,100,66,0.06)' : 'transparent',
-      border: dragging ? `1px dashed ${ACCENT}` : '1px solid transparent', cursor: 'grab',
-    }}>
-      <div style={{
-        width: 44, height: 44, borderRadius: 6, background: '#e8e2d5', border: `1px solid ${LINE}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: MUTE, flexShrink: 0,
-      }}>{width}</div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
-        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: MUTE }}>{code}</div>
-      </div>
-    </div>
-  )
-}
+function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, onSelect, onDrop, onDragOver, onDragLeave, onMoveItem }: Plan2DProps) {
+  const svgRef = useRef<SVGSVGElement>(null)
+  const room = ROOMS[product]
+  const scale = getScale(room, zoom)
+  const rW = room.w * scale
+  const rH = room.d * scale
 
-function FinishSwatch({ tones, label }: { tones: [string, string]; label: string }) {
-  return (
-    <div>
-      <div style={{
-        height: 56, borderRadius: 8,
-        background: `linear-gradient(135deg, ${tones[0]}, ${tones[1]})`,
-        marginBottom: 6, border: `1px solid ${LINE}`,
-      }} />
-      <div style={{ fontSize: 11, fontWeight: 500 }}>{label}</div>
-    </div>
-  )
-}
+  const toMm = useCallback((svgX: number, svgY: number) => {
+    const mmX = Math.round((svgX - ROOM_OX) / scale / 100) * 100
+    const mmY = Math.round((svgY - ROOM_OY) / scale / 100) * 100
+    return { mmX: Math.max(0, Math.min(room.w, mmX)), mmY: Math.max(0, Math.min(room.d, mmY)) }
+  }, [scale, room])
 
-// ── SVG Viewports ─────────────────────────────────────────────────
-function KitchenPlan2D({ selected = 'pantry' }: { selected?: string }) {
-  const cabFill = '#e8e2d5', cabStroke = '#a99a82'
-  const isSel = (id: string) => selected === id
+  const getSvgCoords = useCallback((e: React.DragEvent) => {
+    const rect = svgRef.current?.getBoundingClientRect()
+    if (!rect) return null
+    const svgX = (e.clientX - rect.left) / rect.width * SVG_W
+    const svgY = (e.clientY - rect.top) / rect.height * SVG_H
+    return toMm(svgX, svgY)
+  }, [toMm])
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    const pos = getSvgCoords(e)
+    if (pos) onDragOver(pos.mmX, pos.mmY)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const pos = getSvgCoords(e)
+    if (!pos || !ghostEntry) return
+    onDrop(ghostEntry, pos.mmX, pos.mmY)
+  }
+
+  // drag-to-move state
+  const movingUid = useRef<string | null>(null)
+
+  const wallColor = '#1a1815'
+  const gridMinor = 'rgba(26,24,21,0.05)'
+  const gridMajor = 'rgba(26,24,21,0.10)'
+
   return (
-    <svg viewBox="0 0 480 380" style={{ width: '100%', height: '100%', display: 'block' }}>
+    <svg
+      ref={svgRef}
+      viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+      style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair' }}
+      onDragOver={handleDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={handleDrop}
+      onClick={e => { if (e.target === svgRef.current) onSelect(null) }}
+    >
       <defs>
-        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-          <path d="M20 0 L0 0 0 20" fill="none" stroke="rgba(26,24,21,0.06)" strokeWidth="1" />
+        <pattern id="pl-grid" width={scale * 100} height={scale * 100} patternUnits="userSpaceOnUse"
+          patternTransform={`translate(${ROOM_OX},${ROOM_OY})`}>
+          <path d={`M${scale*100} 0 L0 0 0 ${scale*100}`} fill="none" stroke={gridMinor} strokeWidth="0.5" />
         </pattern>
-        <pattern id="grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
-          <path d="M100 0 L0 0 0 100" fill="none" stroke="rgba(26,24,21,0.12)" strokeWidth="1" />
+        <pattern id="pl-grid-maj" width={scale * 500} height={scale * 500} patternUnits="userSpaceOnUse"
+          patternTransform={`translate(${ROOM_OX},${ROOM_OY})`}>
+          <path d={`M${scale*500} 0 L0 0 0 ${scale*500}`} fill="none" stroke={gridMajor} strokeWidth="1" />
         </pattern>
       </defs>
-      <rect x="40" y="40" width="400" height="300" fill="url(#grid)" />
-      <rect x="40" y="40" width="400" height="300" fill="url(#grid-major)" />
-      <path d="M40 340 L40 40 L440 40" fill="none" stroke={INK} strokeWidth="6" strokeLinejoin="round" />
-      <path d="M440 40 L440 140" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />
-      <path d="M40 340 L160 340" fill="none" stroke={INK} strokeWidth="6" strokeLinecap="round" />
-      <rect x="44" y="44" width="392" height="292" fill="rgba(232,226,213,0.25)" />
-      <rect x="48" y="48" width="380" height="40" fill="rgba(201,100,66,0.05)" stroke={cabStroke} strokeWidth="1" strokeDasharray="3 3" />
-      <text x="238" y="73" fill={MUTE} fontSize="10" fontFamily="JetBrains Mono, monospace" textAnchor="middle">UPPERS — 3.8m</text>
-      <rect x="48" y="92" width="100" height="60" fill={cabFill}
-        stroke={isSel('base-top-1') ? ACCENT : cabStroke} strokeWidth={isSel('base-top-1') ? 4 : 2} />
-      <line x1="98" y1="92" x2="98" y2="152" stroke={cabStroke} strokeWidth="1" />
-      <text x="98" y="128" fill={INK} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle" opacity="0.55">DRAWER · 1000</text>
-      <rect x="148" y="92" width="120" height="60" fill={cabFill} stroke={cabStroke} strokeWidth="2" />
-      <rect x="160" y="100" width="96" height="44" fill="#d9d2c3" stroke={cabStroke} strokeWidth="1" rx="3" />
-      <circle cx="208" cy="122" r="3" fill={cabStroke} />
-      <text x="208" y="170" fill={INK} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle" opacity="0.55">SINK · 1200</text>
-      <rect x="268" y="92" width="100" height="60" fill={cabFill} stroke={cabStroke} strokeWidth="2" />
-      <rect x="278" y="100" width="80" height="44" fill={INK} rx="2" />
-      <circle cx="294" cy="115" r="5" fill="#3a352e" />
-      <circle cx="320" cy="115" r="5" fill="#3a352e" />
-      <circle cx="294" cy="135" r="5" fill="#3a352e" />
-      <circle cx="320" cy="135" r="5" fill="#3a352e" />
-      <text x="318" y="170" fill={INK} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle" opacity="0.55">HOB · 900</text>
-      <rect x="368" y="92" width="60" height="60" fill={cabFill}
-        stroke={isSel('pantry') ? ACCENT : cabStroke} strokeWidth={isSel('pantry') ? 3 : 2} />
-      <line x1="368" y1="122" x2="428" y2="122" stroke={isSel('pantry') ? ACCENT : cabStroke} strokeWidth="1" />
-      <text x="398" y="128" fill={INK} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle" opacity="0.7">TALL · 600</text>
-      <rect x="48" y="152" width="60" height="100" fill={cabFill} stroke={cabStroke} strokeWidth="2" />
-      <text x="78" y="208" fill={INK} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle" opacity="0.55">FRIDGE</text>
-      <rect x="48" y="252" width="60" height="80" fill={cabFill} stroke={cabStroke} strokeWidth="2" />
-      <text x="78" y="298" fill={INK} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle" opacity="0.55">DRAWER</text>
-      <rect x="180" y="220" width="220" height="80" fill="#0e0d0b" rx="2" />
-      <rect x="190" y="230" width="200" height="60" fill="#1f1c19" rx="1" />
-      <text x="290" y="265" fill="rgba(255,255,255,0.5)" fontSize="10" fontFamily="JetBrains Mono, monospace" textAnchor="middle">ISLAND · 2.2m × 0.8m</text>
-      <text x="290" y="280" fill="rgba(255,255,255,0.35)" fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle">QUARTZ · BREAKFAST</text>
-      <line x1="48" y1="32" x2="428" y2="32" stroke={MUTE} strokeWidth="1" />
-      <line x1="48" y1="28" x2="48" y2="36" stroke={MUTE} strokeWidth="1" />
-      <line x1="428" y1="28" x2="428" y2="36" stroke={MUTE} strokeWidth="1" />
-      <text x="238" y="24" fill={MUTE} fontSize="10" fontFamily="JetBrains Mono, monospace" textAnchor="middle">3,800 mm</text>
-      <line x1="32" y1="48" x2="32" y2="332" stroke={MUTE} strokeWidth="1" />
-      <line x1="28" y1="48" x2="36" y2="48" stroke={MUTE} strokeWidth="1" />
-      <line x1="28" y1="332" x2="36" y2="332" stroke={MUTE} strokeWidth="1" />
-      <text x="20" y="190" fill={MUTE} fontSize="10" fontFamily="JetBrains Mono, monospace" textAnchor="middle" transform="rotate(-90, 20, 190)">2,840 mm</text>
-      {isSel('pantry') && (
-        <>
-          <line x1="398" y1="92" x2="398" y2="62" stroke={ACCENT} strokeWidth="1" strokeDasharray="3 2" />
-          <rect x="346" y="42" width="104" height="20" fill={PAPER} stroke={ACCENT} strokeWidth="1" rx="3" />
-          <text x="398" y="55" fill={ACCENT} fontSize="10" fontFamily="JetBrains Mono, monospace" textAnchor="middle" fontWeight="600">PANTRY 600 × 2400</text>
-        </>
-      )}
-    </svg>
-  )
-}
 
-function WardrobeElevation() {
-  const bayW = 180, bayH = 320, yTop = 20
-  const cabStroke = '#a99a82'
-  const interiors = [
-    [
-      { y: 0,   h: 60,  type: 'shelf',  label: '1 shelf' },
-      { y: 60,  h: 200, type: 'hang',   label: 'Long hang' },
-      { y: 260, h: 60,  type: 'drawer', label: '2 drawers' },
-    ],
-    [
-      { y: 0,   h: 30,  type: 'shelf', label: 'Top shelf' },
-      { y: 30,  h: 130, type: 'hang',  label: 'Hang · 1m' },
-      { y: 160, h: 130, type: 'hang',  label: 'Hang · 1m' },
-      { y: 290, h: 30,  type: 'shelf', label: 'Bottom' },
-    ],
-    [
-      { y: 0,   h: 80,  type: 'shelf',  label: '2 shelves' },
-      { y: 80,  h: 80,  type: 'basket', label: '2 baskets' },
-      { y: 160, h: 160, type: 'drawer', label: '4 drawers' },
-    ],
-  ]
-  const fills:   Record<string, string> = { shelf: '#e8e2d5', hang: 'rgba(91,141,239,0.18)', drawer: 'rgba(201,100,66,0.18)', basket: 'rgba(124,92,255,0.18)' }
-  const strokes: Record<string, string> = { shelf: cabStroke, hang: '#5b8def', drawer: ACCENT, basket: '#7c5cff' }
+      {/* Room fill + grid */}
+      <rect x={ROOM_OX} y={ROOM_OY} width={rW} height={rH} fill="rgba(232,226,213,0.18)" />
+      <rect x={ROOM_OX} y={ROOM_OY} width={rW} height={rH} fill="url(#pl-grid)" />
+      <rect x={ROOM_OX} y={ROOM_OY} width={rW} height={rH} fill="url(#pl-grid-maj)" />
 
-  return (
-    <svg viewBox="0 0 600 380" style={{ width: '100%', height: '100%', display: 'block' }}>
-      <defs>
-        <pattern id="wgrid" width="20" height="20" patternUnits="userSpaceOnUse">
-          <path d="M20 0 L0 0 0 20" fill="none" stroke="rgba(26,24,21,0.06)" strokeWidth="1" />
-        </pattern>
-      </defs>
-      <rect x="0" y="0" width="600" height="380" fill={PAPER} />
-      <rect x="20" y={yTop} width="560" height={bayH + 20} fill="url(#wgrid)" />
-      <line x1="20" y1={yTop + bayH + 20} x2="580" y2={yTop + bayH + 20} stroke={INK} strokeWidth="2" />
-      {[0, 1, 2].map(bi => {
-        const x = 30 + bi * (bayW + 5)
-        const sel = bi === 1
+      {/* Walls */}
+      <path d={`M${ROOM_OX} ${ROOM_OY+rH} L${ROOM_OX} ${ROOM_OY} L${ROOM_OX+rW} ${ROOM_OY}`}
+        fill="none" stroke={wallColor} strokeWidth="5" strokeLinejoin="round" />
+      <path d={`M${ROOM_OX+rW} ${ROOM_OY} L${ROOM_OX+rW} ${ROOM_OY+rH*0.4}`}
+        fill="none" stroke={wallColor} strokeWidth="5" strokeLinecap="round" />
+      <path d={`M${ROOM_OX} ${ROOM_OY+rH} L${ROOM_OX+rW*0.42} ${ROOM_OY+rH}`}
+        fill="none" stroke={wallColor} strokeWidth="5" strokeLinecap="round" />
+
+      {/* Placed items */}
+      {items.map(item => {
+        const iw = item.width * scale
+        const ih = item.entry.depth * scale
+        const ix = ROOM_OX + item.x * scale
+        const iy = ROOM_OY + item.y * scale
+        const isSel = item.uid === selectedUid
+        const isIsland = item.entry.isIsland
+        const fillColor = isIsland ? '#1a1815' : '#d4c9b0'
+        const strokeColor = isSel ? ACCENT : '#a99a82'
+        const sw = isSel ? 2.5 : 1.5
+
         return (
-          <g key={bi}>
-            <rect x={x} y={yTop} width={bayW} height={bayH}
-              fill="none" stroke={sel ? ACCENT : INK} strokeWidth={sel ? 3 : 2} />
-            {interiors[bi].map((m, mi) => (
-              <g key={mi}>
-                <rect x={x + 4} y={yTop + 4 + (m.y * bayH / 320)} width={bayW - 8} height={(m.h * bayH / 320) - 4}
-                  fill={fills[m.type]} stroke={strokes[m.type]} strokeWidth="1" />
-                {m.type === 'hang' && (
-                  <line x1={x + 12} y1={yTop + 4 + (m.y * bayH / 320) + 8}
-                    x2={x + bayW - 12} y2={yTop + 4 + (m.y * bayH / 320) + 8}
-                    stroke={strokes.hang} strokeWidth="2" />
-                )}
-                <text x={x + bayW / 2} y={yTop + 4 + (m.y * bayH / 320) + (m.h * bayH / 320) / 2 + 3}
-                  fill={INK} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle" opacity="0.7">
-                  {m.label}
-                </text>
-              </g>
-            ))}
-            <text x={x + bayW / 2} y={yTop - 8} fill={sel ? ACCENT : MUTE} fontSize="10"
-              fontFamily="JetBrains Mono, monospace" textAnchor="middle" fontWeight={sel ? '700' : '500'}>
-              BAY {String.fromCharCode(65 + bi)} · 900mm
-            </text>
-            <text x={x + bayW / 2} y={yTop + bayH + 35} fill={MUTE} fontSize="9"
-              fontFamily="JetBrains Mono, monospace" textAnchor="middle">2400 × 900 × 600</text>
+          <g key={item.uid}
+            style={{ cursor: 'grab' }}
+            draggable
+            onDragStart={e => { movingUid.current = item.uid; e.dataTransfer.setData('move-uid', item.uid) }}
+            onDragEnd={() => { movingUid.current = null }}
+            onClick={e => { e.stopPropagation(); onSelect(item.uid) }}
+          >
+            <rect x={ix} y={iy} width={iw} height={ih}
+              fill={fillColor} stroke={strokeColor} strokeWidth={sw} rx={2} />
+
+            {/* Cabinet details */}
+            {item.entry.hasSink && (
+              <ellipse cx={ix + iw/2} cy={iy + ih/2} rx={iw*0.2} ry={ih*0.3}
+                fill="#c0c8d0" stroke={strokeColor} strokeWidth="1" />
+            )}
+            {item.entry.hasHob && (
+              <>
+                <circle cx={ix + iw*0.28} cy={iy + ih*0.35} r={iw*0.06} fill="#2a2520" />
+                <circle cx={ix + iw*0.55} cy={iy + ih*0.35} r={iw*0.06} fill="#2a2520" />
+                <circle cx={ix + iw*0.28} cy={iy + ih*0.68} r={iw*0.06} fill="#2a2520" />
+                <circle cx={ix + iw*0.55} cy={iy + ih*0.68} r={iw*0.06} fill="#2a2520" />
+              </>
+            )}
+            {item.entry.category === 'tall' && (
+              <line x1={ix + iw/2} y1={iy} x2={ix + iw/2} y2={iy + ih}
+                stroke={strokeColor} strokeWidth="0.8" />
+            )}
+            {item.entry.isIsland && (
+              <rect x={ix+6} y={iy+6} width={iw-12} height={ih-12}
+                fill="#252018" rx={1} />
+            )}
+
+            {/* Label */}
+            <text x={ix + iw/2} y={iy + ih/2 + 4}
+              fill={isIsland ? 'rgba(255,255,255,0.4)' : 'rgba(26,24,21,0.5)'}
+              fontSize={Math.max(7, Math.min(10, iw * 0.07))}
+              fontFamily="JetBrains Mono, monospace"
+              textAnchor="middle">{item.entry.code}</text>
+
+            {/* Selection handles */}
+            {isSel && (
+              <>
+                <rect x={ix-1} y={iy-1} width={iw+2} height={ih+2}
+                  fill="none" stroke={ACCENT} strokeWidth="2" strokeDasharray="4 3" rx={3} />
+                <circle cx={ix} cy={iy} r={4} fill={ACCENT} />
+                <circle cx={ix+iw} cy={iy} r={4} fill={ACCENT} />
+                <circle cx={ix+iw} cy={iy+ih} r={4} fill={ACCENT} />
+                <circle cx={ix} cy={iy+ih} r={4} fill={ACCENT} />
+              </>
+            )}
           </g>
         )
       })}
-      <line x1="30" y1={yTop + bayH + 50} x2={30 + 3 * bayW + 10} y2={yTop + bayH + 50} stroke={MUTE} strokeWidth="1" />
-      <text x={30 + (3 * bayW + 10) / 2} y={yTop + bayH + 64} fill={MUTE} fontSize="10"
-        fontFamily="JetBrains Mono, monospace" textAnchor="middle">2,710 mm overall</text>
+
+      {/* Ghost preview while dragging from catalog */}
+      {dragOverPos && ghostEntry && (() => {
+        const gw = ghostEntry.width * scale
+        const gh = ghostEntry.depth * scale
+        const gx = ROOM_OX + dragOverPos.x * scale
+        const gy = ROOM_OY + dragOverPos.y * scale
+        return (
+          <rect x={gx} y={gy} width={gw} height={gh}
+            fill={`${ACCENT}22`} stroke={ACCENT} strokeWidth="1.5"
+            strokeDasharray="4 3" rx={3} />
+        )
+      })()}
+
+      {/* Dimension labels */}
+      <line x1={ROOM_OX} y1={ROOM_OY - 14} x2={ROOM_OX + rW} y2={ROOM_OY - 14}
+        stroke={MUTE} strokeWidth="0.8" />
+      <line x1={ROOM_OX} y1={ROOM_OY - 18} x2={ROOM_OX} y2={ROOM_OY - 10}
+        stroke={MUTE} strokeWidth="0.8" />
+      <line x1={ROOM_OX + rW} y1={ROOM_OY - 18} x2={ROOM_OX + rW} y2={ROOM_OY - 10}
+        stroke={MUTE} strokeWidth="0.8" />
+      <text x={ROOM_OX + rW/2} y={ROOM_OY - 18}
+        fill={MUTE} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle">
+        {(room.w / 1000).toFixed(1)}m
+      </text>
+
+      <line x1={ROOM_OX - 14} y1={ROOM_OY} x2={ROOM_OX - 14} y2={ROOM_OY + rH}
+        stroke={MUTE} strokeWidth="0.8" />
+      <line x1={ROOM_OX - 18} y1={ROOM_OY} x2={ROOM_OX - 10} y2={ROOM_OY}
+        stroke={MUTE} strokeWidth="0.8" />
+      <line x1={ROOM_OX - 18} y1={ROOM_OY + rH} x2={ROOM_OX - 10} y2={ROOM_OY + rH}
+        stroke={MUTE} strokeWidth="0.8" />
+      <text x={ROOM_OX - 20} y={ROOM_OY + rH/2}
+        fill={MUTE} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle"
+        transform={`rotate(-90,${ROOM_OX - 20},${ROOM_OY + rH/2})`}>
+        {(room.d / 1000).toFixed(1)}m
+      </text>
     </svg>
   )
 }
 
-function OfficeFloorPlan() {
+// ── Elevation View ────────────────────────────────────────────────
+function ElevationView({ product, items, zoom }: { product: ProductMode; items: PlacedItem[]; zoom: number }) {
+  const room = ROOMS[product]
+  const scale = getScale(room, zoom)
+  // Only items against the back wall (y ≈ 0, within first 700mm)
+  const wallItems = items.filter(it => it.y < 700)
+  const wallH = room.wallH
+  const svgH = SVG_H - 60
+  const elvScale = Math.min(MAX_ROOM_W / room.w, svgH / wallH)
+  const baseY = ROOM_OY + svgH
+  const oxEl = ROOM_OX
+
   return (
-    <svg viewBox="0 0 580 380" style={{ width: '100%', height: '100%', display: 'block' }}>
-      <defs>
-        <pattern id="ofgrid" width="20" height="20" patternUnits="userSpaceOnUse">
-          <path d="M20 0 L0 0 0 20" fill="none" stroke="rgba(26,24,21,0.05)" strokeWidth="1" />
-        </pattern>
-      </defs>
-      <rect x="20" y="20" width="540" height="340" fill="url(#ofgrid)" />
-      <path d="M20 20 L560 20 L560 360 L20 360 Z" fill="none" stroke={INK} strokeWidth="6" />
-      <path d="M180 20 A30 30 0 0 1 210 50" fill="none" stroke={MUTE} strokeWidth="1" />
-      <line x1="180" y1="20" x2="180" y2="50" stroke={MUTE} strokeWidth="1" />
-      <text x="40" y="44" fill={MUTE} fontSize="10" fontFamily="JetBrains Mono, monospace" letterSpacing="0.14em" fontWeight="700">WORKSTATIONS · 6 SEATS</text>
-      {[0, 1, 2].map(i => (
-        <g key={'d' + i}>
-          <rect x={50 + i * 80} y="80" width="70" height="44" fill={PAPER} stroke="#a99a82" strokeWidth="1.5" />
-          <circle cx={50 + i * 80 + 35} cy="138" r="9" fill="none" stroke="#a99a82" strokeWidth="1.5" />
-          <text x={50 + i * 80 + 35} y="106" fill={MUTE} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle">DESK</text>
-        </g>
-      ))}
-      {[0, 1, 2].map(i => (
-        <g key={'d2' + i}>
-          <rect x={50 + i * 80} y="200" width="70" height="44" fill={PAPER} stroke="#a99a82" strokeWidth="1.5" />
-          <circle cx={50 + i * 80 + 35} cy="186" r="9" fill="none" stroke="#a99a82" strokeWidth="1.5" />
-          <text x={50 + i * 80 + 35} y="226" fill={MUTE} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle">DESK</text>
-        </g>
-      ))}
-      <rect x="320" y="40" width="220" height="160" fill="rgba(26,24,21,0.025)" stroke="#a99a82" strokeWidth="1.5" strokeDasharray="4 3" />
-      <text x="430" y="60" fill={MUTE} fontSize="10" fontFamily="JetBrains Mono, monospace" textAnchor="middle" letterSpacing="0.14em" fontWeight="700">MEETING · 8</text>
-      <rect x="350" y="90" width="160" height="60" fill={PAPER} stroke="#a99a82" strokeWidth="1.5" />
-      {[0, 1, 2, 3].map(i => <circle key={i}       cx={368 + i * 36} cy="80"  r="7" fill="none" stroke="#a99a82" strokeWidth="1.5" />)}
-      {[0, 1, 2, 3].map(i => <circle key={i + 'b'} cx={368 + i * 36} cy="160" r="7" fill="none" stroke="#a99a82" strokeWidth="1.5" />)}
-      <rect x="40" y="270" width="220" height="60" fill="rgba(201,100,66,0.08)" stroke={ACCENT} strokeWidth="3" />
-      <line x1="95"  y1="270" x2="95"  y2="330" stroke="#a99a82" strokeWidth="1" />
-      <line x1="150" y1="270" x2="150" y2="330" stroke="#a99a82" strokeWidth="1" />
-      <line x1="205" y1="270" x2="205" y2="330" stroke="#a99a82" strokeWidth="1" />
-      <text x="150" y="304" fill={ACCENT} fontSize="10" fontFamily="JetBrains Mono, monospace" textAnchor="middle" fontWeight="700">STORAGE WALL · A</text>
-      <text x="150" y="318" fill={MUTE} fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle">4 BAYS · 2200w · 2100h</text>
-      <rect x="290" y="220" width="40" height="110" fill="rgba(91,141,239,0.08)" stroke="#5b8def" strokeWidth="1.5" />
-      <text x="310" y="280" fill="#5b8def" fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle" fontWeight="700">TOWER B</text>
-      <rect x="350" y="230" width="160" height="30" fill="rgba(124,92,255,0.08)" stroke="#7c5cff" strokeWidth="1.5" />
-      <text x="430" y="250" fill="#7c5cff" fontSize="9" fontFamily="JetBrains Mono, monospace" textAnchor="middle" fontWeight="700">CREDENZA C</text>
-      <text x="290" y="14" fill={MUTE} fontSize="10" fontFamily="JetBrains Mono, monospace" textAnchor="middle">5,400 mm</text>
-      <text x="14" y="190" fill={MUTE} fontSize="10" fontFamily="JetBrains Mono, monospace" textAnchor="middle" transform="rotate(-90, 14, 190)">3,400 mm</text>
+    <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ width: '100%', height: '100%', display: 'block' }}>
+      {/* Floor line */}
+      <line x1={oxEl} y1={baseY} x2={oxEl + room.w * elvScale} y2={baseY}
+        stroke={INK} strokeWidth="3" strokeLinecap="round" />
+      {/* Ceiling */}
+      <line x1={oxEl} y1={baseY - wallH * elvScale} x2={oxEl + room.w * elvScale} y2={baseY - wallH * elvScale}
+        stroke={MUTE} strokeWidth="1" strokeDasharray="5 4" />
+
+      {/* Wall items */}
+      {wallItems.map(item => {
+        const iw = item.width * elvScale
+        const icat = item.entry.category
+        const ih = (icat === 'upper' ? 700 : item.entry.height) * elvScale
+        const iy = baseY - ih
+        const ix = oxEl + item.x * elvScale
+        const isIsland = item.entry.isIsland
+
+        return (
+          <g key={item.uid}>
+            <rect x={ix} y={iy} width={iw} height={ih}
+              fill={isIsland ? '#1a1815' : '#d4c9b0'}
+              stroke={isIsland ? '#3a352e' : '#a99a82'}
+              strokeWidth="1.5" rx={2} />
+            {/* Counter line for base cabs */}
+            {(icat === 'base') && (
+              <rect x={ix} y={iy} width={iw} height={ih * 0.05}
+                fill="#b8a888" rx={1} />
+            )}
+            {/* Door lines */}
+            {icat !== 'island' && (
+              <line x1={ix + iw * 0.5} y1={iy} x2={ix + iw * 0.5} y2={iy + ih}
+                stroke="#a99a82" strokeWidth="0.7" />
+            )}
+            {/* Sink visual */}
+            {item.entry.hasSink && (
+              <rect x={ix + iw * 0.2} y={iy + ih * 0.15} width={iw * 0.6} height={ih * 0.18}
+                fill="#c0c8d0" stroke="#a0a8b0" strokeWidth="0.8" rx={2} />
+            )}
+            {/* Hob visual */}
+            {item.entry.hasHob && (
+              <>
+                <circle cx={ix + iw * 0.35} cy={iy + ih * 0.08} r={iw * 0.05} fill="#2a2520" />
+                <circle cx={ix + iw * 0.65} cy={iy + ih * 0.08} r={iw * 0.05} fill="#2a2520" />
+              </>
+            )}
+            <text x={ix + iw/2} y={iy + ih/2 + 3}
+              fill="rgba(26,24,21,0.35)" fontSize="8" fontFamily="JetBrains Mono, monospace" textAnchor="middle">
+              {item.entry.code}
+            </text>
+          </g>
+        )
+      })}
+
+      {/* Counter height marker */}
+      <line x1={oxEl - 12} y1={baseY - 870 * elvScale} x2={oxEl + room.w * elvScale + 12} y2={baseY - 870 * elvScale}
+        stroke={ACCENT} strokeWidth="0.8" strokeDasharray="3 3" />
+      <text x={oxEl + room.w * elvScale + 16} y={baseY - 870 * elvScale + 3}
+        fill={ACCENT} fontSize="8" fontFamily="JetBrains Mono, monospace">870</text>
+
+      {/* Wall height label */}
+      <text x={oxEl - 30} y={baseY - wallH * elvScale / 2}
+        fill={MUTE} fontSize="8" fontFamily="JetBrains Mono, monospace" textAnchor="middle"
+        transform={`rotate(-90,${oxEl - 30},${baseY - wallH * elvScale / 2})`}>
+        {(wallH / 1000).toFixed(1)}m
+      </text>
     </svg>
   )
 }
 
-// ── Catalog panels per mode ───────────────────────────────────────
-function KitchenCatalog() {
+// ── 3D Isometric View ─────────────────────────────────────────────
+function IsoView3D({ product, items, selectedUid }: { product: ProductMode; items: PlacedItem[]; selectedUid: string | null }) {
+  const room = ROOMS[product]
+  const cx = SVG_W * 0.45
+  const cy = SVG_H * 0.72
+
+  // Sort by painter's algorithm: render far items first
+  const sorted = [...items].sort((a, b) => (b.entry.isIsland ? -1 : 1) || (b.x + b.y) - (a.x + a.y))
+
   return (
-    <div style={{ flex: 1, overflow: 'hidden auto', padding: '0 8px' }}>
-      <CatalogSection title="Base cabinets · 720h" />
-      <CatalogItem name="Drawer base, 3-pull"    code="KBX-CB-300-D3 · ₹ 18,400"  width="600" />
-      <CatalogItem name="Sink base, single basin" code="KBX-CB-1200-SB · ₹ 32,100" width="1200" dragging />
-      <CatalogItem name="Corner carousel"         code="KBX-CB-900-CC · ₹ 41,200"  width="900" />
-      <CatalogSection title="Tall units · 2400h" />
-      <CatalogItem name="Pantry pull-out"         code="KBX-TU-600-PP · ₹ 64,800"  width="600" />
-      <CatalogItem name="Tower oven housing"      code="KBX-TU-600-OV · ₹ 38,000"  width="600" />
-      <CatalogSection title="Finishes" />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: '0 10px 16px' }}>
-        <FinishSwatch tones={['#d4ccbe', '#b8a995']} label="Bali oak" />
-        <FinishSwatch tones={['#3a352e', '#1a1815']} label="Espresso" />
-        <FinishSwatch tones={['#fafaf7', '#dcd8d0']} label="Bone matte" />
-      </div>
-    </div>
+    <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ width: '100%', height: '100%', display: 'block' }}>
+      {/* Floor */}
+      {(() => {
+        const fl = [
+          iso(0,        0, 0,        cx, cy),
+          iso(room.w,   0, 0,        cx, cy),
+          iso(room.w,   0, room.d,   cx, cy),
+          iso(0,        0, room.d,   cx, cy),
+        ]
+        const pts = fl.map(p => `${p.x},${p.y}`).join(' ')
+        return <polygon points={pts} fill="#e8e3d8" stroke="#c4bbb0" strokeWidth="1" />
+      })()}
+
+      {/* Back wall (z=0) */}
+      {(() => {
+        const w = [
+          iso(0,          0,          0, cx, cy),
+          iso(room.w,     0,          0, cx, cy),
+          iso(room.w,     room.wallH, 0, cx, cy),
+          iso(0,          room.wallH, 0, cx, cy),
+        ]
+        const pts = w.map(p => `${p.x},${p.y}`).join(' ')
+        return <polygon points={pts} fill="#f0ece4" stroke="#d0c8bc" strokeWidth="0.8" />
+      })()}
+
+      {/* Left wall (x=0) */}
+      {(() => {
+        const lw = [
+          iso(0, 0,          0,      cx, cy),
+          iso(0, 0,          room.d, cx, cy),
+          iso(0, room.wallH, room.d, cx, cy),
+          iso(0, room.wallH, 0,      cx, cy),
+        ]
+        const pts = lw.map(p => `${p.x},${p.y}`).join(' ')
+        return <polygon points={pts} fill="#e4e0d8" stroke="#d0c8bc" strokeWidth="0.8" />
+      })()}
+
+      {/* Items */}
+      {sorted.map(item => {
+        const isSel = item.uid === selectedUid
+        const baseColor = item.entry.color
+        const topColor  = lighten(baseColor, 40)
+        const frontColor = darken(baseColor, 10)
+        const sideColor  = darken(baseColor, 25)
+        const iw = item.width
+        const ih = item.entry.height
+        const id = item.entry.depth
+        const ix = item.x
+        const iz = item.y
+
+        // Top face
+        const topFace = [
+          iso(ix,    ih, iz,    cx, cy),
+          iso(ix+iw, ih, iz,    cx, cy),
+          iso(ix+iw, ih, iz+id, cx, cy),
+          iso(ix,    ih, iz+id, cx, cy),
+        ]
+        // Front face (z = iz+id)
+        const frontFace = [
+          iso(ix,    0,  iz+id, cx, cy),
+          iso(ix+iw, 0,  iz+id, cx, cy),
+          iso(ix+iw, ih, iz+id, cx, cy),
+          iso(ix,    ih, iz+id, cx, cy),
+        ]
+        // Right face (x = ix+iw)
+        const rightFace = [
+          iso(ix+iw, 0,  iz,    cx, cy),
+          iso(ix+iw, 0,  iz+id, cx, cy),
+          iso(ix+iw, ih, iz+id, cx, cy),
+          iso(ix+iw, ih, iz,    cx, cy),
+        ]
+
+        const toPoints = (face: { x: number; y: number }[]) => face.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+        const selStroke = isSel ? ACCENT : 'none'
+        const selSW = isSel ? 1.5 : 0
+
+        return (
+          <g key={item.uid}>
+            <polygon points={toPoints(topFace)}   fill={topColor}   stroke={isSel ? ACCENT : '#0002'} strokeWidth={isSel ? 1.5 : 0.5} />
+            <polygon points={toPoints(frontFace)} fill={frontColor} stroke={isSel ? ACCENT : '#0003'} strokeWidth={isSel ? 1.5 : 0.5} />
+            <polygon points={toPoints(rightFace)} fill={sideColor}  stroke={isSel ? ACCENT : '#0004'} strokeWidth={isSel ? 1.5 : 0.5} />
+
+            {/* Counter top for base cabinets */}
+            {(item.entry.category === 'base') && (() => {
+              const ctH = 30
+              const ctTop = [
+                iso(ix,    ih+ctH, iz,    cx, cy),
+                iso(ix+iw, ih+ctH, iz,    cx, cy),
+                iso(ix+iw, ih+ctH, iz+id, cx, cy),
+                iso(ix,    ih+ctH, iz+id, cx, cy),
+              ]
+              return <polygon points={toPoints(ctTop)} fill="#c8c0a8" stroke="#0003" strokeWidth="0.5" />
+            })()}
+
+            {/* Hob rings */}
+            {item.entry.hasHob && (() => {
+              const centers = [
+                iso(ix + iw * 0.28, ih + 31, iz + id * 0.35, cx, cy),
+                iso(ix + iw * 0.55, ih + 31, iz + id * 0.35, cx, cy),
+                iso(ix + iw * 0.28, ih + 31, iz + id * 0.68, cx, cy),
+                iso(ix + iw * 0.55, ih + 31, iz + id * 0.68, cx, cy),
+              ]
+              return <>{centers.map((c, i) => <circle key={i} cx={c.x} cy={c.y} r={4} fill="#2a2520" />)}</>
+            })()}
+          </g>
+        )
+      })}
+
+      {/* Label */}
+      <text x={14} y={24} fill={MUTE} fontSize="10" fontFamily="JetBrains Mono, monospace">3D ISOMETRIC</text>
+    </svg>
   )
 }
 
-function WardrobeCatalog() {
-  return (
-    <div style={{ flex: 1, overflow: 'hidden auto', padding: '0 8px' }}>
-      <CatalogSection title="Hang space" />
-      <CatalogItem name="Long hang, 2400h"          code="KBX-WI-LH-2400 · ₹ 8,200"  width="full" />
-      <CatalogItem name="Double hang, 2 × 1200h"    code="KBX-WI-DH-2400 · ₹ 9,400"  width="900" />
-      <CatalogItem name="Trouser pull-out"          code="KBX-WI-TR-100 · ₹ 6,900"   width="100" />
-      <CatalogSection title="Drawers & baskets" />
-      <CatalogItem name="Drawer, 200h push-to-open" code="KBX-WI-DR-200P · ₹ 4,800"  width="200" dragging />
-      <CatalogItem name="Drawer, 150h soft-close"   code="KBX-WI-DR-150SC · ₹ 5,200" width="150" />
-      <CatalogItem name="Mesh basket, 150h"         code="KBX-WI-BA-150 · ₹ 2,400"   width="150" />
-      <CatalogSection title="Shelves & pull-outs" />
-      <CatalogItem name="Shoe shelf pull-out"       code="KBX-WI-SH-200P · ₹ 7,400"  width="200" />
-      <CatalogItem name="Tie / belt rack"           code="KBX-WI-TB-050 · ₹ 1,800"   width="50" />
-      <CatalogSection title="Finishes" />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, padding: '0 10px 16px' }}>
-        <FinishSwatch tones={['#d4ccbe', '#b8a995']} label="Bali oak" />
-        <FinishSwatch tones={['#2e2a24', '#1a1815']} label="Espresso" />
-        <FinishSwatch tones={['#e8e4dd', '#d0cbbf']} label="Sand grey" />
-      </div>
-    </div>
-  )
-}
-
-function OfficeCatalog() {
-  return (
-    <div style={{ flex: 1, overflow: 'hidden auto', padding: '0 8px' }}>
-      <CatalogSection title="Workstations" />
-      <CatalogItem name="Linear desk, 1200w"        code="KBX-OF-WS-1200 · ₹ 28,400" width="1200" />
-      <CatalogItem name="L-desk, 1600 × 1200"       code="KBX-OF-LD-1600 · ₹ 44,800" width="1600" dragging />
-      <CatalogItem name="Bench seat, 4-person"      code="KBX-OF-BN-4P · ₹ 94,000"   width="2400" />
-      <CatalogSection title="Storage" />
-      <CatalogItem name="Filing cabinet, 3-drawer"  code="KBX-OF-FC-3D · ₹ 18,200"   width="450" />
-      <CatalogItem name="Storage wall bay, 2100h"   code="KBX-OF-SW-600 · ₹ 36,400"  width="600" />
-      <CatalogItem name="Personal locker × 3"       code="KBX-OF-LK-3P · ₹ 22,800"   width="900" />
-      <CatalogSection title="Meeting" />
-      <CatalogItem name="Conference table, 8-seat"  code="KBX-OF-CT-8 · ₹ 1,28,000"  width="2400" />
-      <CatalogItem name="Credenza, 1600w"           code="KBX-OF-CR-1600 · ₹ 64,200" width="1600" />
-    </div>
-  )
-}
-
-// ── Right-panel detail per mode ───────────────────────────────────
-const MODE_DETAIL = {
-  kitchen: {
-    name:  'Pantry pull-out',
-    code:  'KBX-TU-600-PP · 600 × 2400 × 600 mm',
-    props: [['Width', '600 mm'], ['Height', '2,400 mm'], ['Finish', 'Bali oak'], ['Hardware', 'Push-to-open']] as [string, string][],
-    prov:  'Carcass HDF, FSC-certified. Laminate by Greenlam, Hosur. 7-year warranty.',
-    bom:   [['Base cabinets · 4', '₹ 1,12,400'], ['Tall units · 2', '₹ 1,02,800'], ['Wall cabinets · 5', '₹ 86,500'], ['Quartz worktop · 5.4 m', '₹ 1,89,000'], ['Hardware & lighting', '₹ 47,200']] as [string, string][],
-    total: '₹ 5,37,900', items: 14, cta: 'Request quote',
-  },
-  wardrobe: {
-    name:  'Double hang · Bay B',
-    code:  'KBX-WRD-B · 900 × 2400 × 600 mm',
-    props: [['Bays', '3 × 900 mm'], ['Height', '2,400 mm'], ['Finish', 'Bali oak'], ['Hardware', 'Soft-close']] as [string, string][],
-    prov:  'Carcass 18mm HDF. Handles Hettich, Germany. FSC-certified board.',
-    bom:   [['Carcass × 3', '₹ 64,200'], ['Doors · Bali oak', '₹ 38,800'], ['Hang rods × 4', '₹ 4,200'], ['Drawers × 6', '₹ 28,400'], ['Hardware', '₹ 9,800']] as [string, string][],
-    total: '₹ 1,45,400', items: 5, cta: 'Request quote',
-  },
-  office: {
-    name:  'Storage wall · A',
-    code:  'KBX-OF-SW-4B · 2200 × 2100 × 600 mm',
-    props: [['Bays', '4 × 550 mm'], ['Height', '2,100 mm'], ['Finish', 'Sand grey'], ['Type', 'Mixed interior']] as [string, string][],
-    prov:  '18mm HDHMR carcass. Hettich push-to-open fittings. Powder-coated steel accents.',
-    bom:   [['Carcass × 4', '₹ 78,400'], ['Locker bays', '₹ 28,200'], ['Filing drawers × 4', '₹ 38,800'], ['Open shelf bays', '₹ 18,400'], ['Hardware', '₹ 14,200']] as [string, string][],
-    total: '₹ 2,18,000', items: 8, cta: 'Request quote',
-  },
-}
-
-const VIEWPORT_LABEL: Record<ProductMode, string> = {
-  kitchen:  'L-shape · 3.8 × 2.84 m · Scale 1:25',
-  wardrobe: 'Elevation · 1:25 · 3 bays · A B C',
-  office:   'Top-down · 5.4 × 3.4 m · Scale 1:50',
-}
-
-const BREADCRUMB: Record<ProductMode, string> = {
-  kitchen:  'Whitefield · 3BHK / Kitchen plan',
-  wardrobe: 'Whitefield · MBR / Wardrobe',
-  office:   'Indiranagar Studio / Office plan',
-}
-
-const AI_TIP: Record<ProductMode, React.ReactNode> = {
-  kitchen:  <>Your sink-to-hob distance is <span style={{ color: ACCENT, fontWeight: 600 }}>1.2 m</span> — the comfortable working triangle. Consider a 600 mm drawer between them for utensils.</>,
-  wardrobe: <>Bay B double-hang fits <span style={{ color: ACCENT, fontWeight: 600 }}>~80 garments</span>. Adding a shoe pull-out to bay C would increase utilisation by 18%.</>,
-  office:   <>Storage wall A has <span style={{ color: ACCENT, fontWeight: 600 }}>1,200 mm aisle clearance</span> — ergonomics passed. Cable bay A4 aligns with floor outlet P-08.</>,
-}
-
-// ── Main component ────────────────────────────────────────────────
+// ── Main PlannerPage ──────────────────────────────────────────────
 export default function PlannerPage() {
   const navigate = useNavigate()
-  const [mode, setMode]    = useState<ProductMode>('kitchen')
-  const [view, setView]    = useState<ViewMode>('2D plan')
-  const [aiVisible, setAi] = useState(true)
-  const detail = MODE_DETAIL[mode]
+
+  const [product, setProduct] = useState<ProductMode>('kitchen')
+  const [view, setView]       = useState<ViewMode>('2D plan')
+  const [zoom, setZoom]       = useState(1)
+  const [placedItems, setPlacedItems] = useState<PlacedItem[]>(defaultKitchenItems)
+  const [selectedUid, setSelectedUid] = useState<string | null>(null)
+  const [dragEntry, setDragEntry] = useState<CatalogEntry | null>(null)
+  const [dragOverPos, setDragOverPos] = useState<{ x: number; y: number } | null>(null)
+
+  const catalog = CATALOGS[product]
+  const selectedItem = placedItems.find(it => it.uid === selectedUid) ?? null
+
+  // Switch product → reset layout
+  const handleProductChange = (p: ProductMode) => {
+    setProduct(p)
+    setPlacedItems([])
+    setSelectedUid(null)
+  }
+
+  // Keyboard: Delete selected item
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedUid) {
+        if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'SELECT') return
+        setPlacedItems(prev => prev.filter(it => it.uid !== selectedUid))
+        setSelectedUid(null)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [selectedUid])
+
+  // Drop from catalog
+  const handleDrop = useCallback((entry: CatalogEntry, mmX: number, mmY: number) => {
+    const uid = `item-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    setPlacedItems(prev => [...prev, {
+      uid, entry, x: mmX, y: mmY, width: entry.width,
+      finish: FINISHES[0], hardware: HARDWARES[0],
+    }])
+    setSelectedUid(uid)
+    setDragOverPos(null)
+    setDragEntry(null)
+  }, [])
+
+  // Update selected item
+  const updateItem = useCallback((patch: Partial<PlacedItem>) => {
+    if (!selectedUid) return
+    setPlacedItems(prev => prev.map(it => it.uid === selectedUid ? { ...it, ...patch } : it))
+  }, [selectedUid])
+
+  // Move item (drag existing)
+  const handleMoveItem = useCallback((uid: string, mmX: number, mmY: number) => {
+    setPlacedItems(prev => prev.map(it => it.uid === uid ? { ...it, x: mmX, y: mmY } : it))
+  }, [])
+
+  // BOM computation
+  const bom = useMemo(() => {
+    const map = new Map<string, { entry: CatalogEntry; qty: number; total: number }>()
+    placedItems.forEach(it => {
+      const existing = map.get(it.entry.id)
+      if (existing) {
+        existing.qty++
+        existing.total += it.entry.price
+      } else {
+        map.set(it.entry.id, { entry: it.entry, qty: 1, total: it.entry.price })
+      }
+    })
+    return Array.from(map.values())
+  }, [placedItems])
+
+  const grandTotal = bom.reduce((s, r) => s + r.total, 0)
+  const formatPrice = (p: number) => `₹${(p / 100).toLocaleString('en-IN')}`
+
+  // Catalog grouped
+  const categories = [...new Set(catalog.map(e => e.category))]
 
   return (
     <div style={{
-      width: '100vw', height: '100vh', background: BG, color: INK,
-      fontFamily: '"Inter Tight", -apple-system, system-ui, sans-serif',
+      width: '100vw', height: '100vh', background: BG,
+      fontFamily: '"Inter Tight", sans-serif',
       display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
-      {/* ── TopBar ─────────────────────────────────────────────── */}
+      {/* ── Top bar ─────────────────────────────────────────────── */}
       <div style={{
-        height: 60, padding: '0 24px', background: PAPER, borderBottom: `1px solid ${LINE}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, gap: 16,
+        height: 52, borderBottom: `1px solid ${LINE}`,
+        display: 'flex', alignItems: 'center', gap: 16, padding: '0 20px',
+        background: PAPER, flexShrink: 0,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-          <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex' }}>
-            <KreoboxLogo size={22} />
-          </button>
-          <span style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 16, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Kreobox</span>
-          <span style={{ width: 1, height: 22, background: LINE, flexShrink: 0 }} />
-          <span style={{ fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            <span style={{ color: MUTE }}>{BREADCRUMB[mode].split(' / ')[0]} / </span>
-            <strong>{BREADCRUMB[mode].split(' / ')[1]}</strong>
+        <button onClick={() => navigate('/')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: 0 }}>
+          <KreoboxLogo size={20} />
+          <span style={{ fontFamily: '"Fraunces", serif', fontSize: 15, fontWeight: 600, color: INK, letterSpacing: '-0.02em' }}>Kreobox</span>
+        </button>
+        <div style={{ width: 1, height: 20, background: LINE }} />
+        <ProductSwitch active={product} onChange={handleProductChange} />
+        <div style={{ flex: 1 }} />
+        <ViewToggle active={view} onChange={setView} />
+        <div style={{ width: 1, height: 20, background: LINE }} />
+        {/* Zoom controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button onClick={() => setZoom(z => Math.max(0.5, +(z - 0.25).toFixed(2)))} style={{ ...btnSm }}>−</button>
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: MUTE, minWidth: 38, textAlign: 'center' }}>
+            {Math.round(zoom * 100)}%
           </span>
+          <button onClick={() => setZoom(z => Math.min(3, +(z + 0.25).toFixed(2)))} style={{ ...btnSm }}>+</button>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-          <ProductSwitch active={mode} onChange={m => { setMode(m); setAi(true) }} />
-          <span style={{ width: 1, height: 22, background: LINE }} />
-          <ViewToggle active={view} onChange={setView} />
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-          <span style={{ fontSize: 11, color: MUTE, fontFamily: 'JetBrains Mono, monospace' }}>Saved · 2 min ago</span>
-          <button style={{ padding: '7px 13px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', border: `1px solid ${LINE}`, background: 'transparent', fontFamily: 'inherit' }}>Share</button>
-          <button style={{ padding: '7px 13px', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', background: INK, color: PAPER, border: 'none', fontFamily: 'inherit' }}>Send to studio →</button>
-        </div>
+        {/* Reset */}
+        <button onClick={() => { setPlacedItems([]); setSelectedUid(null) }} style={{ ...btnSm, color: MUTE }}>↺</button>
+        <button onClick={() => navigate('/app/studio')} style={{
+          padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+          background: INK, color: PAPER, border: 'none', fontFamily: 'inherit',
+        }}>Send to Studio →</button>
       </div>
 
-      {/* ── Body ───────────────────────────────────────────────── */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+      {/* ── 3-panel body ────────────────────────────────────────── */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', minHeight: 0 }}>
 
-        {/* LEFT — Catalog */}
-        <div style={{ width: 280, background: PAPER, borderRight: `1px solid ${LINE}`, display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '20px 18px 10px' }}>
-            <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: MUTE, fontWeight: 600 }}>Catalog</div>
-            <div style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 22, marginTop: 4, letterSpacing: '-0.01em' }}>
-              {mode === 'kitchen' ? 'Add to your kitchen' : mode === 'wardrobe' ? 'What goes inside' : 'Add to your office'}
-            </div>
+        {/* Left: catalog */}
+        <div style={{
+          width: 220, borderRight: `1px solid ${LINE}`,
+          background: PAPER, overflowY: 'auto', flexShrink: 0,
+        }}>
+          <div style={{ padding: '14px 12px 6px', borderBottom: `1px solid ${LINE}` }}>
+            <div style={{ fontFamily: '"Fraunces", serif', fontSize: 18, fontWeight: 600, color: INK, letterSpacing: '-0.02em' }}>Catalog</div>
+            <div style={{ fontSize: 11, color: MUTE, marginTop: 2 }}>Drag items to floor plan</div>
           </div>
-          <div style={{ padding: '0 14px 8px', display: 'flex', gap: 6, flexWrap: 'wrap' as const }}>
-            {['All', 'Cabinets', 'Surfaces', 'Hardware', 'Appliances', 'Lighting'].map((c, i) => (
-              <span key={c} style={{
-                padding: '5px 10px', borderRadius: 999, fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                background: i === 1 ? INK : 'transparent', color: i === 1 ? PAPER : INK,
-                border: i === 1 ? 'none' : `1px solid ${LINE}`,
-              }}>{c}</span>
-            ))}
-          </div>
-          <div style={{ padding: '4px 14px 8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 12px', background: 'rgba(26,24,21,0.04)', borderRadius: 8, fontSize: 12, color: MUTE }}>
-              <span style={{ fontSize: 15 }}>⌕</span>
-              <span style={{ flex: 1 }}>Search 1,240 items…</span>
-              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, padding: '1px 6px', background: PAPER, borderRadius: 4, border: `1px solid ${LINE}` }}>⌘K</span>
-            </div>
-          </div>
-          {mode === 'kitchen'  && <KitchenCatalog />}
-          {mode === 'wardrobe' && <WardrobeCatalog />}
-          {mode === 'office'   && <OfficeCatalog />}
-        </div>
 
-        {/* CENTER — Viewport */}
-        <div style={{ flex: 1, background: BG, display: 'flex', flexDirection: 'column', position: 'relative', minWidth: 0 }}>
-          <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 2, background: PAPER, border: `1px solid ${LINE}`, borderRadius: 8, padding: '6px 10px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: MUTE }}>
-            {VIEWPORT_LABEL[mode]}
-          </div>
-          <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {['＋', '−', '⌖', '↺'].map(s => (
-              <button key={s} style={{ width: 32, height: 32, borderRadius: 8, background: PAPER, border: `1px solid ${LINE}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' }}>{s}</button>
-            ))}
-          </div>
-          <div style={{ flex: 1, padding: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 0 }}>
-            <div style={{
-              width: '100%', maxWidth: 700,
-              aspectRatio: mode === 'office' ? '580 / 380' : mode === 'wardrobe' ? '600 / 380' : '480 / 380',
-              background: PAPER, borderRadius: 12, border: `1px solid ${LINE}`,
-              boxShadow: '0 30px 80px -30px rgba(0,0,0,0.18)', overflow: 'hidden',
-            }}>
-              {mode === 'kitchen'  && <KitchenPlan2D selected="pantry" />}
-              {mode === 'wardrobe' && <WardrobeElevation />}
-              {mode === 'office'   && <OfficeFloorPlan />}
-            </div>
-          </div>
-          {aiVisible && (
-            <div style={{ margin: '0 24px 16px', background: '#0e0d0b', color: PAPER, borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
-              <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, background: `linear-gradient(135deg, ${ACCENT}, #d97042)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700 }}>K</div>
-              <div style={{ flex: 1, fontSize: 13, lineHeight: 1.5 }}>
-                <span style={{ color: 'rgba(255,255,255,0.55)' }}>Kreobox · </span>
-                {AI_TIP[mode]}
+          {categories.map(cat => (
+            <div key={cat}>
+              <div style={{ padding: '10px 12px 4px', fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: MUTE, fontWeight: 600 }}>
+                {cat}
               </div>
-              <button style={{ padding: '7px 12px', borderRadius: 6, background: 'rgba(255,255,255,0.08)', fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none', color: PAPER, fontFamily: 'inherit' }}>Apply</button>
-              <button onClick={() => setAi(false)} style={{ padding: '7px 12px', borderRadius: 6, fontSize: 12, color: 'rgba(255,255,255,0.55)', cursor: 'pointer', border: 'none', background: 'transparent', fontFamily: 'inherit' }}>Dismiss</button>
-            </div>
-          )}
-        </div>
-
-        {/* RIGHT — Selected + BOM */}
-        <div style={{ width: 320, background: PAPER, borderLeft: `1px solid ${LINE}`, display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden' }}>
-          <div style={{ padding: '20px 20px 16px', borderBottom: `1px solid ${LINE}`, flexShrink: 0 }}>
-            <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: MUTE, fontWeight: 600 }}>Selected</div>
-            <div style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 22, marginTop: 4, letterSpacing: '-0.01em' }}>{detail.name}</div>
-            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: MUTE, marginTop: 4 }}>{detail.code}</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 16 }}>
-              {detail.props.map(([label, val]) => (
-                <div key={label}>
-                  <div style={{ fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: MUTE, fontWeight: 600 }}>{label}</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, marginTop: 2, fontFamily: val.includes('mm') ? 'JetBrains Mono, monospace' : 'inherit' }}>{val}</div>
+              {catalog.filter(e => e.category === cat).map(entry => (
+                <div
+                  key={entry.id}
+                  draggable
+                  onDragStart={e => { setDragEntry(entry); e.dataTransfer.setData('catalog-id', entry.id) }}
+                  onDragEnd={() => setDragEntry(null)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '8px 12px', cursor: 'grab',
+                    background: dragEntry?.id === entry.id ? 'rgba(201,100,66,0.06)' : 'transparent',
+                    borderLeft: dragEntry?.id === entry.id ? `2px solid ${ACCENT}` : '2px solid transparent',
+                    transition: 'background 120ms',
+                  }}
+                >
+                  {/* Thumbnail */}
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 6, flexShrink: 0,
+                    background: entry.color || '#d4c9b0',
+                    border: `1px solid ${LINE}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: 'JetBrains Mono, monospace', fontSize: 7, color: 'rgba(255,255,255,0.6)',
+                  }}>
+                    {Math.round(entry.width / 100) * 10}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: INK }}>
+                      {entry.name}
+                    </div>
+                    <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: MUTE }}>
+                      {entry.code} · {entry.width}mm
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
-            <div style={{ marginTop: 16, padding: '10px 12px', background: 'rgba(26,24,21,0.04)', borderRadius: 8 }}>
-              <div style={{ fontSize: 10, letterSpacing: '0.16em', textTransform: 'uppercase' as const, color: MUTE, fontWeight: 600 }}>Provenance</div>
-              <div style={{ fontSize: 12, marginTop: 4, lineHeight: 1.5 }}>{detail.prov}</div>
-            </div>
+          ))}
+        </div>
+
+        {/* Center: canvas */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+          {/* Canvas area */}
+          <div style={{ flex: 1, overflow: 'hidden', position: 'relative', background: BG }}>
+            {view === '2D plan' && (
+              <Plan2D
+                product={product}
+                items={placedItems}
+                selectedUid={selectedUid}
+                zoom={zoom}
+                dragOverPos={dragOverPos}
+                ghostEntry={dragEntry}
+                onSelect={setSelectedUid}
+                onDrop={handleDrop}
+                onDragOver={(x, y) => setDragOverPos({ x, y })}
+                onDragLeave={() => setDragOverPos(null)}
+                onMoveItem={handleMoveItem}
+              />
+            )}
+            {view === 'Elevation' && (
+              <ElevationView product={product} items={placedItems} zoom={zoom} />
+            )}
+            {view === '3D view' && (
+              <IsoView3D product={product} items={placedItems} selectedUid={selectedUid} />
+            )}
+
+            {/* Empty state hint */}
+            {placedItems.length === 0 && (
+              <div style={{
+                position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
+              }}>
+                <div style={{ fontSize: 32, opacity: 0.15 }}>⬡</div>
+                <div style={{ fontSize: 13, color: MUTE, marginTop: 8 }}>Drag items from the catalog to start</div>
+              </div>
+            )}
           </div>
-          <div style={{ flex: 1, overflow: 'hidden auto', padding: '14px 20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: MUTE, fontWeight: 600 }}>Live cost · {detail.items} items</div>
-              <span style={{ fontSize: 11, color: ACCENT, fontWeight: 600, cursor: 'pointer' }}>See full BOM</span>
+
+          {/* BOM strip */}
+          <div style={{
+            height: 52, borderTop: `1px solid ${LINE}`, background: PAPER,
+            display: 'flex', alignItems: 'center', gap: 0, overflowX: 'auto', flexShrink: 0,
+          }}>
+            <div style={{ padding: '0 16px', borderRight: `1px solid ${LINE}`, whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: '"Fraunces", serif', fontSize: 13, fontWeight: 600, color: INK }}>{formatPrice(grandTotal)}</span>
+              <span style={{ fontSize: 10, color: MUTE, marginLeft: 6 }}>{placedItems.length} items</span>
             </div>
-            {detail.bom.map(([n, a], i) => (
-              <div key={n} style={{ display: 'flex', justifyContent: 'space-between', padding: '9px 0', borderTop: i ? `1px solid ${LINE}` : 'none', fontSize: 12 }}>
-                <span>{n}</span>
-                <span style={{ fontFamily: 'JetBrains Mono, monospace', color: MUTE }}>{a}</span>
+            {bom.map(row => (
+              <div key={row.entry.id} style={{
+                padding: '0 14px', borderRight: `1px solid ${LINE}`,
+                display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                whiteSpace: 'nowrap', height: '100%',
+              }}>
+                <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: MUTE }}>{row.entry.code} ×{row.qty}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: INK }}>{formatPrice(row.total)}</span>
               </div>
             ))}
           </div>
-          <div style={{ borderTop: `1px solid ${LINE}`, padding: '16px 20px', background: PAPER, flexShrink: 0 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <span style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: MUTE, fontWeight: 600 }}>Total estimate</span>
-              <span style={{ fontSize: 11, color: MUTE }}>incl. install</span>
+        </div>
+
+        {/* Right: properties panel */}
+        <div style={{
+          width: 240, borderLeft: `1px solid ${LINE}`,
+          background: PAPER, overflowY: 'auto', flexShrink: 0,
+          display: 'flex', flexDirection: 'column',
+        }}>
+          {selectedItem ? (
+            <>
+              <div style={{ padding: '16px 16px 10px', borderBottom: `1px solid ${LINE}` }}>
+                <div style={{ fontFamily: '"Fraunces", serif', fontSize: 16, fontWeight: 600, color: INK }}>
+                  {selectedItem.entry.name}
+                </div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: MUTE, marginTop: 2 }}>
+                  {selectedItem.entry.code}
+                </div>
+              </div>
+
+              <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 18 }}>
+                {/* Width slider */}
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: MUTE, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>
+                    WIDTH
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="range"
+                      min={300} max={2400} step={100}
+                      value={selectedItem.width}
+                      onChange={e => updateItem({ width: +e.target.value })}
+                      style={{ flex: 1, accentColor: ACCENT }}
+                    />
+                  </div>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 600, color: INK, marginTop: 6 }}>
+                    {selectedItem.width} mm
+                  </div>
+                </div>
+
+                {/* Finish */}
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: MUTE, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>
+                    FINISH
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                    {FINISHES.map(f => (
+                      <button key={f} onClick={() => updateItem({ finish: f })} style={{
+                        padding: '8px 6px', borderRadius: 6, border: `1.5px solid`,
+                        borderColor: selectedItem.finish === f ? ACCENT : LINE,
+                        background: selectedItem.finish === f ? `${ACCENT}10` : 'transparent',
+                        fontSize: 10, fontWeight: 600, cursor: 'pointer',
+                        color: selectedItem.finish === f ? ACCENT : MUTE,
+                        fontFamily: 'inherit', textAlign: 'center',
+                      }}>{f}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Hardware */}
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: MUTE, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>
+                    HARDWARE
+                  </label>
+                  <select
+                    value={selectedItem.hardware}
+                    onChange={e => updateItem({ hardware: e.target.value })}
+                    style={{
+                      width: '100%', padding: '9px 10px', borderRadius: 7,
+                      border: `1px solid ${LINE}`, background: BG,
+                      fontFamily: 'inherit', fontSize: 12, color: INK, cursor: 'pointer',
+                    }}
+                  >
+                    {HARDWARES.map(h => <option key={h} value={h}>{h}</option>)}
+                  </select>
+                </div>
+
+                {/* Position */}
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: MUTE, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>
+                    POSITION (mm)
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    <div>
+                      <div style={{ fontSize: 9, color: MUTE, marginBottom: 3 }}>X (from left)</div>
+                      <input
+                        type="number"
+                        value={selectedItem.x}
+                        step={100}
+                        onChange={e => updateItem({ x: +e.target.value })}
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '7px 8px', borderRadius: 6, border: `1px solid ${LINE}`, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: INK, background: BG }}
+                      />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 9, color: MUTE, marginBottom: 3 }}>Y (from top)</div>
+                      <input
+                        type="number"
+                        value={selectedItem.y}
+                        step={100}
+                        onChange={e => updateItem({ y: +e.target.value })}
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '7px 8px', borderRadius: 6, border: `1px solid ${LINE}`, fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: INK, background: BG }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Price */}
+                <div style={{ padding: '12px 14px', borderRadius: 8, background: `${ACCENT}0D`, border: `1px solid ${ACCENT}33` }}>
+                  <div style={{ fontSize: 10, color: MUTE, marginBottom: 2 }}>UNIT PRICE</div>
+                  <div style={{ fontFamily: '"Fraunces", serif', fontSize: 20, fontWeight: 600, color: INK }}>
+                    {formatPrice(selectedItem.entry.price)}
+                  </div>
+                </div>
+
+                {/* Delete */}
+                <button onClick={() => {
+                  setPlacedItems(prev => prev.filter(it => it.uid !== selectedUid))
+                  setSelectedUid(null)
+                }} style={{
+                  padding: '10px', borderRadius: 8, border: `1px solid rgba(201,100,66,0.3)`,
+                  background: 'transparent', color: ACCENT, fontWeight: 600, fontSize: 12,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}>
+                  Remove item
+                </button>
+              </div>
+            </>
+          ) : (
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 8 }}>
+              <div style={{ fontSize: 28, opacity: 0.12 }}>⬡</div>
+              <div style={{ fontSize: 12, color: MUTE, textAlign: 'center', lineHeight: 1.5 }}>
+                Click any item in the floor plan to edit its properties
+              </div>
+              <div style={{ fontSize: 11, color: MUTE, textAlign: 'center', opacity: 0.7, marginTop: 4 }}>
+                Or drag from the catalog to place new items
+              </div>
             </div>
-            <div style={{ fontFamily: '"Fraunces", Georgia, serif', fontSize: 32, marginTop: 4 }}>{detail.total}</div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-              <button style={{ flex: 1, padding: '11px', borderRadius: 8, border: 'none', background: INK, color: PAPER, fontWeight: 600, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>{detail.cta}</button>
-              <button style={{ padding: '11px 14px', borderRadius: 8, border: `1px solid ${LINE}`, background: 'transparent', fontWeight: 600, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>Save</button>
+          )}
+
+          {/* Summary footer */}
+          <div style={{ marginTop: 'auto', borderTop: `1px solid ${LINE}`, padding: 16 }}>
+            <div style={{ fontSize: 10, color: MUTE, marginBottom: 4 }}>TOTAL ESTIMATE</div>
+            <div style={{ fontFamily: '"Fraunces", serif', fontSize: 22, fontWeight: 600, color: INK }}>
+              {formatPrice(grandTotal)}
             </div>
+            <div style={{ fontSize: 10, color: MUTE, marginTop: 2 }}>{placedItems.length} items placed</div>
+            <button onClick={() => navigate('/app/studio')} style={{
+              width: '100%', marginTop: 14, padding: '11px', borderRadius: 8,
+              border: 'none', background: INK, color: PAPER,
+              fontWeight: 600, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              Request quote →
+            </button>
           </div>
         </div>
       </div>
     </div>
   )
+}
+
+// ── Button style helper ───────────────────────────────────────────
+const btnSm: React.CSSProperties = {
+  width: 28, height: 28, borderRadius: 6, border: `1px solid ${LINE}`,
+  background: 'transparent', cursor: 'pointer', fontSize: 14, color: INK,
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  fontFamily: 'inherit',
 }
