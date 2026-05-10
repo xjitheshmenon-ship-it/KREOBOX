@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 // ── Design tokens ─────────────────────────────────────────────────
 const BG     = '#f0eee9'
@@ -1046,17 +1046,250 @@ function PropertiesPanel({
   )
 }
 
+// ── BOM Checkout Modal ────────────────────────────────────────────
+interface BOMModalProps {
+  items: PlacedItem[]
+  product: ProductMode
+  onClose: () => void
+  onConfirm: (name: string, phone: string, city: string) => void
+}
+
+function BOMModal({ items, product, onClose, onConfirm }: BOMModalProps) {
+  const [step, setStep] = useState<'bom' | 'form' | 'done'>('bom')
+  const [form, setForm] = useState({ name: '', phone: '', city: 'Bengaluru', area: '' })
+  const [submitting, setSubmitting] = useState(false)
+
+  const formatPrice = (p: number) => `₹ ${(p / 100).toLocaleString('en-IN')}`
+
+  const subtotal = items.reduce((s, it) => s + it.entry.price, 0)
+  const install  = Math.round(subtotal * 0.12)
+  const gst      = Math.round((subtotal + install) * 0.18)
+  const total    = subtotal + install + gst
+  const advance  = Math.round(total * 0.35)
+
+  const catLabel: Record<string, string> = {
+    base:'Base cabinets', upper:'Wall cabinets', tall:'Tall units',
+    island:'Islands', fridge:'Appliances', wardrobe:'Wardrobe frames',
+    desk:'Desks', storage:'Storage', 'l-desk':'Desks',
+  }
+
+  const byCategory = items.reduce((acc, it) => {
+    const cat = catLabel[it.entry.category] ?? it.entry.category
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(it)
+    return acc
+  }, {} as Record<string, PlacedItem[]>)
+
+  const formOk = form.name.trim() && form.phone.trim() && form.area.trim()
+
+  const handleSubmit = () => {
+    if (!formOk) return
+    setSubmitting(true)
+    setTimeout(() => { setStep('done'); setSubmitting(false) }, 1000)
+    onConfirm(form.name, form.phone, form.city)
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(26,24,21,0.55)', zIndex: 1000,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+    }} onClick={step !== 'done' ? onClose : undefined}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: PAPER, borderRadius: 12, overflow: 'hidden',
+        width: '100%', maxWidth: 820, maxHeight: '90vh',
+        display: 'flex', flexDirection: 'column',
+        boxShadow: '0 40px 80px rgba(26,24,21,0.25)',
+      }}>
+
+        {/* ── Step: BOM detail ── */}
+        {step === 'bom' && (
+          <>
+            <div style={{ padding: '22px 28px 16px', borderBottom: `1px solid ${LINE}`, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <div>
+                <div style={{ fontFamily: '"Fraunces", serif', fontSize: 22, fontWeight: 600, color: INK }}>
+                  Bill of Materials
+                </div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: MUTE, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  {items.length} items · {product}
+                </div>
+              </div>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: MUTE, padding: 4 }}>✕</button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', padding: '0 28px' }}>
+              {/* Items grouped by category */}
+              {Object.entries(byCategory).map(([cat, catItems]) => (
+                <div key={cat} style={{ paddingTop: 20, paddingBottom: 4 }}>
+                  <div style={{ fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 10 }}>
+                    {cat}
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                    <thead>
+                      <tr style={{ borderBottom: `1px solid ${LINE}` }}>
+                        {['Code', 'Name', 'Dimensions', 'Finish', 'Hardware', 'Unit price'].map(h => (
+                          <th key={h} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTE, fontWeight: 600, textAlign: 'left', padding: '4px 8px 8px 0' }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {catItems.map(it => (
+                        <tr key={it.uid} style={{ borderBottom: `1px solid ${LINE}` }}>
+                          <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: ACCENT, padding: '10px 8px 10px 0', whiteSpace: 'nowrap' }}>{it.entry.code}</td>
+                          <td style={{ fontWeight: 600, color: INK, padding: '10px 8px 10px 0' }}>{it.entry.name}</td>
+                          <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: MUTE, padding: '10px 8px 10px 0', whiteSpace: 'nowrap' }}>{it.width} × {it.entry.height} × {it.entry.depth}</td>
+                          <td style={{ fontSize: 11, color: MUTE, padding: '10px 8px 10px 0' }}>{it.finish}</td>
+                          <td style={{ fontSize: 11, color: MUTE, padding: '10px 8px 10px 0' }}>{it.hardware}</td>
+                          <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 600, color: INK, padding: '10px 0 10px 0', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatPrice(it.entry.price)}</td>
+                        </tr>
+                      ))}
+                      <tr>
+                        <td colSpan={5} style={{ fontWeight: 600, fontSize: 12, padding: '10px 0', textAlign: 'right', color: MUTE }}>Subtotal</td>
+                        <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 700, color: INK, textAlign: 'right', paddingTop: 10 }}>
+                          {formatPrice(catItems.reduce((s, it) => s + it.entry.price, 0))}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+
+              {/* Cost summary */}
+              <div style={{ borderTop: `2px solid ${LINE}`, marginTop: 20, padding: '20px 0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px 40px', maxWidth: 360, marginLeft: 'auto' }}>
+                  {[
+                    { label: 'Materials & hardware', value: subtotal },
+                    { label: 'Installation (est.)', value: install },
+                    { label: 'GST @ 18%', value: gst },
+                  ].map(r => (
+                    <div key={r.label} style={{ display: 'contents' }}>
+                      <span style={{ fontSize: 12, color: MUTE }}>{r.label}</span>
+                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: INK, textAlign: 'right' }}>{formatPrice(r.value)}</span>
+                    </div>
+                  ))}
+                  <div style={{ gridColumn: '1 / -1', borderTop: `1px solid ${LINE}`, margin: '6px 0' }} />
+                  <span style={{ fontSize: 14, fontWeight: 700, color: INK }}>Total</span>
+                  <span style={{ fontFamily: '"Fraunces", serif', fontSize: 18, fontWeight: 600, color: INK, textAlign: 'right' }}>{formatPrice(total)}</span>
+                  <span style={{ fontSize: 11, color: MUTE }}>35% advance to book</span>
+                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fontWeight: 700, color: ACCENT, textAlign: 'right' }}>{formatPrice(advance)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: '16px 28px 20px', borderTop: `1px solid ${LINE}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button onClick={onClose} style={{ padding: '11px 20px', borderRadius: 8, border: `1.5px solid ${LINE}`, background: 'transparent', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: INK }}>
+                Back to planner
+              </button>
+              <button onClick={() => setStep('form')} style={{ padding: '11px 24px', borderRadius: 8, border: 'none', background: INK, color: PAPER, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
+                Confirm quote →
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── Step: Contact form ── */}
+        {step === 'form' && (
+          <div style={{ padding: '36px 40px', maxWidth: 440, margin: '0 auto', width: '100%' }}>
+            <div style={{ fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 8 }}>Your details</div>
+            <div style={{ fontFamily: '"Fraunces", serif', fontSize: 24, fontWeight: 600, color: INK, marginBottom: 4 }}>Book your project</div>
+            <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: MUTE, marginBottom: 24 }}>
+              {items.length} items · Total {formatPrice(total)} · Advance {formatPrice(advance)}
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {[
+                { label: 'Your name', key: 'name' as const, ph: 'Name or company' },
+                { label: 'Phone / WhatsApp', key: 'phone' as const, ph: '+91 9XXXXX XXXX' },
+              ].map(f => (
+                <div key={f.key}>
+                  <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 6 }}>{f.label}</label>
+                  <input value={form[f.key]} placeholder={f.ph}
+                    onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                    style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: '10px 12px', border: `1px solid ${LINE2}`, borderRadius: 8, fontSize: 14, fontFamily: 'inherit', background: '#fff', color: INK, outline: 'none' }} />
+                </div>
+              ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {[{ label: 'City', key: 'city' as const }, { label: 'Area / Locality', key: 'area' as const, ph: 'Koramangala' }].map(f => (
+                  <div key={f.key}>
+                    <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 6 }}>{f.label}</label>
+                    <input value={form[f.key]} placeholder={(f as {ph?:string}).ph}
+                      onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                      style={{ display: 'block', width: '100%', boxSizing: 'border-box', padding: '10px 12px', border: `1px solid ${LINE2}`, borderRadius: 8, fontSize: 14, fontFamily: 'inherit', background: '#fff', color: INK, outline: 'none' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16, padding: '12px 16px', borderLeft: `3px solid ${ACCENT}`, background: `${ACCENT}08`, borderRadius: '0 8px 8px 0', fontSize: 12, color: MUTE }}>
+              <strong style={{ color: INK }}>35% advance</strong> · {formatPrice(advance)} now<br />
+              Balance {formatPrice(total - advance)} on dispatch
+            </div>
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+              <button onClick={() => setStep('bom')} style={{ padding: '11px 16px', borderRadius: 8, border: `1.5px solid ${LINE}`, background: 'transparent', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: INK }}>← Back</button>
+              <button onClick={handleSubmit} disabled={!formOk || submitting} style={{
+                flex: 1, padding: '12px', borderRadius: 8, border: 'none',
+                background: formOk ? ACCENT : 'rgba(26,24,21,0.12)',
+                color: formOk ? '#fff' : MUTE,
+                fontWeight: 700, fontSize: 13, cursor: formOk ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
+              }}>
+                {submitting ? 'Processing…' : `Pay ${formatPrice(advance)} advance →`}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Step: Confirmation ── */}
+        {step === 'done' && (
+          <div style={{ padding: '48px 40px', textAlign: 'center' }}>
+            <div style={{ width: 52, height: 52, margin: '0 auto 18px', borderRadius: '50%', background: '#1f8a5b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
+            </div>
+            <div style={{ fontFamily: '"Fraunces", serif', fontSize: 26, fontWeight: 600, color: INK, marginBottom: 8 }}>Quote confirmed.</div>
+            <div style={{ fontSize: 13, color: MUTE, lineHeight: 1.6, maxWidth: 360, margin: '0 auto 20px' }}>
+              Your project is in the system. Our team will call within 24 hours to schedule a site visit.
+            </div>
+            <div style={{ display: 'inline-block', padding: '8px 20px', background: BG, borderRadius: 6, fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: MUTE, marginBottom: 24 }}>
+              Order ref: KBX-{Math.floor(2000 + Math.random() * 8000)}
+            </div>
+            <div style={{ padding: '16px 20px', background: BG, borderRadius: 8, textAlign: 'left', fontSize: 12, color: MUTE, marginBottom: 24 }}>
+              <div style={{ fontWeight: 700, color: INK, marginBottom: 8 }}>What happens next</div>
+              <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 2 }}>
+                <li>Space measurement visit within 48 hours</li>
+                <li>Final layout confirmed in Planner</li>
+                <li>Pre-cut panels dispatched in 8 working days</li>
+                <li>Professional install in 2–3 days</li>
+              </ol>
+            </div>
+            <button onClick={onClose} style={{ padding: '11px 28px', borderRadius: 8, border: 'none', background: INK, color: PAPER, fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
+              Back to planner
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const LINE2 = 'rgba(26,24,21,0.18)'
+
 // ── Main PlannerPage ──────────────────────────────────────────────
 export default function PlannerPage() {
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
+  const location  = useLocation()
+  const navState  = (location.state ?? {}) as { product?: ProductMode }
 
-  const [product, setProduct] = useState<ProductMode>('kitchen')
+  const initialProduct: ProductMode = navState.product ?? 'kitchen'
+
+  const [product, setProduct] = useState<ProductMode>(initialProduct)
   const [view, setView]       = useState<ViewMode>('2D plan')
   const [zoom, setZoom]       = useState(1)
-  const [placedItems, setPlacedItems] = useState<PlacedItem[]>(defaultKitchenItems)
+  const [placedItems, setPlacedItems] = useState<PlacedItem[]>(
+    initialProduct === 'kitchen' ? defaultKitchenItems : []
+  )
   const [selectedUid, setSelectedUid] = useState<string | null>(null)
   const [dragEntry, setDragEntry] = useState<CatalogEntry | null>(null)
   const [dragOverPos, setDragOverPos] = useState<{ x: number; y: number } | null>(null)
+  const [showBOM, setShowBOM] = useState(false)
 
   const selectedItem = placedItems.find(it => it.uid === selectedUid) ?? null
 
@@ -1132,10 +1365,17 @@ export default function PlannerPage() {
           <button onClick={() => setZoom(z => Math.min(3, +(z+0.25).toFixed(2)))} style={btnSm}>+</button>
         </div>
         <button onClick={() => { setPlacedItems([]); setSelectedUid(null) }} style={{ ...btnSm, color: MUTE }}>↺</button>
-        <button onClick={() => navigate('/app/studio')} style={{
-          padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: 'pointer',
-          background: INK, color: PAPER, border: 'none', fontFamily: 'inherit',
-        }}>Send to Studio →</button>
+        <button onClick={() => navigate('/')} style={{ ...btnSm, color: MUTE, fontSize: 11, width: 'auto', padding: '0 10px' }}>← Home</button>
+        <button
+          onClick={() => placedItems.length > 0 && setShowBOM(true)}
+          style={{
+            padding: '7px 16px', borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: placedItems.length > 0 ? 'pointer' : 'not-allowed',
+            background: placedItems.length > 0 ? INK : 'rgba(26,24,21,0.15)',
+            color: placedItems.length > 0 ? PAPER : MUTE,
+            border: 'none', fontFamily: 'inherit',
+          }}>
+          Get quote · {placedItems.length} items
+        </button>
       </div>
 
       {/* ── 3-panel body ────────────────────────────────────────── */}
@@ -1203,10 +1443,22 @@ export default function PlannerPage() {
             placedItems={placedItems}
             onUpdate={updateItem}
             onDelete={() => { setPlacedItems(prev => prev.filter(it => it.uid !== selectedUid)); setSelectedUid(null) }}
-            onNavigate={() => navigate('/app/studio')}
+            onNavigate={() => setShowBOM(true)}
           />
         </div>
       </div>
+
+      {/* BOM modal */}
+      {showBOM && (
+        <BOMModal
+          items={placedItems}
+          product={product}
+          onClose={() => setShowBOM(false)}
+          onConfirm={(name, phone, city) => {
+            console.log('Quote confirmed', { name, phone, city, items: placedItems.length })
+          }}
+        />
+      )}
     </div>
   )
 }
