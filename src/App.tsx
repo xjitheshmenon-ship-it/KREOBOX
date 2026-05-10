@@ -30,7 +30,7 @@ export default function App() {
 
         {/* ── Frontend portal: /app/* ────────────────────────────────────── */}
         <Route path="/app/studio"   element={<FrontendLayout><ContractorPage /></FrontendLayout>} />
-        <Route path="/app/customer" element={<FrontendLayout><CustomerPage /></FrontendLayout>} />
+        <Route path="/app/customer" element={<CustomerPage />} />
         <Route path="/app/office"   element={<FrontendLayout><OfficePage /></FrontendLayout>} />
         <Route path="/app/planner"  element={<PlannerPage />} />
 
