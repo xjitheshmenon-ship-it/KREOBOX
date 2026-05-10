@@ -3,6 +3,7 @@ import { SHOWROOM, inr, findShutter, generatePanels } from '../data/catalog'
 import type { ShowroomItem } from '../data/catalog'
 import CabinetPreview from '../components/kreobox/CabinetPreview'
 import Modal from '../components/kreobox/Modal'
+import { useNavigate } from 'react-router-dom'
 import type { Lead, KBCustomer, KBOrder } from '../types/kreobox'
 import { useKreoboxStore } from '../store/kreoboxStore'
 
@@ -26,16 +27,14 @@ const S = {
   content: { maxWidth: 1280, margin: '0 auto', padding: '0 40px 80px' },
 }
 
-interface CustomerPageProps {
-  onCheckout: (lead: Lead) => void
-}
-
-export default function CustomerPage({ onCheckout }: CustomerPageProps) {
+export default function CustomerPage() {
   const [tab, setTab] = useState<'all' | 'wardrobe' | 'kitchen' | 'office'>('all')
   const [selected, setSelected] = useState<ShowroomItem | null>(null)
   const [stage, setStage] = useState<'browse' | 'quote' | 'pay' | 'done'>('browse')
   const [confirmedOrderId, setConfirmedOrderId] = useState<string>('')
-  const addOrder = useKreoboxStore(s => s.addOrder)
+  const addOrder        = useKreoboxStore(s => s.addOrder)
+  const setPendingLead  = useKreoboxStore(s => s.setPendingLead)
+  const navigate        = useNavigate()
 
   const items = SHOWROOM.filter(s => tab === 'all' || s.type === tab)
 
@@ -137,8 +136,9 @@ export default function CustomerPage({ onCheckout }: CustomerPageProps) {
             addOrder(order)
             setConfirmedOrderId(orderId)
             const lead: Lead = { id: orderId, customer: form, type: selected.type, showroomId: selected.id, advance, total: selected.basePrice }
+            setPendingLead(lead)
             setStage('done')
-            setTimeout(() => onCheckout(lead), 2000)
+            setTimeout(() => navigate('/app/studio'), 2000)
           }}
         />
       )}

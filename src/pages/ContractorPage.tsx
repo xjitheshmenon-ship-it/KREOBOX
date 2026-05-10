@@ -68,11 +68,6 @@ const OFFICE_ROOMS = [
   { id: 'server-room',   label: 'Server / Print Bay',icon: '🖨️', type: 'office' as const },
 ]
 
-interface ContractorPageProps {
-  pendingLead: Lead | null
-  clearLead: () => void
-}
-
 type FlowStep = 'list' | 'kind' | 'flat-type' | 'rooms' | 'design' | 'summary'
 
 interface ProjectDraft {
@@ -85,10 +80,12 @@ interface ProjectDraft {
 
 const EMPTY_DRAFT: ProjectDraft = { kind: 'home', flatType: '', rooms: [], clientName: '', clientPhone: '' }
 
-export default function ContractorPage({ pendingLead, clearLead }: ContractorPageProps) {
-  const orders = useKreoboxStore(s => s.orders)
-  const addOrder = useKreoboxStore(s => s.addOrder)
+export default function ContractorPage() {
+  const orders           = useKreoboxStore(s => s.orders)
+  const addOrder         = useKreoboxStore(s => s.addOrder)
   const updateOrderStage = useKreoboxStore(s => s.updateOrderStage)
+  const pendingLead      = useKreoboxStore(s => s.pendingLead)
+  const clearLead        = useKreoboxStore(s => () => s.setPendingLead(null))
   const [step, setStep] = useState<FlowStep>(pendingLead ? 'design' : 'list')
   const [listTab, setListTab] = useState<'incoming' | 'active'>('incoming')
   const [draft, setDraft] = useState<ProjectDraft>(EMPTY_DRAFT)

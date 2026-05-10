@@ -1,12 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { KBOrder, KBInventory, OrderStage } from '../types/kreobox'
+import type { KBOrder, KBInventory, OrderStage, Lead } from '../types/kreobox'
 import { seedOrders, seedInventory } from '../data/catalog'
 
 interface KreoboxState {
   orders: KBOrder[]
   inventory: KBInventory
   toast: string | null
+  pendingLead: Lead | null
 
   addOrder: (order: KBOrder) => void
   updateOrderStage: (orderId: string, stage: OrderStage) => void
@@ -14,6 +15,7 @@ interface KreoboxState {
   showToast: (msg: string) => void
   clearToast: () => void
   resetDemo: () => void
+  setPendingLead: (lead: Lead | null) => void
 }
 
 export const useKreoboxStore = create<KreoboxState>()(
@@ -22,6 +24,7 @@ export const useKreoboxStore = create<KreoboxState>()(
       orders: seedOrders(),
       inventory: seedInventory(),
       toast: null,
+      pendingLead: null,
 
       addOrder: (order) => {
         set(s => ({ orders: [order, ...s.orders] }))
@@ -52,6 +55,8 @@ export const useKreoboxStore = create<KreoboxState>()(
         set({ orders: seedOrders(), inventory: seedInventory() })
         get().showToast('Demo reset — fresh seed data loaded')
       },
+
+      setPendingLead: (lead) => set({ pendingLead: lead }),
     }),
     {
       name: 'kreobox-v1',
