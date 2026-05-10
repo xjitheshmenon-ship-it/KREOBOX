@@ -513,69 +513,35 @@ function ConfigPanel({ config, setConfig, step, setStep, onPlace, onClose, clien
           </div>
         )}
 
-        {/* ── 05 Interior designer ── */}
-        {step===4 && (() => {
-          const n = getSectionCount(config.width)
-          const sections = resizeSections(config.interiorSections, n)
-          const scale = Math.min(1.1, 270 / (n * 56))
-          return (
-            <div>
-              <h3 style={{ fontSize:15, fontWeight:700, color:TEXT, margin:'0 0 4px' }}>Interior designer</h3>
-              <p style={{ fontSize:11, color:MUTED, margin:'0 0 14px' }}>Design each section — pick a preset or customise</p>
-
-              {/* Default models */}
-              <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:MUTED, marginBottom:8 }}>Quick presets</div>
-              <div style={{ display:'flex', gap:7, flexWrap:'wrap', marginBottom:18 }}>
-                {PRESET_MODELS.map(m => (
-                  <div key={m.label} onClick={() => {
-                    const adapted = resizeSections(m.sections, n)
-                    set({ interiorSections: adapted })
-                    setSelectedSection(null)
-                  }} style={{ cursor:'pointer', textAlign:'center' }}>
-                    <div style={{ border:`1.5px solid rgba(255,255,255,0.15)`, borderRadius:6, padding:'4px 3px', background:'rgba(255,255,255,0.04)',
-                      width:68 }}>
-                      <WardrobeFrontSVG sections={resizeSections(m.sections, Math.min(m.sections.length, 3))} scale={68 / (Math.min(m.sections.length, 3) * 56)}/>
+        {/* ── 05 Interior preset ── */}
+        {step===4 && (
+          <div>
+            <h3 style={{ fontSize:15, fontWeight:700, color:TEXT, margin:'0 0 4px' }}>Interior preset</h3>
+            <p style={{ fontSize:11, color:MUTED, margin:'0 0 18px' }}>How the inside is organised and finished</p>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {([
+                { id:'basic',      icon:'⊟', label:'Basic',       sub:'Standard shelves + hanging rail, no frills',        price:'' },
+                { id:'premium',    icon:'✦', label:'Premium',     sub:'Velvet-lined drawers · LED strip · mirror panel',    price:'+20%' },
+                { id:'homeoffice', icon:'⊞', label:'Home Office', sub:'Pull-out desk shelf · cable tray · USB socket',     price:'+15%' },
+                { id:'kids',       icon:'⊠', label:'Kids',        sub:'Low rails · activity shelf · rounded corners',      price:'+8%' },
+              ] as const).map(p => (
+                <div key={p.id} onClick={() => set({ interior:p.id })}
+                  style={{ display:'flex', gap:12, padding:'14px', borderRadius:10, cursor:'pointer',
+                    border:`1.5px solid ${config.interior===p.id?ACCENT:'rgba(255,255,255,0.1)'}`,
+                    background:config.interior===p.id?'rgba(201,100,66,0.1)':'rgba(255,255,255,0.03)' }}>
+                  <span style={{ fontSize:20, lineHeight:1.4 }}>{p.icon}</span>
+                  <div style={{ flex:1 }}>
+                    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                      <span style={{ fontSize:12, fontWeight:700, color:config.interior===p.id?ACCENT:TEXT }}>{p.label}</span>
+                      {p.price && <span style={{ fontSize:10, color:'#6ab87a', fontWeight:600 }}>{p.price}</span>}
                     </div>
-                    <div style={{ fontSize:8, color:MUTED, marginTop:3, lineHeight:1.2 }}>{m.label}</div>
+                    <div style={{ fontSize:10, color:MUTED, marginTop:4, lineHeight:1.5 }}>{p.sub}</div>
                   </div>
-                ))}
-              </div>
-
-              {/* Live canvas */}
-              <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:MUTED, marginBottom:6 }}>Your layout</div>
-              <div style={{ background:'rgba(255,255,255,0.03)', borderRadius:8, padding:'12px 8px', marginBottom:10, display:'flex', justifyContent:'center' }}>
-                <WardrobeFrontSVG sections={sections} selectedIdx={selectedSection} scale={scale} onClick={i => setSelectedSection(selectedSection===i ? null : i)}/>
-              </div>
-              <div style={{ fontSize:9, color:MUTED, textAlign:'center', marginBottom:12 }}>
-                {selectedSection === null ? 'Click a section to configure it' : `Section ${selectedSection+1} selected — choose a module:`}
-              </div>
-
-              {/* Module picker */}
-              {selectedSection !== null && (
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6 }}>
-                  {MODULES.map(m => {
-                    const isCur = sections[selectedSection] === m.id
-                    return (
-                      <div key={m.id} onClick={() => {
-                        const updated = [...sections]
-                        updated[selectedSection] = m.id
-                        set({ interiorSections: updated })
-                      }} style={{ cursor:'pointer', textAlign:'center',
-                        border:`1.5px solid ${isCur ? ACCENT : 'rgba(255,255,255,0.1)'}`,
-                        borderRadius:7, padding:'5px 3px', background:isCur?'rgba(201,100,66,0.12)':'rgba(255,255,255,0.03)' }}>
-                        <svg viewBox={`0 0 56 80`} width={42} height={60} style={{ display:'block', margin:'0 auto' }}>
-                          <rect width={56} height={80} fill="rgba(255,255,255,0.04)"/>
-                          {drawModule(m.id, 2, 2, 52, 76)}
-                        </svg>
-                        <div style={{ fontSize:8, fontWeight:isCur?700:500, color:isCur?ACCENT:MUTED, marginTop:2 }}>{m.label}</div>
-                      </div>
-                    )
-                  })}
                 </div>
-              )}
+              ))}
             </div>
-          )
-        })()}
+          </div>
+        )}
 
         {/* ── 06 BOQ & Confirm ── */}
         {step===5 && (
@@ -615,30 +581,6 @@ function ConfigPanel({ config, setConfig, step, setStep, onPlace, onClose, clien
                 </div>
               ))}
             </div>
-
-            {/* Interior layout preview */}
-            {(() => {
-              const n = getSectionCount(config.width)
-              const sections = resizeSections(config.interiorSections, n)
-              const scale = Math.min(1, (322) / (n * 56))
-              const MODULE_LABELS: Record<string, string> = {
-                'hang-full':'Full Hang','hang-half':'Half Hang','shelves':'Shelves',
-                'drawers':'Drawers','shoe':'Shoe','trouser':'Trouser','mirror':'Mirror','empty':'Empty',
-              }
-              return (
-                <div style={{ background:'rgba(255,255,255,0.04)', borderRadius:10, padding:'10px 12px', marginBottom:14 }}>
-                  <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.14em', textTransform:'uppercase', color:MUTED, marginBottom:8 }}>Interior layout</div>
-                  <WardrobeFrontSVG sections={sections} scale={scale}/>
-                  <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginTop:7 }}>
-                    {sections.map((s,i) => (
-                      <span key={i} style={{ fontSize:8, padding:'2px 6px', borderRadius:99, background:'rgba(255,255,255,0.08)', color:MUTED }}>
-                        S{i+1}: {MODULE_LABELS[s]??s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )
-            })()}
 
             {/* Total */}
             <div style={{ background:'rgba(201,100,66,0.12)', borderRadius:10, padding:'14px 16px', marginBottom:18, display:'flex', justifyContent:'space-between', alignItems:'center' }}>

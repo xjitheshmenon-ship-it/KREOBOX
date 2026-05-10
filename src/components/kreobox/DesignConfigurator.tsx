@@ -7,6 +7,145 @@ import type { OrderConfig, ProductType } from '../../types/kreobox'
 import CabinetPreview from './CabinetPreview'
 import type { Lead } from '../../types/kreobox'
 
+// ── interior designer helpers ─────────────────────────────────────────────────
+type ModuleType = 'hang-full' | 'hang-half' | 'shelves' | 'drawers' | 'shoe' | 'trouser' | 'mirror' | 'empty'
+
+function getSectionCount(width: number): number {
+  if (width <= 600)  return 1
+  if (width <= 1050) return 2
+  if (width <= 1500) return 3
+  if (width <= 2100) return 4
+  return Math.ceil(width / 600)
+}
+
+function resizeSections(sections: string[], count: number): string[] {
+  if (!sections.length) return Array(count).fill('hang-half')
+  if (sections.length >= count) return sections.slice(0, count)
+  return [...sections, ...Array(count - sections.length).fill(sections[sections.length - 1])]
+}
+
+const MODULES: { id: ModuleType; label: string }[] = [
+  { id:'hang-full', label:'Full Hang'  },
+  { id:'hang-half', label:'Half Hang'  },
+  { id:'shelves',   label:'Shelves'    },
+  { id:'drawers',   label:'Drawers'    },
+  { id:'shoe',      label:'Shoe'       },
+  { id:'trouser',   label:'Trouser'    },
+  { id:'mirror',    label:'Mirror'     },
+  { id:'empty',     label:'Empty'      },
+]
+
+const PRESET_MODELS: { label: string; sections: string[]; wardPreset: string }[] = [
+  { label:'Classic',    sections:['hang-half','shelves'],          wardPreset:'WP-2' },
+  { label:'Full Hang',  sections:['hang-full','hang-full'],        wardPreset:'WP-1' },
+  { label:'Organiser',  sections:['drawers','shelves','drawers'],  wardPreset:'WP-4' },
+  { label:'Kids',       sections:['hang-half','shoe','shelves'],   wardPreset:'WP-2' },
+  { label:'Linen',      sections:['shelves','shelves'],            wardPreset:'WP-3' },
+  { label:'Dressing',   sections:['mirror','hang-half','drawers'], wardPreset:'WP-4' },
+]
+
+function sectionsToPreset(sections: string[]): string {
+  const hasDrawers = sections.some(s => s === 'drawers')
+  const hasHang    = sections.some(s => s === 'hang-full' || s === 'hang-half')
+  const allHang    = sections.every(s => s === 'hang-full' || s === 'hang-half')
+  if (allHang)               return 'WP-1'
+  if (hasDrawers && hasHang) return 'WP-2'
+  if (hasDrawers)            return 'WP-4'
+  return 'WP-3'
+}
+
+function drawModule(id: string, x: number, y: number, w: number, h: number): React.ReactNode {
+  const cx = x + w / 2
+  const sh = 'rgba(26,24,21,0.55)'
+  const mu = 'rgba(26,24,21,0.18)'
+  switch (id) {
+    case 'hang-full':
+      return <g>
+        <line x1={x+w*0.15} y1={y+h*0.08} x2={x+w*0.85} y2={y+h*0.08} stroke={sh} strokeWidth={1.2}/>
+        <line x1={cx} y1={y+h*0.08} x2={cx} y2={y+h*0.22} stroke={sh} strokeWidth={0.8}/>
+        <line x1={cx-3} y1={y+h*0.22} x2={cx+3} y2={y+h*0.22} stroke={sh} strokeWidth={0.8}/>
+        <line x1={cx-6} y1={y+h*0.28} x2={cx-6} y2={y+h*0.65} stroke={sh} strokeWidth={0.8}/>
+        <line x1={cx+6} y1={y+h*0.28} x2={cx+6} y2={y+h*0.65} stroke={sh} strokeWidth={0.8}/>
+      </g>
+    case 'hang-half':
+      return <g>
+        <line x1={x+w*0.15} y1={y+h*0.08} x2={x+w*0.85} y2={y+h*0.08} stroke={sh} strokeWidth={1.2}/>
+        <line x1={cx} y1={y+h*0.08} x2={cx} y2={y+h*0.18} stroke={sh} strokeWidth={0.8}/>
+        <line x1={cx-5} y1={y+h*0.25} x2={cx+5} y2={y+h*0.25} stroke={sh} strokeWidth={0.8}/>
+        <line x1={x} y1={y+h*0.5} x2={x+w} y2={y+h*0.5} stroke={sh} strokeWidth={1}/>
+        {[0.62,0.74,0.86].map((yp,i)=><line key={i} x1={x+4} y1={y+h*yp} x2={x+w-4} y2={y+h*yp} stroke={mu} strokeWidth={0.8}/>)}
+      </g>
+    case 'shelves':
+      return <g>
+        {[0.18,0.32,0.46,0.60,0.74,0.88].map((yp,i)=>(
+          <line key={i} x1={x+4} y1={y+h*yp} x2={x+w-4} y2={y+h*yp} stroke={sh} strokeWidth={0.9}/>
+        ))}
+      </g>
+    case 'drawers':
+      return <g>
+        {[0,1,2].map(i=>{
+          const dy = y + h*(0.15 + i*0.27)
+          const dh = h*0.22
+          return <g key={i}>
+            <rect x={x+4} y={dy} width={w-8} height={dh} rx={1} fill={mu}/>
+            <line x1={cx-4} y1={dy+dh/2} x2={cx+4} y2={dy+dh/2} stroke={sh} strokeWidth={1}/>
+          </g>
+        })}
+      </g>
+    case 'shoe':
+      return <g>
+        {[0.2,0.38,0.56,0.74].map((yp,i)=>(
+          <line key={i} x1={x+4} y1={y+h*yp} x2={x+w-4} y2={y+h*(yp+0.1)} stroke={sh} strokeWidth={0.9}/>
+        ))}
+      </g>
+    case 'trouser':
+      return <g>
+        {[0.2,0.4,0.6,0.8].map((yp,i)=>(
+          <g key={i}>
+            <line x1={x+6} y1={y+h*yp} x2={x+w-6} y2={y+h*yp} stroke={sh} strokeWidth={0.8}/>
+            <line x1={cx} y1={y+h*yp} x2={cx} y2={y+h*(yp+0.1)} stroke={mu} strokeWidth={0.6}/>
+          </g>
+        ))}
+      </g>
+    case 'mirror':
+      return <g>
+        <rect x={x+6} y={y+h*0.06} width={w-12} height={h*0.88} rx={2}
+          fill="rgba(180,210,230,0.25)" stroke="rgba(100,160,200,0.5)" strokeWidth={1}/>
+        <line x1={x+10} y1={y+h*0.12} x2={x+w-10} y2={y+h*0.94} stroke="rgba(255,255,255,0.4)" strokeWidth={0.8}/>
+      </g>
+    default:
+      return <g>
+        <line x1={x+8} y1={y+8} x2={x+w-8} y2={y+h-8} stroke={mu} strokeWidth={0.6}/>
+        <line x1={x+w-8} y1={y+8} x2={x+8} y2={y+h-8} stroke={mu} strokeWidth={0.6}/>
+      </g>
+  }
+}
+
+function WardrobeFrontSVG({ sections, selectedIdx, onClick, scale = 1 }: {
+  sections: string[]; selectedIdx?: number | null; onClick?: (i: number) => void; scale?: number
+}) {
+  const n  = sections.length
+  const SW = 56 * n
+  const SH = 120
+  return (
+    <svg viewBox={`0 0 ${SW} ${SH}`} width={SW * scale} height={SH * scale} style={{ display:'block' }}>
+      <rect x={0} y={0} width={SW} height={SH} rx={2} fill="rgba(26,24,21,0.04)" stroke="rgba(26,24,21,0.2)" strokeWidth={1}/>
+      {sections.map((sec, i) => {
+        const sx = i * 56
+        const isActive = selectedIdx === i
+        return (
+          <g key={i} style={{ cursor: onClick ? 'pointer' : 'default' }} onClick={() => onClick?.(i)}>
+            {isActive && <rect x={sx} y={0} width={56} height={SH} fill="rgba(201,100,66,0.1)"/>}
+            {i > 0 && <line x1={sx} y1={2} x2={sx} y2={SH-2} stroke="rgba(26,24,21,0.15)" strokeWidth={0.8}/>}
+            {drawModule(sec, sx+2, 2, 52, SH-4)}
+            {isActive && <rect x={sx} y={0} width={56} height={SH} fill="none" stroke="#c96442" strokeWidth={1.5}/>}
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
 interface Props {
   lead: Lead | null
   onBack: () => void
@@ -25,6 +164,7 @@ export default function DesignConfigurator({ lead, onBack, onConfirm, confirmLab
   const [walls, setWalls] = useState<string[]>([])
   const [shutter, setShutter] = useState('S-WALNUT')
   const [preset, setPreset] = useState(startType === 'wardrobe' ? 'WP-2' : 'KP-B2')
+  const [interiorSections, setInteriorSections] = useState<string[]>(['hang-half', 'shelves'])
 
   useEffect(() => {
     if (type === 'wardrobe') {
@@ -148,7 +288,7 @@ export default function DesignConfigurator({ lead, onBack, onConfirm, confirmLab
           {step === 2 && <StepDimensions wall={wall} setWall={setWall} type={type} onNext={() => setStep(3)} onBack={() => setStep(1)} />}
           {step === 3 && <StepFrames frames={frames} walls={walls} type={type} onNext={() => setStep(4)} onBack={() => setStep(2)} />}
           {step === 4 && <StepShutter shutter={shutter} setShutter={setShutter} onNext={() => setStep(5)} onBack={() => setStep(3)} />}
-          {step === 5 && <StepPreset preset={preset} setPreset={setPreset} type={type} onNext={() => setStep(6)} onBack={() => setStep(4)} />}
+          {step === 5 && <StepPreset preset={preset} setPreset={setPreset} type={type} wallWidth={wall.width} interiorSections={interiorSections} setInteriorSections={(s) => { setInteriorSections(s); setPreset(sectionsToPreset(s)) }} onNext={() => setStep(6)} onBack={() => setStep(4)} />}
           {step === 6 && <StepBOQ config={config} total={total} onConfirm={() => onConfirm(config, total)} onBack={() => setStep(5)} confirmLabel={confirmLabel} />}
         </div>
       </div>
@@ -290,26 +430,110 @@ function StepShutter({ shutter, setShutter, onNext, onBack }: { shutter: string;
   )
 }
 
-function StepPreset({ preset, setPreset, type, onNext, onBack }: { preset: string; setPreset: (p: string) => void; type: ProductType; onNext: () => void; onBack: () => void }) {
-  const cat = CATALOG[type]
-  const presets = type === 'wardrobe' ? cat.presets : cat.presets.filter(p => p.scope === 'base')
+function StepPreset({ preset, setPreset, type, wallWidth, interiorSections, setInteriorSections, onNext, onBack }: {
+  preset: string; setPreset: (p: string) => void; type: ProductType
+  wallWidth: number; interiorSections: string[]; setInteriorSections: (s: string[]) => void
+  onNext: () => void; onBack: () => void
+}) {
+  const [selectedSection, setSelectedSection] = useState<number | null>(null)
+
+  if (type === 'kitchen') {
+    const cat = CATALOG[type]
+    const presets = cat.presets.filter(p => p.scope === 'base')
+    return (
+      <div>
+        <StepHeader n="05" title="Interior preset" sub="Pre-bundled hardware kits for each base cabinet." />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {presets.map(p => (
+            <button key={p.id} onClick={() => setPreset(p.id)} className="kb-btn"
+              style={{ textAlign: 'left', padding: 12, borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', background: preset === p.id ? 'rgba(201,100,66,0.06)' : '#fff', border: preset === p.id ? '2px solid var(--kb-accent)' : '1px solid var(--kb-line-2)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 13 }}>{p.label}</div>
+                  {p.desc && <div style={{ fontSize: 11, color: 'var(--kb-ink-soft)', marginTop: 2 }}>{p.desc}</div>}
+                </div>
+                <div className="kb-font-mono" style={{ fontSize: 11, color: 'var(--kb-ink-soft)' }}>{inr(p.price)}/frame</div>
+              </div>
+            </button>
+          ))}
+        </div>
+        <NavBtns onBack={onBack} onNext={onNext} />
+      </div>
+    )
+  }
+
+  // Wardrobe: IKEA-style section designer
+  const n = getSectionCount(wallWidth)
+  const sections = resizeSections(interiorSections, n)
+  const scale = Math.min(1, 260 / (n * 56))
+
+  const WP_LABELS: Record<string, string> = { 'WP-1':'All hangers', 'WP-2':'Drawers + hangers', 'WP-3':'Shelves only', 'WP-4':'Shelves + drawers' }
+
   return (
     <div>
-      <StepHeader n="05" title="Interior preset" sub="Pre-bundled hardware kits for each frame." />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {presets.map(p => (
-          <button key={p.id} onClick={() => setPreset(p.id)} className="kb-btn"
-            style={{ textAlign: 'left', padding: 12, borderRadius: 10, cursor: 'pointer', fontFamily: 'inherit', background: preset === p.id ? 'rgba(201,100,66,0.06)' : '#fff', border: preset === p.id ? '2px solid var(--kb-accent)' : '1px solid var(--kb-line-2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div>
-                <div style={{ fontWeight: 600, fontSize: 13 }}>{p.label}</div>
-                {p.desc && <div style={{ fontSize: 11, color: 'var(--kb-ink-soft)', marginTop: 2 }}>{p.desc}</div>}
+      <StepHeader n="05" title="Design interior" sub="Section by section — pick a preset or build your own." />
+
+      {/* Quick presets */}
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--kb-ink-soft)', marginBottom: 8 }}>Quick presets</div>
+      <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', marginBottom: 18 }}>
+        {PRESET_MODELS.map(m => {
+          const adapted = resizeSections(m.sections, Math.min(m.sections.length, 3))
+          const sc = 64 / (adapted.length * 56)
+          return (
+            <div key={m.label} onClick={() => {
+              const s = resizeSections(m.sections, n)
+              setInteriorSections(s)
+              setSelectedSection(null)
+            }} style={{ cursor: 'pointer', textAlign: 'center' }}>
+              <div style={{ border: '1.5px solid var(--kb-line)', borderRadius: 7, padding: '4px 3px', background: 'var(--kb-bg)', width: 70 }}>
+                <WardrobeFrontSVG sections={adapted} scale={sc} />
               </div>
-              <div className="kb-font-mono" style={{ fontSize: 11, color: 'var(--kb-ink-soft)' }}>{inr(p.price)}/frame</div>
+              <div style={{ fontSize: 8, color: 'var(--kb-ink-soft)', marginTop: 3 }}>{m.label}</div>
             </div>
-          </button>
-        ))}
+          )
+        })}
       </div>
+
+      {/* Live canvas */}
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--kb-ink-soft)', marginBottom: 6 }}>Your layout</div>
+      <div style={{ background: 'var(--kb-bg)', borderRadius: 8, padding: '12px 8px', marginBottom: 8, display: 'flex', justifyContent: 'center', border: '1px solid var(--kb-line)' }}>
+        <WardrobeFrontSVG sections={sections} selectedIdx={selectedSection} scale={scale}
+          onClick={i => setSelectedSection(selectedSection === i ? null : i)} />
+      </div>
+      <div style={{ fontSize: 10, color: 'var(--kb-ink-soft)', textAlign: 'center', marginBottom: 12 }}>
+        {selectedSection === null ? 'Click a section to configure it' : `Section ${selectedSection + 1} selected`}
+      </div>
+
+      {/* Module picker */}
+      {selectedSection !== null && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 14 }}>
+          {MODULES.map(m => {
+            const isCur = sections[selectedSection] === m.id
+            return (
+              <div key={m.id} onClick={() => {
+                const updated = [...sections]
+                updated[selectedSection] = m.id
+                setInteriorSections(updated)
+              }} style={{ cursor: 'pointer', textAlign: 'center', borderRadius: 8, padding: '5px 3px',
+                border: `1.5px solid ${isCur ? 'var(--kb-accent)' : 'var(--kb-line)'}`,
+                background: isCur ? 'rgba(201,100,66,0.07)' : 'var(--kb-bg)' }}>
+                <svg viewBox="0 0 56 80" width={40} height={57} style={{ display: 'block', margin: '0 auto' }}>
+                  <rect width={56} height={80} fill="rgba(26,24,21,0.04)"/>
+                  {drawModule(m.id, 2, 2, 52, 76)}
+                </svg>
+                <div style={{ fontSize: 8, fontWeight: isCur ? 700 : 500, color: isCur ? 'var(--kb-accent)' : 'var(--kb-ink-soft)', marginTop: 2 }}>{m.label}</div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Auto-mapped hardware bundle */}
+      <div style={{ padding: '8px 12px', borderRadius: 8, background: 'rgba(201,100,66,0.05)', border: '1px solid rgba(201,100,66,0.15)', fontSize: 11, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ color: 'var(--kb-ink-soft)' }}>Hardware bundle</span>
+        <span style={{ fontWeight: 700, color: 'var(--kb-accent)' }}>{WP_LABELS[preset] ?? preset}</span>
+      </div>
+
       <NavBtns onBack={onBack} onNext={onNext} />
     </div>
   )
