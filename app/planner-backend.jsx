@@ -114,10 +114,11 @@ function BSidebar({ newCount = 0, section = 'orders', onSection, activeModule = 
       {/* ── Show only the section matching the active top tab ── */}
       {activeModule === 'studio' && <>
         <div style={bStyles.sbSection}>Studio</div>
-        <div style={act('pipeline')}  onClick={() => go('pipeline')}>{dot('#d9a049')} Pipeline</div>
-        <div style={act('orders')}    onClick={() => go('orders')}>{dot(bAccent)} Orders {badge(newCount)}</div>
-        <div style={act('drawings')}  onClick={() => go('drawings')}>{dot('#5b8def')} Drawings</div>
-        <div style={act('approvals')} onClick={() => go('approvals')}>{dot('#7c5cff')} Approvals {badge(newCount, '#5b8def')}</div>
+        <div style={act('pipeline')}    onClick={() => go('pipeline')}>{dot('#d9a049')} Pipeline</div>
+        <div style={act('orders')}      onClick={() => go('orders')}>{dot(bAccent)} Orders {badge(newCount)}</div>
+        <div style={act('drawings')}    onClick={() => go('drawings')}>{dot('#5b8def')} Drawings</div>
+        <div style={act('approvals')}   onClick={() => go('approvals')}>{dot('#7c5cff')} Approvals {badge(newCount, '#5b8def')}</div>
+        <div style={act('fabrication')} onClick={() => go('fabrication')}>{dot('#4cba85')} Fabrication</div>
       </>}
 
 {activeModule === 'admin' && <>
@@ -872,6 +873,9 @@ function PlannerBackend() {
 
         {/* Studio — Pipeline kanban */}
         {section === 'pipeline' && <PipelineView orders={orders} onSelect={id => { setSelId(id); setSection('orders'); }} />}
+
+        {/* Studio — Fabrication job tracker */}
+        {section === 'fabrication' && <FactoryFloorModule orders={orders} subSection="fabrication" />}
 
         {/* Studio — Orders (3-column CRM view) */}
         {section !== 'pipeline' && <div style={{ flex:1, display:'grid', gridTemplateColumns:'280px 1fr 300px', minHeight:0 }}>
