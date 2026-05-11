@@ -298,15 +298,34 @@ const ROOMS = {
 const FINISHES  = ['Bali oak', 'Espresso', 'Bone matte', 'Sand grey']
 const HARDWARES = ['Push-to-open', 'Soft-close hinge', 'Handle pull']
 
-// ── Default kitchen layout ─────────────────────────────────────────
-const defaultKitchenItems: PlacedItem[] = [
-  { uid:'di-1', entry: KITCHEN_CATALOG[0], x:0,    y:0,    width:600,  finish:'Bali oak',  hardware:'Push-to-open' },
-  { uid:'di-2', entry: KITCHEN_CATALOG[1], x:600,  y:0,    width:1200, finish:'Bali oak',  hardware:'Push-to-open' },
-  { uid:'di-3', entry: KITCHEN_CATALOG[7], x:0,    y:0,    width:600,  finish:'Bali oak',  hardware:'Soft-close hinge' },
-  { uid:'di-4', entry: KITCHEN_CATALOG[3], x:1800, y:0,    width:600,  finish:'Bali oak',  hardware:'Push-to-open' },
-  { uid:'di-5', entry: KITCHEN_CATALOG[8], x:1800, y:0,    width:600,  finish:'Bone matte',hardware:'Push-to-open' },
-  { uid:'di-6', entry: KITCHEN_CATALOG[10],x:800,  y:1600, width:2200, finish:'Espresso',  hardware:'Push-to-open' },
-]
+// ── Project info ──────────────────────────────────────────────────
+type HomeType = '1BHK' | '2BHK' | '3BHK' | '4BHK+' | 'Villa' | 'Office' | 'Custom'
+
+interface ProjectInfo {
+  id: string
+  name: string
+  homeType: HomeType
+  product: ProductMode
+  createdAt: number
+  updatedAt: number
+}
+
+interface SavedProject {
+  info: ProjectInfo
+  placedItems: PlacedItem[]
+}
+
+const SAVE_KEY = 'kreobox-planner-v1'
+
+function loadSavedProjects(): SavedProject[] {
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY) ?? '[]') } catch { return [] }
+}
+
+function saveProject(project: SavedProject) {
+  const all = loadSavedProjects().filter(p => p.info.id !== project.info.id)
+  all.unshift(project)
+  localStorage.setItem(SAVE_KEY, JSON.stringify(all.slice(0, 20)))
+}
 
 // ── SVG canvas constants ──────────────────────────────────────────
 const SVG_W = 620
@@ -404,14 +423,16 @@ interface Plan2DProps {
   zoom: number
   dragOverPos: { x: number; y: number } | null
   ghostEntry: CatalogEntry | null
+  movingUidActive: string | null
   onSelect: (uid: string | null) => void
   onDrop: (entry: CatalogEntry, mmX: number, mmY: number) => void
   onDragOver: (mmX: number, mmY: number) => void
   onDragLeave: () => void
   onMoveItem: (uid: string, mmX: number, mmY: number) => void
+  onMoveStart: (uid: string) => void
 }
 
-function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, onSelect, onDrop, onDragOver, onDragLeave, onMoveItem }: Plan2DProps) {
+function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, movingUidActive, onSelect, onDrop, onDragOver, onDragLeave, onMoveItem, onMoveStart }: Plan2DProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const room = ROOMS[product]
   const scale = getScale(room, zoom)
@@ -447,6 +468,19 @@ function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, on
 
   const movingUid = useRef<string | null>(null)
 
+  const handleDropFinal = (e: React.DragEvent) => {
+    e.preventDefault()
+    const pos = getSvgCoords(e)
+    if (!pos) return
+    const uid = e.dataTransfer.getData('move-uid')
+    if (uid) {
+      onMoveItem(uid, pos.mmX, pos.mmY)
+      movingUid.current = null
+    } else if (ghostEntry) {
+      onDrop(ghostEntry, pos.mmX, pos.mmY)
+    }
+  }
+
   return (
     <svg
       ref={svgRef}
@@ -454,7 +488,7 @@ function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, on
       style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair' }}
       onDragOver={handleDragOver}
       onDragLeave={onDragLeave}
-      onDrop={handleDrop}
+      onDrop={handleDropFinal}
       onClick={e => { if (e.target === svgRef.current) onSelect(null) }}
     >
       <defs>
@@ -490,8 +524,14 @@ function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, on
           <g key={item.uid}
             style={{ cursor: 'grab' }}
             draggable
-            onDragStart={e => { movingUid.current = item.uid; e.dataTransfer.setData('move-uid', item.uid) }}
-            onDragEnd={() => { movingUid.current = null }}
+            onDragStart={e => {
+              movingUid.current = item.uid
+              e.dataTransfer.setData('move-uid', item.uid)
+              onSelect(item.uid)
+              onMoveStart(item.uid)
+              onDragOver(item.x, item.y)
+            }}
+            onDragEnd={() => { movingUid.current = null; onDragLeave() }}
             onClick={e => { e.stopPropagation(); onSelect(item.uid) }}
           >
             <rect x={ix} y={iy} width={iw} height={ih}
@@ -533,9 +573,11 @@ function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, on
         )
       })}
 
-      {dragOverPos && ghostEntry && (() => {
-        const gw = ghostEntry.width * scale
-        const gh = ghostEntry.depth * scale
+      {dragOverPos && (() => {
+        const activeEntry = ghostEntry ?? (movingUidActive ? items.find(it => it.uid === movingUidActive)?.entry ?? null : null)
+        if (!activeEntry) return null
+        const gw = activeEntry.width * scale
+        const gh = activeEntry.depth * scale
         const gx = ROOM_OX + dragOverPos.x * scale
         const gy = ROOM_OY + dragOverPos.y * scale
         return (
@@ -820,13 +862,14 @@ function CatalogPanel({
 
 // ── Properties Panel ──────────────────────────────────────────────
 function PropertiesPanel({
-  selectedItem, placedItems, onUpdate, onDelete, onNavigate,
+  selectedItem, placedItems, onUpdate, onDelete, onNavigate, onSave,
 }: {
   selectedItem: PlacedItem | null
   placedItems: PlacedItem[]
   onUpdate: (patch: Partial<PlacedItem>) => void
   onDelete: () => void
   onNavigate: () => void
+  onSave: () => void
 }) {
   const formatPrice = (p: number) => `₹ ${(p / 100).toLocaleString('en-IN')}`
 
@@ -890,7 +933,7 @@ function PropertiesPanel({
               background: INK, color: PAPER, fontWeight: 700, fontSize: 13,
               cursor: 'pointer', fontFamily: 'inherit',
             }}>Request quote</button>
-            <button style={{
+            <button onClick={onSave} style={{
               padding: '12px 18px', borderRadius: 8, border: `1.5px solid ${LINE}`,
               background: 'transparent', color: INK, fontWeight: 600, fontSize: 13,
               cursor: 'pointer', fontFamily: 'inherit',
@@ -1041,6 +1084,182 @@ function PropertiesPanel({
           background: 'transparent', color: ACCENT, fontWeight: 600, fontSize: 12,
           cursor: 'pointer', fontFamily: 'inherit',
         }}>Remove item</button>
+      </div>
+    </div>
+  )
+}
+
+// ── Project Setup Dialog ──────────────────────────────────────────
+interface ProjectSetupDialogProps {
+  initialProduct: ProductMode
+  onStart: (info: ProjectInfo, product: ProductMode) => void
+  savedProjects: SavedProject[]
+  onLoad: (project: SavedProject) => void
+}
+
+const HOME_TYPES: HomeType[] = ['1BHK', '2BHK', '3BHK', '4BHK+', 'Villa', 'Office', 'Custom']
+
+function ProjectSetupDialog({ initialProduct, onStart, savedProjects, onLoad }: ProjectSetupDialogProps) {
+  const [tab, setTab] = useState<'new' | 'load'>('new')
+  const [name, setName] = useState('')
+  const [homeType, setHomeType] = useState<HomeType>('2BHK')
+  const [product, setProduct] = useState<ProductMode>(initialProduct)
+
+  const handleStart = () => {
+    const info: ProjectInfo = {
+      id: `proj-${Date.now()}`,
+      name: name.trim() || `${homeType} ${product.charAt(0).toUpperCase() + product.slice(1)}`,
+      homeType,
+      product,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }
+    onStart(info, product)
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 2000,
+      background: 'rgba(26,24,21,0.7)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: 24,
+    }}>
+      <div style={{
+        background: PAPER, borderRadius: 14, width: '100%', maxWidth: 520,
+        boxShadow: '0 40px 80px rgba(26,24,21,0.3)',
+        overflow: 'hidden',
+      }}>
+        {/* Header */}
+        <div style={{ padding: '28px 32px 0' }}>
+          <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: ACCENT, letterSpacing: '0.14em', textTransform: 'uppercase', marginBottom: 8 }}>
+            KREOBOX PLANNER
+          </div>
+          <div style={{ fontFamily: '"Fraunces", serif', fontSize: 26, fontWeight: 400, color: INK, marginBottom: 20, lineHeight: 1.15 }}>
+            Start a new project,<br /><em style={{ fontStyle: 'italic', fontWeight: 600 }}>or pick up where you left off.</em>
+          </div>
+
+          {/* Tab switcher */}
+          <div style={{ display: 'flex', background: 'rgba(26,24,21,0.06)', borderRadius: 8, padding: 3, marginBottom: 24 }}>
+            {(['new', 'load'] as const).map(t => (
+              <button key={t} onClick={() => setTab(t)} style={{
+                flex: 1, padding: '8px', borderRadius: 6, border: 'none',
+                background: tab === t ? PAPER : 'transparent',
+                color: tab === t ? INK : MUTE,
+                fontFamily: '"Inter Tight", sans-serif', fontSize: 13, fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: tab === t ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+              }}>
+                {t === 'new' ? 'New project' : `Saved projects (${savedProjects.length})`}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* New project form */}
+        {tab === 'new' && (
+          <div style={{ padding: '0 32px 32px' }}>
+            {/* Project name */}
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 6 }}>
+                Project name (optional)
+              </label>
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder={`${homeType} ${product.charAt(0).toUpperCase() + product.slice(1)}`}
+                style={{
+                  width: '100%', boxSizing: 'border-box',
+                  padding: '10px 12px', border: `1px solid ${LINE2}`, borderRadius: 8,
+                  fontFamily: '"Inter Tight", sans-serif', fontSize: 14, color: INK,
+                  background: BG, outline: 'none',
+                }}
+              />
+            </div>
+
+            {/* Home type */}
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 8 }}>
+                Home type
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {HOME_TYPES.map(ht => (
+                  <button key={ht} onClick={() => setHomeType(ht)} style={{
+                    padding: '8px 16px', borderRadius: 20,
+                    border: `1.5px solid ${homeType === ht ? INK : LINE2}`,
+                    background: homeType === ht ? INK : 'transparent',
+                    color: homeType === ht ? PAPER : INK,
+                    fontFamily: '"Inter Tight", sans-serif', fontSize: 13, fontWeight: 600,
+                    cursor: 'pointer',
+                  }}>{ht}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Room to plan */}
+            <div style={{ marginBottom: 28 }}>
+              <label style={{ display: 'block', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 8 }}>
+                What would you like to plan?
+              </label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {(['kitchen', 'wardrobe', 'office'] as ProductMode[]).map(p => (
+                  <button key={p} onClick={() => setProduct(p)} style={{
+                    flex: 1, padding: '10px 8px', borderRadius: 8,
+                    border: `1.5px solid ${product === p ? ACCENT : LINE2}`,
+                    background: product === p ? `${ACCENT}10` : 'transparent',
+                    color: product === p ? ACCENT : MUTE,
+                    fontFamily: '"Inter Tight", sans-serif', fontSize: 13, fontWeight: 600,
+                    cursor: 'pointer', textTransform: 'capitalize',
+                  }}>{p}</button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={handleStart}
+              style={{
+                width: '100%', padding: '14px', borderRadius: 9, border: 'none',
+                background: INK, color: PAPER,
+                fontFamily: '"Inter Tight", sans-serif', fontSize: 14, fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              Start planning →
+            </button>
+          </div>
+        )}
+
+        {/* Load saved */}
+        {tab === 'load' && (
+          <div style={{ padding: '0 32px 32px', maxHeight: 360, overflowY: 'auto' }}>
+            {savedProjects.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '32px 0', color: MUTE, fontSize: 13 }}>
+                No saved projects yet.
+              </div>
+            ) : savedProjects.map(proj => (
+              <button
+                key={proj.info.id}
+                onClick={() => onLoad(proj)}
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '14px 16px', marginBottom: 8, borderRadius: 10,
+                  border: `1px solid ${LINE2}`, background: BG, cursor: 'pointer', textAlign: 'left',
+                }}
+              >
+                <div>
+                  <div style={{ fontFamily: '"Inter Tight", sans-serif', fontSize: 14, fontWeight: 600, color: INK, marginBottom: 3 }}>
+                    {proj.info.name}
+                  </div>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: MUTE }}>
+                    {proj.info.homeType} · {proj.info.product} · {proj.placedItems.length} items
+                  </div>
+                </div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: MUTE, textAlign: 'right', flexShrink: 0, marginLeft: 12 }}>
+                  {new Date(proj.info.updatedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -1278,23 +1497,53 @@ export default function PlannerPage() {
   const location  = useLocation()
   const navState  = (location.state ?? {}) as { product?: ProductMode }
 
-  const initialProduct: ProductMode = navState.product ?? 'kitchen'
+  const initialProduct: ProductMode = (navState.product as ProductMode) ?? 'kitchen'
 
+  const [projectInfo, setProjectInfo] = useState<ProjectInfo | null>(null)
+  const [showSetup, setShowSetup]     = useState(true)
   const [product, setProduct] = useState<ProductMode>(initialProduct)
   const [view, setView]       = useState<ViewMode>('2D plan')
   const [zoom, setZoom]       = useState(1)
-  const [placedItems, setPlacedItems] = useState<PlacedItem[]>(
-    initialProduct === 'kitchen' ? defaultKitchenItems : []
-  )
+  const [placedItems, setPlacedItems] = useState<PlacedItem[]>([])
   const [selectedUid, setSelectedUid] = useState<string | null>(null)
-  const [dragEntry, setDragEntry] = useState<CatalogEntry | null>(null)
+  const [dragEntry, setDragEntry]     = useState<CatalogEntry | null>(null)
   const [dragOverPos, setDragOverPos] = useState<{ x: number; y: number } | null>(null)
+  const [movingUidActive, setMovingUidActive] = useState<string | null>(null)
   const [showBOM, setShowBOM] = useState(false)
+  const [saveToast, setSaveToast] = useState(false)
+
+  const savedProjects = loadSavedProjects()
+
+  const handleProjectStart = (info: ProjectInfo, prod: ProductMode) => {
+    setProjectInfo(info)
+    setProduct(prod)
+    setPlacedItems([])
+    setSelectedUid(null)
+    setShowSetup(false)
+  }
+
+  const handleLoadProject = (proj: SavedProject) => {
+    setProjectInfo(proj.info)
+    setProduct(proj.info.product)
+    setPlacedItems(proj.placedItems)
+    setSelectedUid(null)
+    setShowSetup(false)
+  }
+
+  const handleSave = () => {
+    if (!projectInfo) return
+    const updated = { ...projectInfo, updatedAt: Date.now() }
+    setProjectInfo(updated)
+    saveProject({ info: updated, placedItems })
+    setSaveToast(true)
+    setTimeout(() => setSaveToast(false), 2000)
+  }
 
   const selectedItem = placedItems.find(it => it.uid === selectedUid) ?? null
 
   const handleProductChange = (p: ProductMode) => {
     setProduct(p); setPlacedItems([]); setSelectedUid(null)
+    if (projectInfo) setProjectInfo({ ...projectInfo, product: p, updatedAt: Date.now() })
   }
 
   useEffect(() => {
@@ -1315,6 +1564,7 @@ export default function PlannerPage() {
     setSelectedUid(uid)
     setDragOverPos(null)
     setDragEntry(null)
+    setMovingUidActive(null)
   }, [])
 
   const updateItem = useCallback((patch: Partial<PlacedItem>) => {
@@ -1328,6 +1578,7 @@ export default function PlannerPage() {
 
   const handleCatalogDragStart = (e: React.DragEvent, entry: CatalogEntry) => {
     setDragEntry(entry)
+    setMovingUidActive(null)
     e.dataTransfer.setData('catalog-id', entry.id)
   }
 
@@ -1364,7 +1615,16 @@ export default function PlannerPage() {
           <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: MUTE, minWidth: 38, textAlign: 'center' }}>{Math.round(zoom*100)}%</span>
           <button onClick={() => setZoom(z => Math.min(3, +(z+0.25).toFixed(2)))} style={btnSm}>+</button>
         </div>
-        <button onClick={() => { setPlacedItems([]); setSelectedUid(null) }} style={{ ...btnSm, color: MUTE }}>↺</button>
+        <button
+          onClick={() => { setPlacedItems([]); setSelectedUid(null); setShowSetup(true) }}
+          style={{ ...btnSm, color: MUTE }}
+          title="New project"
+        >↺</button>
+        {projectInfo && (
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: MUTE, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {projectInfo.name}
+          </span>
+        )}
         <button onClick={() => navigate('/')} style={{ ...btnSm, color: MUTE, fontSize: 11, width: 'auto', padding: '0 10px' }}>← Home</button>
         <button
           onClick={() => placedItems.length > 0 && setShowBOM(true)}
@@ -1398,10 +1658,12 @@ export default function PlannerPage() {
               <Plan2D
                 product={product} items={placedItems} selectedUid={selectedUid}
                 zoom={zoom} dragOverPos={dragOverPos} ghostEntry={dragEntry}
+                movingUidActive={movingUidActive}
                 onSelect={setSelectedUid} onDrop={handleDrop}
                 onDragOver={(x,y) => setDragOverPos({x,y})}
-                onDragLeave={() => setDragOverPos(null)}
-                onMoveItem={handleMoveItem}
+                onDragLeave={() => { setDragOverPos(null); setMovingUidActive(null) }}
+                onMoveItem={(uid, x, y) => { handleMoveItem(uid, x, y); setDragOverPos(null); setMovingUidActive(null) }}
+                onMoveStart={uid => setMovingUidActive(uid)}
               />
             )}
             {view === 'Elevation' && <ElevationView product={product} items={placedItems} />}
@@ -1444,6 +1706,7 @@ export default function PlannerPage() {
             onUpdate={updateItem}
             onDelete={() => { setPlacedItems(prev => prev.filter(it => it.uid !== selectedUid)); setSelectedUid(null) }}
             onNavigate={() => setShowBOM(true)}
+            onSave={handleSave}
           />
         </div>
       </div>
@@ -1458,6 +1721,30 @@ export default function PlannerPage() {
             console.log('Quote confirmed', { name, phone, city, items: placedItems.length })
           }}
         />
+      )}
+
+      {/* Project setup dialog */}
+      {showSetup && (
+        <ProjectSetupDialog
+          initialProduct={initialProduct}
+          savedProjects={savedProjects}
+          onStart={handleProjectStart}
+          onLoad={handleLoadProject}
+        />
+      )}
+
+      {/* Save toast */}
+      {saveToast && (
+        <div style={{
+          position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+          background: INK, color: PAPER, borderRadius: 8,
+          padding: '10px 20px', fontSize: 13, fontWeight: 600,
+          fontFamily: '"Inter Tight", sans-serif',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.3)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <span style={{ color: '#4ade80' }}>✓</span> Project saved
+        </div>
       )}
     </div>
   )
