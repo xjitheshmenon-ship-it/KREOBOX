@@ -61,12 +61,12 @@ function FLogo({ size = 20 }) {
   );
 }
 
-function FSidebar({ module = 'factory', active = 'Fabrication', onSelect }) {
+function FSidebar({ module = 'factory', active = 'Depot Stock', onSelect }) {
   const sections = {
     factory: {
       label: 'Factory Floor',
       items: [
-        ['Vendors', null, null], ['POs', 3, null], ['Depot Stock', null, null], ['Fabrication', 12, fAccent],
+        ['Vendors', null, null], ['POs', 3, null], ['Depot Stock', null, null],
       ],
     },
     admin: {
@@ -297,7 +297,7 @@ const STAGE_COLORS = ['rgba(255,255,255,0.5)','#d9a049','#c96442','#5b8def','#7c
 /* ── FACTORY MODULE ────────────────────────────────────────────── */
 function FactoryModule() {
   const { useState: useS, useEffect: useE } = React;
-  const [section, setSection] = useS('Fabrication');
+  const [section, setSection] = useS('Depot Stock');
   const [jobs, setJobs]     = useS(() => KreoStore.getJobs());
   const [selId, setSelId]   = useS(null);
   const [cutFilter, setCutFilter] = useS('');
@@ -335,7 +335,7 @@ function FactoryModule() {
     !cutFilter || p.name.toLowerCase().includes(cutFilter.toLowerCase()) || p.mat.toLowerCase().includes(cutFilter.toLowerCase())
   ) : [];
 
-  if (section === 'Depot Stock') {
+  if (section !== 'Fabrication') {
     return (
       <div style={fS.shell}>
         <FSidebar module="factory" active={section} onSelect={setSection} />
