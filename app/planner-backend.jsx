@@ -110,20 +110,27 @@ function BSidebar({ newCount = 0, section = 'orders', onSection }) {
         <div style={{ fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.14em', textTransform:'uppercase', fontWeight:700 }}>Studio</div>
         <div style={{ fontSize:13, fontWeight:600, color:'#fff', marginTop:2 }}>Atelier Reema</div>
       </div>
-      <div style={bStyles.sbSection}>Workspace</div>
-      <div style={act('pipeline')} onClick={() => go('pipeline')}>{dot('#d9a049')} Pipeline</div>
-      <div style={act('orders')}   onClick={() => go('orders')}>{dot(bAccent)} Orders {badge(newCount)}</div>
-      <div style={act('drawings')} onClick={() => go('drawings')}>{dot('#5b8def')} Drawings</div>
-      <div style={act('approvals')} onClick={() => go('approvals')}>{dot('#7c5cff')} Approvals {badge(newCount, '#5b8def')}</div>
-      <div style={bStyles.sbSection}>Operations</div>
-      <div style={act('vendors')}  onClick={() => go('vendors')}>{dot('#aaa')} Vendors</div>
-      <div style={act('pos')}      onClick={() => go('pos')}>{dot('#aaa')} POs</div>
-      <div style={act('inventory')} onClick={() => go('inventory')}>{dot('#aaa')} Inventory</div>
-      <div style={act('fabrication')} onClick={() => go('fabrication')}>{dot('#4cba85')} Fabrication</div>
+
+      {/* ── Studio (design/CRM) ── */}
       <div style={bStyles.sbSection}>Studio</div>
-      <div style={act('team')}    onClick={() => go('team')}>{dot('#aaa')} Team</div>
-      <div style={act('margin')}  onClick={() => go('margin')}>{dot('#4cba85')} Margin</div>
-      <div style={act('library')} onClick={() => go('library')}>{dot('#aaa')} Library</div>
+      <div style={act('pipeline')}  onClick={() => go('pipeline')}>{dot('#d9a049')} Pipeline</div>
+      <div style={act('orders')}    onClick={() => go('orders')}>{dot(bAccent)} Orders {badge(newCount)}</div>
+      <div style={act('drawings')}  onClick={() => go('drawings')}>{dot('#5b8def')} Drawings</div>
+      <div style={act('approvals')} onClick={() => go('approvals')}>{dot('#7c5cff')} Approvals {badge(newCount, '#5b8def')}</div>
+
+      {/* ── Factory Floor (pre-cut ops) ── */}
+      <div style={bStyles.sbSection}>Factory Floor</div>
+      <div style={act('cutjobs')}   onClick={() => go('cutjobs')}>{dot('#7c5cff')} Cut Jobs</div>
+      <div style={act('cutsheets')} onClick={() => go('cutsheets')}>{dot('#c96442')} Cut Sheets</div>
+      <div style={act('depotstock')}onClick={() => go('depotstock')}>{dot('#4cba85')} Depot Stock</div>
+      <div style={act('factoryload')}onClick={() => go('factoryload')}>{dot('#5b8def')} Factory Load</div>
+
+      {/* ── Admin ── */}
+      <div style={bStyles.sbSection}>Admin</div>
+      <div style={act('margin')}   onClick={() => go('margin')}>{dot('#4cba85')} Margin</div>
+      <div style={act('vendors')}  onClick={() => go('vendors')}>{dot('#aaa')} Vendors</div>
+      <div style={act('team')}     onClick={() => go('team')}>{dot('#aaa')} Team</div>
+
       <div style={{ flex:1 }}></div>
       <a href="planner.html" style={{
         display:'flex', alignItems:'center', gap:6, padding:'7px 10px', borderRadius:6,
@@ -340,39 +347,32 @@ const STATUS_COLORS = {
   delivered: { bg:'rgba(76,186,133,0.15)', fg:'#4cba85', label:'Delivered' },
 };
 
-/* ── ERP MODULE STRIP ─────────────────────────────────────────── */
+/* ── ERP MODULE STRIP — 3 tabs matching sidebar sections ─────── */
 const ERP_MODULES = [
-  { id:'crm',           label:'CRM / Orders',    icon:'⊠', color:'#c96442' },
-  { id:'finance',       label:'Finance',          icon:'₹', color:'#4cba85' },
-  { id:'manufacturing', label:'Manufacturing',    icon:'⚙', color:'#7c5cff' },
-  { id:'procurement',   label:'Procurement',      icon:'⊞', color:'#5b8def' },
-  { id:'logistics',     label:'Logistics',        icon:'⊡', color:'#d9a049' },
-  { id:'hr',            label:'HR / Team',        icon:'⊟', color:'#ff9060' },
+  { id:'studio',  label:'Studio',        icon:'✏', color:'#c96442', section:'orders'    },
+  { id:'factory', label:'Factory Floor', icon:'⚙', color:'#7c5cff', section:'cutjobs'   },
+  { id:'admin',   label:'Admin',         icon:'⊞', color:'#4cba85', section:'margin'    },
 ];
 
 function ERPModuleStrip({ active, onChange, orders }) {
-  const fmtBadge = (id) => {
-    if (id === 'crm') return orders.filter(o => o.status === 'new').length || null;
-    return null;
-  };
+  const newBadge = orders.filter(o => o.status === 'new').length;
   return (
     <div style={{ background:'#191613', borderBottom:`1px solid ${bLine}`, padding:'0 20px', display:'flex', gap:0, flexShrink:0 }}>
       {ERP_MODULES.map(m => {
         const isActive = m.id === active;
-        const badge = fmtBadge(m.id);
+        const badge = m.id === 'studio' ? newBadge : null;
         return (
-          <button key={m.id}
-            onClick={() => onChange(m.id)}
+          <button key={m.id} onClick={() => onChange(m.id, m.section)}
             style={{
-              display:'flex', alignItems:'center', gap:6, padding:'10px 14px', border:'none',
-              background:'transparent', cursor:'pointer', position:'relative',
+              display:'flex', alignItems:'center', gap:6, padding:'11px 18px', border:'none',
+              background:'transparent', cursor:'pointer',
               borderBottom: isActive ? `2px solid ${m.color}` : '2px solid transparent',
               color: isActive ? '#fff' : 'rgba(255,255,255,0.45)',
-              fontSize:11, fontWeight: isActive ? 700 : 500,
+              fontSize:12, fontWeight: isActive ? 700 : 500,
             }}>
-            <span style={{ fontSize:13, color: isActive ? m.color : 'inherit' }}>{m.icon}</span>
+            <span style={{ fontSize:14, color: isActive ? m.color : 'inherit' }}>{m.icon}</span>
             {m.label}
-            {badge && <span style={{ background:m.color, color:'#fff', fontSize:9, fontWeight:700, padding:'1px 5px', borderRadius:999, marginLeft:2 }}>{badge}</span>}
+            {badge > 0 && <span style={{ background:m.color, color:'#fff', fontSize:9, fontWeight:700, padding:'1px 5px', borderRadius:999, marginLeft:2 }}>{badge}</span>}
           </button>
         );
       })}
@@ -454,20 +454,48 @@ function FinanceModule({ orders }) {
   );
 }
 
-/* ── MANUFACTURING MODULE ─────────────────────────────────────── */
-function ManufacturingModule({ orders }) {
-  const fmt = n => '₹ ' + Number(n).toLocaleString('en-IN');
-  const STAGE_COLORS = ['rgba(255,255,255,0.4)','#d9a049','#c96442','#5b8def','#7c5cff','#c96442','#d9a049','#4cba85'];
-  const STAGES = ['Queued','Mat. Check','Cutting','Edge Band','Assembly','Finishing','QC','Done'];
-  const fabOrders = orders.filter(o => ['approved','in-fab','delivered'].includes(o.status));
-  return (
+/* ── Pre-cut module catalog ────────────────────────────────────── */
+const PRECUT_TYPES = [
+  { id:'BC-600', label:'Base 600', desc:'18mm HDF carcass · 600W×720H×560D', panels:6, edge:'T+F' },
+  { id:'BC-800', label:'Base 800', desc:'18mm HDF carcass · 800W×720H×560D', panels:6, edge:'T+F' },
+  { id:'BC-900', label:'Base 900', desc:'18mm HDF carcass · 900W×720H×560D', panels:6, edge:'T+F' },
+  { id:'WC-600', label:'Wall 600', desc:'18mm HDF carcass · 600W×700H×320D', panels:6, edge:'T+F' },
+  { id:'WC-900', label:'Wall 900', desc:'18mm HDF carcass · 900W×700H×320D', panels:6, edge:'T+F' },
+  { id:'HC-600', label:'High 600', desc:'18mm HDF carcass · 600W×2200H×560D', panels:7, edge:'T+F' },
+];
+
+const DEPOT_STOCK = [
+  { city:'Mumbai',    depot:'BHW-01', modules:{ 'BC-600':24, 'BC-800':18, 'BC-900':14, 'WC-600':22, 'WC-900':16, 'HC-600':8  }, min:10 },
+  { city:'Pune',      depot:'PUN-01', modules:{ 'BC-600':12, 'BC-800':8,  'BC-900':6,  'WC-600':10, 'WC-900':8,  'HC-600':4  }, min:5  },
+  { city:'Bengaluru', depot:'PNY-01', modules:{ 'BC-600':20, 'BC-800':16, 'BC-900':12, 'WC-600':18, 'WC-900':14, 'HC-600':6  }, min:8  },
+  { city:'Chennai',   depot:'CHN-01', modules:{ 'BC-600':8,  'BC-800':6,  'BC-900':4,  'WC-600':7,  'WC-900':5,  'HC-600':3  }, min:5  },
+  { city:'Delhi',     depot:'MNS-01', modules:{ 'BC-600':18, 'BC-800':14, 'BC-900':10, 'WC-600':16, 'WC-900':12, 'HC-600':5  }, min:8  },
+  { city:'Hyderabad', depot:'HYD-01', modules:{ 'BC-600':10, 'BC-800':8,  'BC-900':5,  'WC-600':9,  'WC-900':6,  'HC-600':3  }, min:5  },
+];
+
+/* ── FACTORY FLOOR MODULE (pre-cut concept) ───────────────────── */
+function FactoryFloorModule({ orders, subSection = 'cutjobs' }) {
+  const STAGES = ['Queued','Panel cut','Laminate','Edge band','Bundle','To depot'];
+  const SCLR   = ['rgba(255,255,255,0.35)','#c96442','#d9a049','#5b8def','#7c5cff','#4cba85'];
+  const fabOrders = orders.filter(o => ['approved','in-fab'].includes(o.status));
+
+  const card = (children, extra = {}) => (
+    <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px', ...extra }}>
+      {children}
+    </div>
+  );
+  const hdr = (t) => (
+    <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:12 }}>{t}</div>
+  );
+
+  /* ── Cut Jobs ── */
+  if (subSection === 'cutjobs') return (
     <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
-      <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700, marginBottom:16 }}>Manufacturing · Production Queue</div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:20 }}>
         {[
-          { l:'Active jobs', v: fabOrders.filter(o=>o.status==='in-fab').length, c:'#7c5cff' },
-          { l:'In queue',    v: fabOrders.filter(o=>o.status==='approved').length, c:'#d9a049' },
-          { l:'Delivered',   v: orders.filter(o=>o.status==='delivered').length, c:'#4cba85' },
+          { l:'Cutting now', v: fabOrders.filter(o=>o.status==='in-fab').length, c:'#7c5cff' },
+          { l:'Queued',      v: fabOrders.filter(o=>o.status==='approved').length, c:'#d9a049' },
+          { l:'Dispatched',  v: orders.filter(o=>o.status==='delivered').length, c:'#4cba85' },
           { l:'Factories',   v: 3, c:'#5b8def' },
         ].map((k,i) => (
           <div key={i} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'14px 16px' }}>
@@ -476,46 +504,249 @@ function ManufacturingModule({ orders }) {
           </div>
         ))}
       </div>
-      <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px', marginBottom:16 }}>
-        <div style={{ fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Production jobs</div>
+      {card(<>
+        {hdr('Active cut jobs — pre-cut modules per order')}
         {fabOrders.length === 0 ? (
-          <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', padding:'16px 0' }}>No jobs yet. Approve an order from CRM to create a production job.</div>
+          <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>No active jobs. Approve an order from Studio to queue a cut run.</div>
         ) : fabOrders.map((o, i) => {
-          const stage = o.status === 'in-fab' ? 4 : o.status === 'approved' ? 0 : 7;
+          const stage = o.status === 'in-fab' ? 3 : 0;
           return (
             <div key={o.id} style={{ padding:'14px 0', borderTop:i?`1px solid rgba(255,255,255,0.06)`:'none' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-                <div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                   <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:bAccent, fontWeight:700 }}>{o.id}</span>
-                  <span style={{ marginLeft:12, fontSize:13, color:'#fff', fontWeight:600 }}>{o.customerName}</span>
-                  <span style={{ marginLeft:8, fontSize:11, color:'rgba(255,255,255,0.5)' }}>{o.room?.layout} · {o.finish}</span>
+                  <span style={{ fontSize:12, color:'#fff', fontWeight:600 }}>{o.customerName}</span>
+                  <span style={{ fontSize:10, color:'rgba(255,255,255,0.5)' }}>{o.room?.layout} · {o.finish}</span>
                 </div>
-                <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:11, color:'rgba(255,255,255,0.6)' }}>{fmt(o.total)}</span>
+                <span style={{ fontSize:10, color:'rgba(255,255,255,0.4)', fontFamily:'JetBrains Mono,monospace' }}>{o.customerCity}</span>
               </div>
-              <div style={{ display:'flex', gap:4 }}>
+              <div style={{ display:'flex', gap:3 }}>
                 {STAGES.map((s, si) => (
-                  <div key={si} style={{ flex:1, textAlign:'center' }}>
-                    <div style={{ height:4, borderRadius:2, background: si <= stage ? STAGE_COLORS[si] : 'rgba(255,255,255,0.08)', marginBottom:3 }}/>
-                    <div style={{ fontSize:8, color: si <= stage ? STAGE_COLORS[si] : 'rgba(255,255,255,0.3)', fontFamily:'JetBrains Mono,monospace' }}>{s}</div>
+                  <div key={si} style={{ flex:1 }}>
+                    <div style={{ height:5, borderRadius:2, background: si <= stage ? SCLR[si] : 'rgba(255,255,255,0.07)', marginBottom:3, transition:'background 0.3s' }}/>
+                    <div style={{ fontSize:8, color: si <= stage ? SCLR[si] : 'rgba(255,255,255,0.25)', fontFamily:'JetBrains Mono,monospace', textAlign:'center' }}>{s}</div>
                   </div>
                 ))}
               </div>
             </div>
           );
         })}
+      </>)}
+    </div>
+  );
+
+  /* ── Cut Sheets ── */
+  if (subSection === 'cutsheets') return (
+    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      {card(<>
+        {hdr('Pre-cut module panel specs — batch optimization')}
+        <div style={{ overflowX:'auto' }}>
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
+            <thead>
+              <tr style={{ borderBottom:`1px solid rgba(255,255,255,0.1)` }}>
+                {['Module','Description','Panels/kit','Sheet','Laminate','Edge'].map(h => (
+                  <th key={h} style={{ padding:'6px 10px', textAlign:'left', fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {PRECUT_TYPES.map((t, i) => (
+                <tr key={t.id} style={{ borderTop:`1px solid rgba(255,255,255,0.05)` }}>
+                  <td style={{ padding:'10px 10px', fontFamily:'JetBrains Mono,monospace', color:bAccent, fontWeight:700 }}>{t.id}</td>
+                  <td style={{ padding:'10px 10px', color:'rgba(255,255,255,0.8)' }}>{t.desc}</td>
+                  <td style={{ padding:'10px 10px', color:'#fff', fontWeight:700 }}>{t.panels}</td>
+                  <td style={{ padding:'10px 10px', color:'rgba(255,255,255,0.6)', fontFamily:'JetBrains Mono,monospace' }}>18mm HDF</td>
+                  <td style={{ padding:'10px 10px', color:'#d9a049', fontFamily:'JetBrains Mono,monospace' }}>Greenlam</td>
+                  <td style={{ padding:'10px 10px', color:'#5b8def', fontFamily:'JetBrains Mono,monospace' }}>{t.edge}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ marginTop:14, padding:'10px 12px', background:'rgba(201,100,66,0.07)', borderRadius:6, fontSize:11, color:'rgba(255,255,255,0.6)' }}>
+          All panels are laminated, cut to ±0.5mm, and PVC edge-banded at factory before dispatch to depot. Assembly hardware packed separately.
+        </div>
+      </>)}
+    </div>
+  );
+
+  /* ── Depot Stock ── */
+  if (subSection === 'depotstock') return (
+    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      {hdr.toString && null}
+      <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Depot stock — minimum pre-cut module inventory</div>
+      <div style={{ overflowX:'auto' }}>
+        <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
+          <thead>
+            <tr style={{ borderBottom:`1px solid rgba(255,255,255,0.1)` }}>
+              {['Depot','City', ...PRECUT_TYPES.map(t=>t.id),'Status'].map(h => (
+                <th key={h} style={{ padding:'6px 10px', textAlign:'left', fontSize:9, letterSpacing:'0.1em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700 }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {DEPOT_STOCK.map((d, i) => {
+              const anyLow = Object.entries(d.modules).some(([,qty]) => qty < d.min);
+              return (
+                <tr key={d.depot} style={{ borderTop:`1px solid rgba(255,255,255,0.05)`, background: anyLow ? 'rgba(255,80,80,0.04)' : 'transparent' }}>
+                  <td style={{ padding:'10px 10px', fontFamily:'JetBrains Mono,monospace', color:'rgba(255,255,255,0.6)', fontSize:10 }}>{d.depot}</td>
+                  <td style={{ padding:'10px 10px', color:'#fff', fontWeight:600 }}>{d.city}</td>
+                  {PRECUT_TYPES.map(t => {
+                    const qty = d.modules[t.id] || 0;
+                    const low = qty < d.min;
+                    return (
+                      <td key={t.id} style={{ padding:'10px 10px', fontFamily:'JetBrains Mono,monospace', fontWeight:700, color: low ? '#ff8080' : qty >= d.min*2 ? '#4cba85' : '#d9a049' }}>
+                        {qty}{low && <span style={{ fontSize:8, marginLeft:2, color:'#ff8080' }}>▼</span>}
+                      </td>
+                    );
+                  })}
+                  <td style={{ padding:'10px 10px' }}>
+                    <span style={{ padding:'2px 8px', borderRadius:999, fontSize:9, fontWeight:700, textTransform:'uppercase',
+                      background: anyLow ? 'rgba(255,80,80,0.15)' : 'rgba(76,186,133,0.15)',
+                      color: anyLow ? '#ff8080' : '#4cba85' }}>
+                      {anyLow ? 'Replenish' : 'OK'}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
-        {[{id:'FAC-MUM',name:'Mumbai · Bhiwandi',cap:120,used:87,c:'#c96442'},{id:'FAC-BLR',name:'Bengaluru · Peenya',cap:80,used:54,c:'#4cba85'},{id:'FAC-DEL',name:'Delhi NCR · Manesar',cap:100,used:61,c:'#5b8def'}].map(f => (
-          <div key={f.id} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderLeft:`3px solid ${f.c}`, borderRadius:8, padding:'14px' }}>
-            <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', color:f.c, fontWeight:700 }}>{f.id}</div>
-            <div style={{ fontSize:13, color:'#fff', fontWeight:600, marginTop:2 }}>{f.name}</div>
-            <div style={{ display:'flex', justifyContent:'space-between', marginTop:8, fontSize:11 }}>
-              <span style={{ color:'rgba(255,255,255,0.5)' }}>Capacity: {f.cap}/mo</span>
-              <span style={{ color:f.c, fontWeight:700 }}>{Math.round(f.used/f.cap*100)}% used</span>
+      <div style={{ marginTop:14, padding:'10px 12px', background:'rgba(76,186,133,0.06)', borderRadius:6, fontSize:11, color:'rgba(255,255,255,0.5)' }}>
+        Min threshold: {DEPOT_STOCK[0].min} kits per module type. Replenishment triggered automatically when stock falls below minimum.
+      </div>
+    </div>
+  );
+
+  /* ── Factory Load ── */
+  return (
+    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Factory load — pre-cut capacity</div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:20 }}>
+        {[
+          { id:'FAC-MUM', name:'Mumbai Factory', loc:'Bhiwandi, Maharashtra', cap:120, used:87, depots:['Mumbai','Pune','Nashik','Surat'], c:'#c96442' },
+          { id:'FAC-BLR', name:'Bengaluru Factory', loc:'Peenya, Karnataka', cap:80, used:54, depots:['Bengaluru','Chennai','Hyderabad','Kochi'], c:'#4cba85' },
+          { id:'FAC-DEL', name:'Delhi NCR Factory', loc:'Manesar, Haryana', cap:100, used:61, depots:['Delhi','Jaipur','Lucknow','Chandigarh'], c:'#5b8def' },
+        ].map(f => (
+          <div key={f.id} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderLeft:`3px solid ${f.c}`, borderRadius:8, padding:'16px' }}>
+            <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', color:f.c, fontWeight:700, letterSpacing:'0.1em' }}>{f.id}</div>
+            <div style={{ fontSize:14, color:'#fff', fontWeight:600, marginTop:4 }}>{f.name}</div>
+            <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', marginTop:2 }}>{f.loc}</div>
+            <div style={{ marginTop:12 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, marginBottom:5 }}>
+                <span style={{ color:'rgba(255,255,255,0.5)' }}>{f.used} / {f.cap} kits this week</span>
+                <span style={{ color:f.c, fontWeight:700 }}>{Math.round(f.used/f.cap*100)}%</span>
+              </div>
+              <div style={{ height:6, background:'rgba(255,255,255,0.07)', borderRadius:3 }}>
+                <div style={{ height:'100%', width:`${f.used/f.cap*100}%`, background:f.c, borderRadius:3 }}/>
+              </div>
             </div>
-            <div style={{ height:4, background:'rgba(255,255,255,0.08)', borderRadius:2, marginTop:6 }}>
-              <div style={{ height:'100%', width:`${f.used/f.cap*100}%`, background:f.c, borderRadius:2 }}/>
+            <div style={{ marginTop:10, fontSize:10, color:'rgba(255,255,255,0.4)' }}>
+              Serves: {f.depots.join(' · ')}
             </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'14px 16px', fontSize:11, color:'rgba(255,255,255,0.55)', lineHeight:1.7 }}>
+        <span style={{ color:'rgba(255,255,255,0.8)', fontWeight:600 }}>Pre-cut model: </span>
+        All panels are laminated, CNC-cut and PVC edge-banded at the factory in batch runs. Finished module bundles are dispatched to city depots. When a confirmed order arrives, the nearest depot ships the pre-cut kit to the site installer. Lead time: 5–7 days from order confirmation to site delivery.
+      </div>
+    </div>
+  );
+}
+
+/* ── ADMIN MODULE (Finance + Vendors + Team) ─────────────────── */
+function AdminModule({ orders, subSection = 'margin' }) {
+  const fmt = n => '₹ ' + Number(n).toLocaleString('en-IN');
+
+  /* ── Margin / Finance ── */
+  if (subSection === 'margin') {
+    const totalRev  = orders.filter(o=>o.status!=='new').reduce((s,o)=>s+(o.total||0),0);
+    const pipeline  = orders.filter(o=>['new','reviewing','quoted'].includes(o.status)).reduce((s,o)=>s+(o.total||0),0);
+    const avgOrder  = orders.length ? Math.round(orders.reduce((s,o)=>s+(o.total||0),0)/orders.length) : 0;
+    const delivered = orders.filter(o=>o.status==='delivered').length;
+    return (
+      <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+        <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Finance · Margin</div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:20 }}>
+          {[
+            { l:'Revenue',   v:fmt(totalRev), c:'#4cba85' },
+            { l:'Pipeline',  v:fmt(pipeline), c:'#d9a049' },
+            { l:'Avg order', v:fmt(avgOrder), c:'#fff'    },
+            { l:'Delivered', v:delivered,     c:'#c96442' },
+          ].map((k,i)=>(
+            <div key={i} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'14px 16px' }}>
+              <div style={{ fontSize:9, letterSpacing:'0.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700 }}>{k.l}</div>
+              <div style={{ fontFamily:'"Fraunces",serif', fontSize:26, color:k.c, marginTop:4 }}>{k.v}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
+          <div style={{ fontSize:9, letterSpacing:'0.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:12 }}>Order ledger</div>
+          {orders.map((o,i)=>(
+            <div key={o.id} style={{ display:'grid', gridTemplateColumns:'140px 1fr auto auto', gap:10, padding:'8px 0', borderTop:i?`1px solid rgba(255,255,255,0.05)`:'none', alignItems:'center', fontSize:11 }}>
+              <span style={{ fontFamily:'JetBrains Mono,monospace', color:bAccent, fontWeight:700 }}>{o.id}</span>
+              <span style={{ color:'#fff' }}>{o.customerName} <span style={{ color:'rgba(255,255,255,0.45)', fontSize:10 }}>· {o.customerCity}</span></span>
+              <span style={{ fontFamily:'JetBrains Mono,monospace', color:'rgba(255,255,255,0.8)' }}>{fmt(o.total||0)}</span>
+              <span style={{ padding:'2px 8px', borderRadius:999, fontSize:9, fontWeight:700, textTransform:'uppercase',
+                background: o.status==='delivered'?'rgba(76,186,133,0.15)':'rgba(255,255,255,0.05)',
+                color: o.status==='delivered'?'#4cba85':'rgba(255,255,255,0.5)' }}>{o.status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Vendors ── */
+  if (subSection === 'vendors') return (
+    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Vendors</div>
+      <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
+        {[
+          { n:'Greenlam Industries', cat:'Laminates · 18mm HDF / 6mm HDF', role:'Carcass panels', c:'#c96442', status:'active' },
+          { n:'Hettich India',       cat:'Hardware · Hinges, drawer slides', role:'Fittings', c:'#5b8def', status:'active' },
+          { n:'Rehau / Dollken',     cat:'PVC edge band · 0.4mm–2mm', role:'Edge banding', c:'#d9a049', status:'active' },
+          { n:'Caesarstone India',   cat:'Quartz slabs · 20mm / 30mm', role:'Worktops', c:'#7c5cff', status:'active' },
+          { n:'Faber India',         cat:'Appliances · Hoods, hobs', role:'Appliances', c:'#4cba85', status:'active' },
+          { n:'Hafele India',        cat:'Premium hardware · Systems', role:'Specialty fittings', c:'#aaa', status:'inactive' },
+        ].map((v,i)=>(
+          <div key={i} style={{ display:'grid', gridTemplateColumns:'14px 1.5fr 1.5fr auto', gap:14, padding:'12px 0', borderTop:i?`1px solid rgba(255,255,255,0.05)`:'none', alignItems:'center' }}>
+            <span style={{ width:8, height:8, borderRadius:'50%', background:v.c, display:'inline-block' }}/>
+            <div>
+              <div style={{ fontSize:13, color:'#fff', fontWeight:600 }}>{v.n}</div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', marginTop:2 }}>{v.cat}</div>
+            </div>
+            <span style={{ fontSize:11, color:'rgba(255,255,255,0.5)' }}>{v.role}</span>
+            <span style={{ padding:'3px 10px', borderRadius:999, fontSize:9, fontWeight:700, textTransform:'uppercase',
+              background: v.status==='active'?'rgba(76,186,133,0.15)':'rgba(255,255,255,0.04)',
+              color: v.status==='active'?'#4cba85':'rgba(255,255,255,0.35)' }}>{v.status}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  /* ── Team ── */
+  return (
+    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Team</div>
+      <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
+        {[
+          { n:'Reema Iyer',    role:'Owner · Admin',   dept:'Studio',        l:'now',    c:'#c96442', i:'RI' },
+          { n:'Aditya Shenoy', role:'Designer',        dept:'Studio',        l:'12m ago',c:'#5b8def', i:'AS' },
+          { n:'Priya Nair',    role:'PM · Site',       dept:'Studio',        l:'1h ago', c:'#4cba85', i:'PN' },
+          { n:'Suresh M.',     role:'Factory ops',     dept:'Factory Floor', l:'now',    c:'#d9a049', i:'SM' },
+          { n:'Kiran D.',      role:'Depot logistics', dept:'Factory Floor', l:'2h ago', c:'#7c5cff', i:'KD' },
+        ].map((m,i)=>(
+          <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 0', borderTop:i?`1px solid rgba(255,255,255,0.05)`:'none' }}>
+            <div style={{ width:36, height:36, borderRadius:'50%', background:m.c, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:'#fff', flexShrink:0 }}>{m.i}</div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:13, color:'#fff', fontWeight:600 }}>{m.n}</div>
+              <div style={{ fontSize:11, color:'rgba(255,255,255,0.45)' }}>{m.role} · <span style={{ color:'rgba(255,255,255,0.3)' }}>{m.dept}</span></div>
+            </div>
+            <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:'rgba(255,255,255,0.35)' }}>{m.l}</span>
           </div>
         ))}
       </div>
@@ -624,9 +855,12 @@ function PlannerBackend() {
   const statusStep = { new:0, reviewing:1, quoted:2, approved:3, 'in-fab':4, delivered:5 };
 
   // Sync section → erpModule
-  const SECTION_MODULE = { pipeline:'crm', orders:'crm', drawings:'crm', approvals:'crm', vendors:'procurement', pos:'procurement', inventory:'procurement', fabrication:'manufacturing', team:'hr', margin:'finance', library:'crm' };
-  const derivedModule = SECTION_MODULE[section] || erpModule;
-  const handleSection = s => { setSection(s); setErpModule(SECTION_MODULE[s] || 'crm'); };
+  const SECTION_MODULE = {
+    pipeline:'studio', orders:'studio', drawings:'studio', approvals:'studio',
+    cutjobs:'factory', cutsheets:'factory', depotstock:'factory', factoryload:'factory',
+    margin:'admin', vendors:'admin', team:'admin',
+  };
+  const handleSection = s => { setSection(s); setErpModule(SECTION_MODULE[s] || 'studio'); };
 
   return (
     <div style={bStyles.shell}>
@@ -662,7 +896,7 @@ function PlannerBackend() {
             </>
           ) : (
             <div style={{ ...bStyles.mono, fontSize:11, color:bMute }}>
-              STUDIO · {orders.length} orders · {newCount} new
+              {erpModule === 'factory' ? 'FACTORY FLOOR' : erpModule === 'admin' ? 'ADMIN' : 'STUDIO'} · {orders.length} orders · {newCount} new
             </div>
           )}
           <div style={{ flex:1 }}></div>
@@ -677,94 +911,19 @@ function PlannerBackend() {
         </div>
 
         {/* ERP module strip */}
-        <ERPModuleStrip active={erpModule} onChange={m => { setErpModule(m); const MAP = {crm:'orders',finance:'margin',manufacturing:'fabrication',procurement:'vendors',logistics:'vendors',hr:'team'}; setSection(MAP[m]||'orders'); }} orders={orders} />
+        <ERPModuleStrip active={erpModule} onChange={(m, defaultSection) => { setErpModule(m); setSection(defaultSection || m); }} orders={orders} />
 
-        {/* Finance module */}
-        {erpModule === 'finance' && <FinanceModule orders={orders} />}
+        {/* Factory Floor module */}
+        {erpModule === 'factory' && <FactoryFloorModule orders={orders} subSection={section} />}
 
-        {/* Manufacturing module */}
-        {erpModule === 'manufacturing' && <ManufacturingModule orders={orders} />}
+        {/* Admin module */}
+        {erpModule === 'admin' && <AdminModule orders={orders} subSection={section} />}
 
-        {/* Procurement module */}
-        {erpModule === 'procurement' && (
-          <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
-            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700, marginBottom:16 }}>Procurement · Vendors</div>
-            <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
-              {[
-                { n:'Greenlam Industries', cat:'Laminates / Boards', sku:'MDF 18mm, HDF 6mm', status:'active' },
-                { n:'Hettich India', cat:'Hardware', sku:'Hinges, slides, handles', status:'active' },
-                { n:'Caesarstone', cat:'Quartz worktops', sku:'20mm, 30mm slabs', status:'active' },
-                { n:'Faber India', cat:'Appliances / Hoods', sku:'Built-in range', status:'active' },
-                { n:'Hafele India', cat:'Hardware / Fittings', sku:'Systems, locks', status:'inactive' },
-              ].map((v,i) => (
-                <div key={i} style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr 1.5fr auto', gap:12, padding:'12px 0', borderTop:i?`1px solid rgba(255,255,255,0.06)`:'none', alignItems:'center' }}>
-                  <div>
-                    <div style={{ fontSize:13, color:'#fff', fontWeight:600 }}>{v.n}</div>
-                    <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)' }}>{v.cat}</div>
-                  </div>
-                  <span style={{ fontSize:11, color:'rgba(255,255,255,0.55)', fontFamily:'JetBrains Mono,monospace' }}>{v.sku}</span>
-                  <span style={{ fontSize:10, color:'rgba(255,255,255,0.55)' }}>{v.sku}</span>
-                  <span style={{ padding:'3px 10px', borderRadius:999, fontSize:9, fontWeight:700, textTransform:'uppercase',
-                    background: v.status==='active'?'rgba(76,186,133,0.15)':'rgba(255,255,255,0.04)',
-                    color: v.status==='active'?'#4cba85':'rgba(255,255,255,0.4)' }}>{v.status}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Studio — Pipeline kanban */}
+        {erpModule === 'studio' && section === 'pipeline' && <PipelineView orders={orders} onSelect={id => { setSelId(id); setSection('orders'); }} />}
 
-        {/* Logistics module */}
-        {erpModule === 'logistics' && (
-          <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
-            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700, marginBottom:16 }}>Logistics · Factory & Depot Network</div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:20 }}>
-              {[
-                { id:'FAC-MUM', name:'Mumbai', loc:'Bhiwandi, Maharashtra', cap:120, c:'#c96442' },
-                { id:'FAC-BLR', name:'Bengaluru', loc:'Peenya, Karnataka', cap:80, c:'#4cba85' },
-                { id:'FAC-DEL', name:'Delhi NCR', loc:'Manesar, Haryana', cap:100, c:'#5b8def' },
-              ].map(f => (
-                <div key={f.id} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderLeft:`3px solid ${f.c}`, borderRadius:8, padding:'14px' }}>
-                  <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', color:f.c, fontWeight:700, letterSpacing:'0.1em' }}>{f.id}</div>
-                  <div style={{ fontSize:15, color:'#fff', fontWeight:600, marginTop:4 }}>{f.name} Factory</div>
-                  <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)', marginTop:2 }}>{f.loc}</div>
-                  <div style={{ fontSize:13, color:f.c, fontWeight:700, marginTop:8 }}>{f.cap} jobs/mo</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)', marginBottom:12 }}>Tier 1 cities — 10km coverage · Tier 2 cities — 20km coverage · 18 cities · 73 depots total</div>
-          </div>
-        )}
-
-        {/* HR module */}
-        {erpModule === 'hr' && (
-          <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
-            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700, marginBottom:16 }}>HR · Team</div>
-            <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
-              {[
-                { n:'Reema Iyer', role:'Owner · Admin', dept:'Studio', l:'now', c:'#c96442', init:'RI' },
-                { n:'Aditya Shenoy', role:'Designer', dept:'Studio', l:'12m ago', c:'#5b8def', init:'AS' },
-                { n:'Priya Nair', role:'PM · Site', dept:'Operations', l:'1h ago', c:'#4cba85', init:'PN' },
-                { n:'Suresh M.', role:'Factory ops', dept:'Manufacturing', l:'now', c:'#d9a049', init:'SM' },
-                { n:'Kiran D.', role:'Logistics', dept:'Supply chain', l:'2h ago', c:'#7c5cff', init:'KD' },
-              ].map((m,i) => (
-                <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 0', borderTop:i?`1px solid rgba(255,255,255,0.06)`:'none' }}>
-                  <div style={{ width:36, height:36, borderRadius:'50%', background:m.c, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:'#fff', flexShrink:0 }}>{m.init}</div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, color:'#fff', fontWeight:600 }}>{m.n}</div>
-                    <div style={{ fontSize:11, color:'rgba(255,255,255,0.45)' }}>{m.role} · {m.dept}</div>
-                  </div>
-                  <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:'rgba(255,255,255,0.4)' }}>{m.l}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Pipeline kanban view */}
-        {erpModule === 'crm' && section === 'pipeline' && <PipelineView orders={orders} onSelect={id => { setSelId(id); setSection('orders'); }} />}
-
-        {/* CRM module (default) — Workspace 3 columns */}
-        {erpModule === 'crm' && section !== 'pipeline' && <div style={{ flex:1, display:'grid', gridTemplateColumns:'280px 1fr 300px', minHeight:0 }}>
+        {/* Studio — Orders (3-column CRM view) */}
+        {erpModule === 'studio' && section !== 'pipeline' && <div style={{ flex:1, display:'grid', gridTemplateColumns:'280px 1fr 300px', minHeight:0 }}>
 
           {/* LEFT — order inbox */}
           <div style={{ background:'#191613', borderRight:`1px solid ${bLine}`, display:'flex', flexDirection:'column', overflow:'hidden' }}>
@@ -962,4 +1121,4 @@ function PlannerBackend() {
   );
 }
 
-Object.assign(window, { PlannerBackend, KitchenPlanCAD, KreoStore, ERPModuleStrip, FinanceModule });
+Object.assign(window, { PlannerBackend, KitchenPlanCAD, KreoStore, ERPModuleStrip, FactoryFloorModule, AdminModule });
