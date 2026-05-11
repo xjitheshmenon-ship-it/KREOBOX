@@ -439,56 +439,81 @@ function getCabColor(name) {
   return '#c8c0b0';
 }
 
-/* ── Kitchen catalog data ──────────────────────────────────── */
+/* ── Catalog tab config ────────────────────────────────────── */
 const CATALOG_TABS = [
-  { id:'cabinets',  label:'Cabinets',       icon:'▦' },
+  { id:'cabinets',  label:'Kitchen',        icon:'▦' },
   { id:'appliances',label:'Appliances',     icon:'⊡' },
   { id:'dining',    label:'Dining',         icon:'⊞' },
-  { id:'extras',    label:'Kitchen extras', icon:'⊟' },
+  { id:'extras',    label:'Extras',         icon:'⊟' },
+  { id:'office',    label:'Office',         icon:'⊟' },
+  { id:'wardrobe',  label:'Wardrobe',       icon:'⊠' },
   { id:'search',    label:'Search',         icon:'⌕' },
+];
+
+/* ── Kitchen preset layouts ────────────────────────────────── */
+const KITCHEN_PRESETS = [
+  { name:'Straight 3 m kitchen',        variants:['Small (2.4m)','Standard (3m)','Large (3.6m)'], price:'₹2.8–4.5L',  desc:'Single wall · ideal for compact apartments' },
+  { name:'L-shape kitchen',             variants:['3.8×2.8m','4.2×3m','5×3.5m'],                 price:'₹4–7.5L',    desc:'Two walls · most popular layout, good work triangle' },
+  { name:'U-shape kitchen',             variants:['3×4m','4×4m','4×5m'],                          price:'₹6–11L',     desc:'Three walls · maximum storage and counter space' },
+  { name:'Island kitchen',              variants:['4×4m + 1.2m island','5×4m + 1.5m island'],     price:'₹8–16L',     desc:'Open plan · island adds seating and prep space' },
+  { name:'Galley / parallel kitchen',   variants:['2.4m+2.4m','3m+3m'],                           price:'₹5–9L',      desc:'Two parallel walls · efficient for high-traffic cooking' },
+  { name:'Peninsula kitchen',           variants:['4×3m + peninsula'],                             price:'₹6.5–12L',   desc:'L-shape with attached peninsula · semi-open concept' },
 ];
 
 const CABINET_SECTIONS = [
   {
-    title: 'Base cabinets',
+    title: 'Base cabinets · METOD frame',
     code: 'KBX-BC',
     items: [
-      { name:'For corner',           variants:['600×600mm','900×900mm'],         price:'₹18–24k' },
-      { name:'For sink',             variants:['800mm','1000mm'],                price:'₹12–16k' },
-      { name:'For hob',              variants:['600mm','900mm'],                 price:'₹9–14k'  },
-      { name:'With drawers',         variants:['400mm','600mm','800mm'],         price:'₹14–22k' },
-      { name:'With door',            variants:['300mm','600mm','900mm'],         price:'₹8–18k'  },
-      { name:'With door & drawer',   variants:['600mm','800mm'],                 price:'₹16–22k' },
-      { name:'Pull-out pantry',      variants:['300mm','600mm'],                 price:'₹22–32k' },
-      { name:'Wire basket unit',     variants:['400mm','600mm'],                 price:'₹6–10k'  },
-      { name:'Open base',            variants:['600mm','900mm'],                 price:'₹7–12k'  },
-      { name:'Filler & cover panel', variants:['50mm','100mm','200mm'],          price:'₹2–5k'   },
+      { name:'Base corner cabinet',       variants:['600×600mm','900×900mm'],         price:'₹18–26k' },
+      { name:'Base cabinet for sink',     variants:['600mm','800mm','1000mm'],        price:'₹12–18k' },
+      { name:'Base cabinet for hob',      variants:['600mm','900mm'],                 price:'₹9–15k'  },
+      { name:'Base cabinet with drawers', variants:['400mm','600mm','800mm'],         price:'₹15–24k' },
+      { name:'Base cabinet with door',    variants:['300mm','400mm','600mm','900mm'], price:'₹8–20k'  },
+      { name:'Base cabinet door+drawer',  variants:['600mm','800mm'],                 price:'₹16–24k' },
+      { name:'Pull-out pantry unit',      variants:['300mm','600mm'],                 price:'₹24–36k' },
+      { name:'Wire basket pull-out',      variants:['400mm','600mm'],                 price:'₹6–12k'  },
+      { name:'Open base unit',            variants:['600mm','900mm'],                 price:'₹7–14k'  },
+      { name:'Filler & end panel',        variants:['50mm','100mm','200mm'],          price:'₹2–6k'   },
     ],
   },
   {
-    title: 'Wall cabinets',
+    title: 'Wall cabinets · METOD frame',
     code: 'KBX-WC',
     items: [
-      { name:'With door',            variants:['400mm','600mm','800mm'],         price:'₹6–14k'  },
-      { name:'With glass doors',     variants:['400mm','600mm'],                 price:'₹8–16k'  },
-      { name:'Horizontal cabinet',   variants:['600mm','900mm','1200mm'],        price:'₹10–20k' },
-      { name:'For corner',           variants:['600×600mm'],                     price:'₹12–18k' },
-      { name:'For extractor hood',   variants:['600mm','900mm'],                 price:'₹8–14k'  },
-      { name:'For microwave',        variants:['600mm'],                         price:'₹10–16k' },
-      { name:'Open wall cabinet',    variants:['600mm','900mm'],                 price:'₹5–10k'  },
-      { name:'Filler & cover panel', variants:['50mm','100mm'],                  price:'₹1–4k'   },
+      { name:'Wall cabinet with door',    variants:['300mm','400mm','600mm','800mm'], price:'₹6–15k'  },
+      { name:'Wall cabinet glass doors',  variants:['400mm','600mm'],                 price:'₹9–18k'  },
+      { name:'Horizontal wall cabinet',   variants:['600mm','900mm','1200mm'],        price:'₹10–22k' },
+      { name:'Corner wall cabinet',       variants:['600×600mm'],                     price:'₹12–20k' },
+      { name:'Cabinet for extractor',     variants:['600mm','900mm'],                 price:'₹8–16k'  },
+      { name:'Cabinet for microwave',     variants:['600mm'],                         price:'₹10–18k' },
+      { name:'Open wall shelf unit',      variants:['600mm','900mm','1200mm'],        price:'₹5–12k'  },
+      { name:'Filler & end panel',        variants:['50mm','100mm'],                  price:'₹1–5k'   },
     ],
   },
   {
-    title: 'High cabinets',
+    title: 'High cabinets · METOD frame',
     code: 'KBX-HC',
     items: [
-      { name:'For fridge & freezer', variants:['600mm','900mm'],                 price:'₹22–36k' },
-      { name:'For oven',             variants:['600mm'],                         price:'₹18–28k' },
-      { name:'For microwave & oven', variants:['600mm'],                         price:'₹24–34k' },
-      { name:'Pantry pull-out',      variants:['300mm','600mm'],                 price:'₹28–42k' },
-      { name:'With door & drawer',   variants:['600mm','900mm'],                 price:'₹20–30k' },
-      { name:'Filler & cover panel', variants:['50mm','100mm'],                  price:'₹3–6k'   },
+      { name:'High cabinet for fridge',   variants:['600mm','900mm'],                 price:'₹24–40k' },
+      { name:'High cabinet for oven',     variants:['600mm'],                         price:'₹18–30k' },
+      { name:'High cabinet microwave+oven',variants:['600mm'],                        price:'₹26–38k' },
+      { name:'Pantry high cabinet',       variants:['300mm','600mm'],                 price:'₹28–45k' },
+      { name:'High cabinet door+drawer',  variants:['600mm','900mm'],                 price:'₹22–32k' },
+      { name:'Filler & end panel',        variants:['50mm','100mm'],                  price:'₹3–7k'   },
+    ],
+  },
+  {
+    title: 'Door fronts',
+    code: 'KBX-DF',
+    items: [
+      { name:'Matte white door front',    variants:['300mm','400mm','600mm','900mm'], price:'₹2–8k'   },
+      { name:'Wood-effect door front',    variants:['400mm','600mm','800mm'],         price:'₹4–12k'  },
+      { name:'Anthracite grey door',      variants:['300mm','600mm','900mm'],         price:'₹3–10k'  },
+      { name:'Sage green door front',     variants:['400mm','600mm'],                 price:'₹4–11k'  },
+      { name:'Solid walnut door front',   variants:['400mm','600mm'],                 price:'₹8–20k'  },
+      { name:'Dark grey glass door',      variants:['400mm','600mm'],                 price:'₹6–16k'  },
+      { name:'White shaker door',         variants:['300mm','400mm','600mm'],         price:'₹3–9k'   },
     ],
   },
 ];
@@ -576,6 +601,123 @@ const EXTRAS_SECTIONS = [
   },
 ];
 
+/* ── Office desk catalog (plywood / solid wood only) ───────── */
+const DESK_SECTIONS = [
+  {
+    title: 'Writing & study desks',
+    code: 'KBX-OD',
+    items: [
+      { name:'Solid pine writing desk',       variants:['100×50cm','120×60cm','140×60cm'],  price:'₹12–18k',  material:'Solid pine' },
+      { name:'Birch plywood desk',            variants:['100×50cm','120×60cm','140×65cm'],  price:'₹16–26k',  material:'Birch plywood' },
+      { name:'Bamboo-top desk',               variants:['100×50cm','120×60cm','160×70cm'],  price:'₹14–22k',  material:'Bamboo + steel frame' },
+      { name:'Oak veneer writing desk',       variants:['120×60cm','140×65cm','160×70cm'],  price:'₹18–32k',  material:'Oak veneer + plywood core' },
+      { name:'Walnut veneer desk',            variants:['120×60cm','140×65cm'],             price:'₹22–38k',  material:'Walnut veneer + plywood' },
+      { name:'Solid mango wood desk',         variants:['110×55cm','130×65cm'],             price:'₹16–28k',  material:'Solid mango wood' },
+    ],
+  },
+  {
+    title: 'L-shape & corner desks',
+    code: 'KBX-OL',
+    items: [
+      { name:'L-shape solid wood corner desk',  variants:['150×100cm','180×120cm','200×140cm'], price:'₹28–52k', material:'Solid pine + plywood' },
+      { name:'Corner desk with shelf',          variants:['160×110cm','200×130cm'],              price:'₹32–50k', material:'Birch plywood' },
+      { name:'L-shape oak veneer desk',         variants:['180×120cm','200×140cm'],              price:'₹38–65k', material:'Oak veneer + plywood' },
+    ],
+  },
+  {
+    title: 'Standing & sit-stand',
+    code: 'KBX-OS',
+    items: [
+      { name:'Sit-stand solid wood top',      variants:['120×60cm','140×60cm','160×80cm'],  price:'₹36–62k',  material:'Solid wood top + steel frame' },
+      { name:'Height-adj bamboo desk',        variants:['120×60cm','160×80cm'],             price:'₹30–50k',  material:'Bamboo + steel frame' },
+      { name:'Sit-stand oak veneer',          variants:['120×60cm','140×60cm'],             price:'₹42–70k',  material:'Oak veneer + plywood' },
+      { name:'Fixed-height standing desk',    variants:['90cm H','100cm H','110cm H'],      price:'₹18–32k',  material:'Solid pine + steel' },
+    ],
+  },
+  {
+    title: 'Wall-mounted & floating',
+    code: 'KBX-OW',
+    items: [
+      { name:'Floating solid pine wall desk', variants:['80×30cm','100×40cm','120×40cm'],  price:'₹8–18k',   material:'Solid pine' },
+      { name:'Fold-down plywood wall desk',   variants:['80×40cm','100×50cm'],             price:'₹10–20k',  material:'Plywood + hinge hardware' },
+      { name:'Solid oak floating shelf-desk', variants:['100×35cm','140×40cm'],            price:'₹14–26k',  material:'Solid oak' },
+    ],
+  },
+  {
+    title: 'Storage & add-ons',
+    code: 'KBX-OA',
+    items: [
+      { name:'Drawer unit on castors',        variants:['3 drawer','5 drawer'],            price:'₹8–18k',   material:'Solid pine / plywood' },
+      { name:'Desktop shelf organiser',       variants:['60cm','80cm','100cm'],            price:'₹3–8k',    material:'Solid pine' },
+      { name:'Under-desk shelf',              variants:['60cm','90cm'],                    price:'₹4–9k',    material:'Plywood' },
+      { name:'Solid wood monitor stand',      variants:['40cm','60cm'],                    price:'₹3–8k',    material:'Solid wood' },
+      { name:'Desktop hutch / riser',         variants:['60cm','90cm','120cm'],            price:'₹6–14k',   material:'Birch plywood' },
+    ],
+  },
+];
+
+/* ── Wardrobe catalog ──────────────────────────────────────── */
+const WARDROBE_PRESETS = [
+  { name:'2-door hinged wardrobe',      variants:['100×58×200cm','150×58×200cm','200×58×200cm'], price:'₹22–48k',  desc:'Classic hinged · suits most bedrooms' },
+  { name:'3-door hinged wardrobe',      variants:['150×58×200cm','200×58×200cm','250×58×236cm'], price:'₹32–62k',  desc:'Extra capacity · centre mirror option' },
+  { name:'2-door sliding wardrobe',     variants:['150×65×200cm','200×65×200cm','250×65×200cm'], price:'₹38–75k',  desc:'Space-saving sliding · no door swing' },
+  { name:'Mirrored sliding wardrobe',   variants:['150×65×200cm','200×65×200cm','240×65×200cm'], price:'₹48–85k',  desc:'Full-length mirrors · brightens room' },
+  { name:'Corner wardrobe',             variants:['225×225cm footprint×200cm H'],                price:'₹58–95k',  desc:'Corner layout · maximises awkward spaces' },
+  { name:'Open wardrobe system',        variants:['100cm wide','150cm wide','200cm wide'],        price:'₹14–32k',  desc:'No doors · Scandinavian open concept' },
+  { name:'4-door hinged wardrobe',      variants:['200×58×200cm','250×58×236cm'],                price:'₹45–80k',  desc:'Full wall coverage · large families' },
+];
+
+const WARDROBE_SECTIONS = [
+  {
+    title: 'Frames & structures',
+    code: 'KBX-WF',
+    items: [
+      { name:'Wardrobe frame 35 cm depth',  variants:['50cm W','75cm W','100cm W'],   price:'₹6–14k'  },
+      { name:'Wardrobe frame 58 cm depth',  variants:['50cm W','75cm W','100cm W'],   price:'₹8–18k'  },
+      { name:'Corner connector frame',      variants:['Universal'],                   price:'₹4–8k'   },
+    ],
+  },
+  {
+    title: 'Door fronts',
+    code: 'KBX-WD',
+    items: [
+      { name:'White matte hinged door',     variants:['50×195cm','75×195cm','100×195cm'], price:'₹4–12k'  },
+      { name:'Dark grey hinged door',       variants:['50×195cm','75×195cm','100×195cm'], price:'₹4–12k'  },
+      { name:'Full-length mirror door',     variants:['50×195cm','75×195cm'],             price:'₹6–16k'  },
+      { name:'Frosted glass hinged door',   variants:['50×195cm','75×195cm'],             price:'₹8–18k'  },
+      { name:'Woven rattan front door',     variants:['50×195cm','75×195cm'],             price:'₹7–16k'  },
+      { name:'Wood-effect sliding door',    variants:['75cm','100cm','120cm'],            price:'₹10–22k' },
+      { name:'Mirror sliding door',         variants:['75cm','100cm','120cm'],            price:'₹12–26k' },
+    ],
+  },
+  {
+    title: 'Interior fittings',
+    code: 'KBX-WI',
+    items: [
+      { name:'Adjustable shelf',            variants:['50cm','75cm','100cm'],             price:'₹1–4k'   },
+      { name:'Trouser hanger',              variants:['50cm','75cm'],                     price:'₹2–5k'   },
+      { name:'Pull-out trouser rack',       variants:['50cm'],                            price:'₹4–9k'   },
+      { name:'Drawer insert',               variants:['50cm','75cm'],                     price:'₹3–7k'   },
+      { name:'Shoe shelf (3 pairs)',        variants:['50cm'],                            price:'₹2–5k'   },
+      { name:'Pull-out clothes rail',       variants:['50cm','75cm'],                     price:'₹3–8k'   },
+      { name:'Fixed clothes rail',          variants:['50cm','75cm','100cm'],             price:'₹1–3k'   },
+      { name:'Jewellery tray',              variants:['50cm'],                            price:'₹3–6k'   },
+      { name:'Interior LED strip',          variants:['40cm','80cm','120cm'],             price:'₹2–6k'   },
+      { name:'Mirror with hooks (inside)',  variants:['37×150cm'],                        price:'₹5–12k'  },
+    ],
+  },
+  {
+    title: 'Walk-in wardrobe',
+    code: 'KBX-WW',
+    items: [
+      { name:'Walk-in starter kit 2 m²',   variants:['Open','With curtain'],             price:'₹55–80k'  },
+      { name:'Walk-in system 4 m²',        variants:['3-wall layout','U-shape'],         price:'₹90–145k' },
+      { name:'Walk-in system 6 m²',        variants:['Full U-shape','Island included'],  price:'₹140–220k'},
+      { name:'Dressing island',            variants:['80×50cm','120×60cm'],              price:'₹18–35k'  },
+    ],
+  },
+];
+
 /* ── Catalog panel ─────────────────────────────────────────── */
 function CatalogPanel({ onAdd }) {
   const { useState: useS } = React;
@@ -595,6 +737,10 @@ function CatalogPanel({ onAdd }) {
   if (activeTab === 'appliances') sections = APPLIANCE_SECTIONS;
   if (activeTab === 'dining')     sections = DINING_SECTIONS;
   if (activeTab === 'extras')     sections = EXTRAS_SECTIONS;
+  if (activeTab === 'office')     sections = DESK_SECTIONS;
+  if (activeTab === 'wardrobe')   sections = WARDROBE_SECTIONS;
+
+  const presets = activeTab === 'cabinets' ? KITCHEN_PRESETS : activeTab === 'wardrobe' ? WARDROBE_PRESETS : null;
 
   const filtered = sections.map(sec => ({
     ...sec,
@@ -652,7 +798,68 @@ function CatalogPanel({ onAdd }) {
 
       {/* Content */}
       <div style={{ flex:1, overflowY:'auto', padding:'8px' }}>
-        {allItems.length === 0 && (
+
+        {/* ── Preset designs block ── */}
+        {presets && !search && (
+          <div style={{ marginBottom:10 }}>
+            <div style={{ padding:'8px 4px 6px', fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace' }}>
+              Preset designs
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              {presets.map((p, idx) => {
+                const selV = selectedVariants[p.name] || p.variants[0];
+                return (
+                  <div key={p.name} style={{ background:`linear-gradient(135deg,${pPaper},rgba(201,100,66,0.04))`, border:`1px solid ${pLine}`, borderRadius:10, padding:'10px 12px' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8 }}>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:11, fontWeight:700 }}>{p.name}</div>
+                        {p.desc && <div style={{ fontSize:10, color:pMute, lineHeight:1.4, marginTop:2 }}>{p.desc}</div>}
+                        <div style={{ fontSize:9, color:pAccent, fontFamily:'JetBrains Mono,monospace', marginTop:4 }}>{p.price}</div>
+                      </div>
+                      <StarRow seed={idx + 80} />
+                    </div>
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:6 }}>
+                      {p.variants.map(v => (
+                        <span key={v} onClick={() => pickVariant(p.name, v)} style={{
+                          padding:'2px 6px', borderRadius:4, fontSize:9, fontWeight:600, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                          border:`1px solid ${v===selV ? pAccent : pLine}`,
+                          background: v===selV ? 'rgba(201,100,66,0.08)' : 'transparent',
+                          color: v===selV ? pAccent : pMute,
+                        }}>{v}</span>
+                      ))}
+                    </div>
+                    <button onClick={() => onAdd && onAdd({ name:p.name, variant:selV, price:p.price })}
+                      style={{ marginTop:8, width:'100%', padding:'6px', borderRadius:6, fontSize:10, fontWeight:700, border:'none', background:pInk, color:pPaper, cursor:'pointer' }}>
+                      + Select preset
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Design it yourself CTA */}
+            <div style={{ marginTop:8, background:`linear-gradient(135deg,rgba(26,24,21,0.96),rgba(60,53,46,0.98))`, borderRadius:10, padding:'14px 14px', color:pPaper }}>
+              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', fontWeight:700, marginBottom:4 }}>Design it yourself</div>
+              <div style={{ fontSize:12, lineHeight:1.5, color:'rgba(255,255,255,0.85)', marginBottom:10 }}>
+                Pick your frame size, door style, finish, and interior — the planner assembles a live BOM instantly.
+              </div>
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:10 }}>
+                {(activeTab === 'cabinets'
+                  ? ['L-shape','U-shape','Island','Galley']
+                  : ['2-door','3-door','Sliding','Walk-in']
+                ).map(opt => (
+                  <span key={opt} style={{ padding:'4px 9px', borderRadius:5, fontSize:10, fontWeight:600, background:'rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.8)', cursor:'pointer', border:'1px solid rgba(255,255,255,0.15)' }}>{opt}</span>
+                ))}
+              </div>
+              <button onClick={() => onAdd && onAdd({ name:`Custom ${activeTab === 'cabinets' ? 'Kitchen' : 'Wardrobe'} Design`, variant:'Bespoke', price:'Contact for quote' })}
+                style={{ width:'100%', padding:'8px', borderRadius:7, fontSize:11, fontWeight:700, border:'none', background:pAccent, color:'#fff', cursor:'pointer' }}>
+                Start designing →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {allItems.length === 0 && !presets && (
           <div style={{ padding:'24px', fontSize:12, color:pMute, textAlign:'center' }}>No results for "{search}"</div>
         )}
 
@@ -663,6 +870,7 @@ function CatalogPanel({ onAdd }) {
               const name = typeof item === 'string' ? item : item.name;
               const variants = typeof item === 'object' ? (item.variants || []) : [];
               const price = typeof item === 'object' ? (item.price || '') : '';
+              const material = typeof item === 'object' ? (item.material || '') : '';
               const selV = getSelVariant(item);
               const dims = getDefaultDims(name);
               return (
@@ -682,6 +890,7 @@ function CatalogPanel({ onAdd }) {
                   <div>
                     <div style={{ fontSize:11, fontWeight:600, lineHeight:1.3 }}>{name}</div>
                     <StarRow seed={idx} />
+                    {material && <div style={{ fontSize:9, color:'#7a6a50', fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>🪵 {material}</div>}
                     {price && <div style={{ fontSize:9, color:pMute, fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>{price}</div>}
                   </div>
                   {variants.length > 0 && (
