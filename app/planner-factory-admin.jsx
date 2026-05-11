@@ -61,12 +61,12 @@ function FLogo({ size = 20 }) {
   );
 }
 
-function FSidebar({ module = 'factory', active = 'Fabrication', onSelect }) {
+function FSidebar({ module = 'factory', active = 'Depot Stock', onSelect }) {
   const sections = {
     factory: {
       label: 'Factory Floor',
       items: [
-        ['Vendors', null, null], ['POs', 3, null], ['Depot Stock', null, null], ['Fabrication', 12, fAccent],
+        ['Vendors', null, null], ['POs', 3, null], ['Depot Stock', null, null],
       ],
     },
     admin: {
@@ -170,92 +170,184 @@ function CutNest({ active = true }) {
 
 /* KreoStore, DEPOT_STOCK, PRECUT_TYPES defined in planner-backend.jsx — shared via global scope */
 
+/* SKU_CATEGORIES — mirrors the 100-SKU standard, grouped for filtering */
+const SKU_CATEGORIES = ['All', 'Base', 'Wall', 'High'];
+function skuCategory(id) {
+  if (id.startsWith('BC')) return 'Base';
+  if (id.startsWith('WC')) return 'Wall';
+  if (id.startsWith('HC')) return 'High';
+  return 'Other';
+}
+
 function DepotStockView() {
-  const hdr = (t) => (
-    <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: fMute, fontWeight: 700, marginBottom: 14 }}>{t}</div>
+  const { useState: useS } = React;
+  const [depotSearch, setDepotSearch] = useS('');
+  const [zoneFilter, setZoneFilter]   = useS('All');
+  const [lowOnly, setLowOnly]         = useS(false);
+  const [selDepot, setSelDepot]       = useS(DEPOT_STOCK[0]?.depot || null);
+  const [skuCat, setSkuCat]           = useS('All');
+  const [skuSearch, setSkuSearch]     = useS('');
+
+  /* depot list filtering */
+  const zones = ['All', 'FAC-MUM', 'FAC-BLR', 'FAC-DEL'];
+  const filteredDepots = DEPOT_STOCK.filter(d => {
+    const matchSearch = !depotSearch || d.city.toLowerCase().includes(depotSearch.toLowerCase()) || d.depot.toLowerCase().includes(depotSearch.toLowerCase());
+    const matchZone   = zoneFilter === 'All' || d.factory === zoneFilter;
+    const matchLow    = !lowOnly || PRECUT_TYPES.some(t => (d.modules[t.id] || 0) < d.min);
+    return matchSearch && matchZone && matchLow;
+  });
+
+  /* selected depot data */
+  const depotData = DEPOT_STOCK.find(d => d.depot === selDepot) || DEPOT_STOCK[0];
+
+  /* SKU filtering for right panel */
+  const visibleSkus = PRECUT_TYPES.filter(t => {
+    const matchCat    = skuCat === 'All' || skuCategory(t.id) === skuCat;
+    const matchSearch = !skuSearch || t.id.toLowerCase().includes(skuSearch.toLowerCase()) || t.label.toLowerCase().includes(skuSearch.toLowerCase());
+    return matchCat && matchSearch;
+  });
+
+  /* summary stats */
+  const totalModules = DEPOT_STOCK.reduce((s, d) => s + Object.values(d.modules).reduce((a, b) => a + b, 0), 0);
+  const lowDepotCount = DEPOT_STOCK.filter(d => PRECUT_TYPES.some(t => (d.modules[t.id] || 0) < d.min)).length;
+
+  const input = (val, set, ph) => (
+    <input value={val} onChange={e => set(e.target.value)} placeholder={ph}
+      style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${fLine}`, borderRadius: 6,
+        padding: '6px 10px', fontSize: 11, color: '#fff', outline: 'none', width: '100%',
+        fontFamily: '"Inter Tight", sans-serif' }} />
   );
 
-  const totalByType = {};
-  PRECUT_TYPES.forEach(t => { totalByType[t.id] = DEPOT_STOCK.reduce((s, d) => s + (d.modules[t.id] || 0), 0); });
-  const lowDepots = DEPOT_STOCK.filter(d => PRECUT_TYPES.some(t => (d.modules[t.id] || 0) < d.min));
+  const chipRow = (opts, val, set) => (
+    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+      {opts.map(o => (
+        <button key={o} onClick={() => set(o)}
+          style={{ padding: '3px 10px', borderRadius: 999, border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 700,
+            background: val === o ? fAccent : 'rgba(255,255,255,0.06)',
+            color: val === o ? '#fff' : fMute }}>
+          {o}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', background: fSub2, padding: 22 }}>
-      {hdr('Depot stock · pre-cut module inventory')}
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: fSub2 }}>
 
-      {/* Summary KPIs */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 22 }}>
+      {/* ── Top KPI strip ── */}
+      <div style={{ padding: '12px 20px', borderBottom: `1px solid ${fLine}`, display: 'flex', gap: 24, alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ ...fS.mono, fontSize: 10, color: fMute, textTransform: 'uppercase', letterSpacing: '0.14em' }}>Depot Stock</div>
         {[
-          { l: 'Depots tracked', v: String(DEPOT_STOCK.length), s: 'live cities', c: '#fff' },
-          { l: 'Low stock alerts', v: String(lowDepots.length), s: 'need replenish', c: lowDepots.length > 0 ? '#ff8080' : fOk },
-          { l: 'Total modules', v: String(Object.values(totalByType).reduce((s,n) => s+n, 0)), s: 'across all depots', c: fOk },
+          { l: 'Depots', v: String(DEPOT_STOCK.length) },
+          { l: 'SKUs', v: String(PRECUT_TYPES.length) },
+          { l: 'Total modules', v: String(totalModules) },
+          { l: 'Low stock', v: String(lowDepotCount), c: lowDepotCount > 0 ? '#ff8080' : fOk },
         ].map((k, i) => (
-          <div key={i} style={{ ...fS.card, padding: '12px 14px' }}>
-            <div style={{ ...fS.mono, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: fMute, fontWeight: 700 }}>{k.l}</div>
-            <div style={{ ...fS.fraunces, fontSize: 26, color: k.c, marginTop: 4 }}>{k.v}</div>
-            <div style={{ ...fS.mono, fontSize: 10, color: fMute, marginTop: 2 }}>{k.s}</div>
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <span style={{ fontSize: 9, color: fMute, letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700 }}>{k.l}</span>
+            <span style={{ ...fS.fraunces, fontSize: 20, color: k.c || '#fff' }}>{k.v}</span>
           </div>
         ))}
+        <button onClick={() => setLowOnly(v => !v)}
+          style={{ marginLeft: 'auto', padding: '5px 12px', borderRadius: 6, border: `1px solid ${lowOnly ? '#ff8080' : fLine}`,
+            background: lowOnly ? 'rgba(255,80,80,0.12)' : 'transparent',
+            color: lowOnly ? '#ff8080' : fMute, fontSize: 11, cursor: 'pointer', fontWeight: 700 }}>
+          {lowOnly ? '● Low stock only' : '○ Low stock only'}
+        </button>
       </div>
 
-      {/* Per-depot stock table */}
-      <div style={{ ...fS.card, overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
-          <thead>
-            <tr style={{ borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
-              {['Depot', 'City', ...PRECUT_TYPES.map(t => t.id), 'Status'].map(h => (
-                <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: fMute, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {DEPOT_STOCK.map((d) => {
+      {/* ── Split panel ── */}
+      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+
+        {/* LEFT — depot list */}
+        <div style={{ width: 260, borderRight: `1px solid ${fLine}`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+          <div style={{ padding: '10px 12px', borderBottom: `1px solid ${fLine}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {input(depotSearch, setDepotSearch, 'Search city or depot…')}
+            {chipRow(zones, zoneFilter, setZoneFilter)}
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {filteredDepots.length === 0 && (
+              <div style={{ padding: 20, fontSize: 12, color: fMute, textAlign: 'center' }}>No depots match</div>
+            )}
+            {filteredDepots.map(d => {
               const anyLow = PRECUT_TYPES.some(t => (d.modules[t.id] || 0) < d.min);
+              const totalQty = Object.values(d.modules).reduce((a, b) => a + b, 0);
+              const isActive = d.depot === selDepot;
               return (
-                <tr key={d.depot} style={{ borderTop: `1px solid rgba(255,255,255,0.05)`, background: anyLow ? 'rgba(255,80,80,0.04)' : 'transparent' }}>
-                  <td style={{ padding: '10px', ...fS.mono, color: fMute, fontSize: 10 }}>{d.depot}</td>
-                  <td style={{ padding: '10px', color: '#fff', fontWeight: 600 }}>{d.city}</td>
-                  {PRECUT_TYPES.map(t => {
-                    const qty = d.modules[t.id] || 0;
-                    const low = qty < d.min;
-                    return (
-                      <td key={t.id} style={{ padding: '10px', ...fS.mono, fontWeight: 700, color: low ? '#ff8080' : qty >= d.min * 2 ? fOk : fWarn }}>
-                        {qty}{low && <span style={{ fontSize: 8, marginLeft: 2 }}>▼</span>}
-                      </td>
-                    );
-                  })}
-                  <td style={{ padding: '10px' }}>
-                    <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
-                      background: anyLow ? 'rgba(255,80,80,0.15)' : 'rgba(76,186,133,0.15)',
-                      color: anyLow ? '#ff8080' : fOk }}>
-                      {anyLow ? 'Replenish' : 'OK'}
+                <div key={d.depot} onClick={() => setSelDepot(d.depot)}
+                  style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: `1px solid ${fLine}`,
+                    background: isActive ? 'rgba(201,100,66,0.08)' : 'transparent',
+                    borderLeft: `3px solid ${isActive ? fAccent : 'transparent'}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{d.city}</span>
+                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: anyLow ? '#ff8080' : fOk, flexShrink: 0 }}></span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ ...fS.mono, fontSize: 10, color: fMute }}>{d.depot}</span>
+                    <span style={{ ...fS.mono, fontSize: 10, color: anyLow ? '#ff8080' : fMute }}>
+                      {anyLow ? 'Replenish' : `${totalQty} units`}
                     </span>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               );
             })}
-          </tbody>
-          <tfoot>
-            <tr style={{ borderTop: `2px solid rgba(255,255,255,0.1)` }}>
-              <td colSpan={2} style={{ padding: '8px 10px', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: fMute, fontWeight: 700 }}>Total</td>
-              {PRECUT_TYPES.map(t => (
-                <td key={t.id} style={{ padding: '8px 10px', ...fS.mono, fontWeight: 700, color: '#fff' }}>{totalByType[t.id]}</td>
-              ))}
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      {/* SKU legend */}
-      <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-        {PRECUT_TYPES.map(t => (
-          <div key={t.id} style={{ ...fS.card, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <span style={{ ...fS.mono, fontSize: 10, fontWeight: 700, color: fAccent }}>{t.id}</span>
-            <span style={{ fontSize: 11, color: '#fff' }}>{t.label}</span>
-            <span style={{ fontSize: 10, color: fMute }}>{t.desc}</span>
           </div>
-        ))}
+        </div>
+
+        {/* RIGHT — selected depot SKU breakdown */}
+        {depotData ? (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            {/* depot header */}
+            <div style={{ padding: '12px 20px', borderBottom: `1px solid ${fLine}`, display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>{depotData.city}</div>
+                <div style={{ ...fS.mono, fontSize: 10, color: fMute }}>{depotData.depot} · min reorder: {depotData.min} units/SKU</div>
+              </div>
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ width: 180 }}>{input(skuSearch, setSkuSearch, 'Search SKU…')}</div>
+                {chipRow(SKU_CATEGORIES, skuCat, setSkuCat)}
+              </div>
+            </div>
+
+            {/* SKU grid */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 10, alignContent: 'start' }}>
+              {visibleSkus.map(t => {
+                const qty = depotData.modules[t.id] || 0;
+                const low = qty < depotData.min;
+                const good = qty >= depotData.min * 2;
+                const color = low ? '#ff8080' : good ? fOk : fWarn;
+                return (
+                  <div key={t.id} style={{ background: fSub, border: `1px solid ${low ? 'rgba(255,80,80,0.3)' : fLine}`,
+                    borderRadius: 8, padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <span style={{ ...fS.mono, fontSize: 10, fontWeight: 700, color: fAccent }}>{t.id}</span>
+                      {low && <span style={{ fontSize: 9, color: '#ff8080', fontWeight: 700 }}>LOW ▼</span>}
+                    </div>
+                    <div style={{ fontSize: 11, color: '#fff', fontWeight: 600 }}>{t.label}</div>
+                    <div style={{ fontSize: 9, color: fMute, lineHeight: 1.4 }}>{t.desc}</div>
+                    <div style={{ marginTop: 4, display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                      <span style={{ ...fS.fraunces, fontSize: 24, color }}>{qty}</span>
+                      <span style={{ fontSize: 10, color: fMute }}>units</span>
+                    </div>
+                    {/* mini bar */}
+                    <div style={{ height: 3, background: 'rgba(255,255,255,0.08)', borderRadius: 2 }}>
+                      <div style={{ height: 3, borderRadius: 2, background: color,
+                        width: `${Math.min(100, Math.round((qty / (depotData.min * 3)) * 100))}%` }} />
+                    </div>
+                    <div style={{ fontSize: 9, color: fMute }}>min {depotData.min} · reorder at {depotData.min}</div>
+                  </div>
+                );
+              })}
+              {visibleSkus.length === 0 && (
+                <div style={{ gridColumn: '1/-1', padding: 32, textAlign: 'center', fontSize: 12, color: fMute }}>No SKUs match</div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: fMute }}>
+            Select a depot from the list
+          </div>
+        )}
       </div>
     </div>
   );
@@ -297,7 +389,7 @@ const STAGE_COLORS = ['rgba(255,255,255,0.5)','#d9a049','#c96442','#5b8def','#7c
 /* ── FACTORY MODULE ────────────────────────────────────────────── */
 function FactoryModule() {
   const { useState: useS, useEffect: useE } = React;
-  const [section, setSection] = useS('Fabrication');
+  const [section, setSection] = useS('Depot Stock');
   const [jobs, setJobs]     = useS(() => KreoStore.getJobs());
   const [selId, setSelId]   = useS(null);
   const [cutFilter, setCutFilter] = useS('');
@@ -335,7 +427,7 @@ function FactoryModule() {
     !cutFilter || p.name.toLowerCase().includes(cutFilter.toLowerCase()) || p.mat.toLowerCase().includes(cutFilter.toLowerCase())
   ) : [];
 
-  if (section === 'Depot Stock') {
+  if (section !== 'Fabrication') {
     return (
       <div style={fS.shell}>
         <FSidebar module="factory" active={section} onSelect={setSection} />
