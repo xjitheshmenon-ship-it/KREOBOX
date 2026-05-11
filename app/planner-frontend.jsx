@@ -177,13 +177,13 @@ function KitchenPlan3D({ accent = pAccent }) {
   const RW = 3800, RD = 2840, RH = 2400;
   const SVG_W = 620, SVG_H = 440;
   const m = Math.sqrt(RW * RW + RD * RD);
-  const p = SVG_W * 0.25;
+  const p = SVG_W * 0.65;
   const [yaw, setYaw]     = useS(-30);
-  const [pitch, setPitch] = useS(30);
+  const [pitch, setPitch] = useS(18);
   const drag = useRef(null);
 
   const project = useCB((wx, wy, wz) => {
-    const tx = wx - RW/2, ty = wy - RH*0.3, tz = wz - RD/2;
+    const tx = wx - RW/2, ty = wy - RH*0.42, tz = wz - RD/2;
     const cy = Math.cos(yaw*Math.PI/180), sy = Math.sin(yaw*Math.PI/180);
     const cp = Math.cos(pitch*Math.PI/180), sp = Math.sin(pitch*Math.PI/180);
     const rx = tx*cy + tz*sy, rz = -tx*sy + tz*cy;
@@ -273,6 +273,88 @@ function ViewToggle({ value, onChange }) {
   );
 }
 
+/* ── Product icon SVG ──────────────────────────────────────── */
+function ProductIcon({ name = '', size = 52 }) {
+  const n = name.toLowerCase();
+  const cf = '#d8d0c0', cs = '#a99a82', sw = 1.5;
+  const mk = (body) => <svg width={size} height={size} viewBox="0 0 56 56">{body}</svg>;
+
+  if (n.includes('corner'))
+    return mk(<><rect x="4" y="24" width="22" height="28" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><rect x="24" y="4" width="28" height="24" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><line x1="4" y1="36" x2="26" y2="36" stroke={cs} strokeWidth="1"/><line x1="38" y1="4" x2="38" y2="28" stroke={cs} strokeWidth="1"/></>);
+
+  if (n.includes('sink'))
+    return mk(<><rect x="4" y="16" width="48" height="32" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><ellipse cx="28" cy="32" rx="14" ry="10" fill="#c8c2b0" stroke={cs} strokeWidth="1"/><circle cx="28" cy="20" r="2" fill={cs}/></>);
+
+  if (n.includes('hob') || n.includes('burner') || n.includes('gas'))
+    return mk(<><rect x="4" y="16" width="48" height="32" fill="#2a2520" stroke={cs} strokeWidth={sw} rx="2"/><circle cx="18" cy="26" r="6" fill="none" stroke="#555" strokeWidth="2"/><circle cx="38" cy="26" r="6" fill="none" stroke="#555" strokeWidth="2"/><circle cx="18" cy="40" r="5" fill="none" stroke="#555" strokeWidth="2"/><circle cx="38" cy="40" r="5" fill="none" stroke="#555" strokeWidth="2"/></>);
+
+  if (n.includes('drawer'))
+    return mk(<><rect x="4" y="10" width="48" height="38" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><line x1="4" y1="22" x2="52" y2="22" stroke={cs} strokeWidth="1"/><line x1="4" y1="34" x2="52" y2="34" stroke={cs} strokeWidth="1"/><circle cx="28" cy="16" r="2" fill={cs}/><circle cx="28" cy="28" r="2" fill={cs}/><circle cx="28" cy="40" r="2" fill={cs}/></>);
+
+  if (n.includes('pantry') || n.includes('pull-out'))
+    return mk(<><rect x="12" y="4" width="32" height="48" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><line x1="12" y1="18" x2="44" y2="18" stroke={cs} strokeWidth="1"/><line x1="12" y1="32" x2="44" y2="32" stroke={cs} strokeWidth="1"/><line x1="12" y1="42" x2="44" y2="42" stroke={cs} strokeWidth="1"/><circle cx="24" cy="25" r="2" fill={cs}/></>);
+
+  if (n.includes('fridge') || n.includes('freezer'))
+    return mk(<><rect x="10" y="4" width="36" height="48" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="10" y1="22" x2="46" y2="22" stroke={cs} strokeWidth="1.5"/><line x1="16" y1="12" x2="16" y2="20" stroke={cs} strokeWidth="2" strokeLinecap="round"/><line x1="16" y1="28" x2="16" y2="46" stroke={cs} strokeWidth="2" strokeLinecap="round"/></>);
+
+  if (n.includes('oven') || n.includes('microwave') || n.includes('combi') || n.includes('steam'))
+    return mk(<><rect x="6" y="12" width="44" height="34" fill="#2a2520" stroke={cs} strokeWidth={sw} rx="2"/><rect x="10" y="16" width="30" height="24" fill="#1a1815" stroke="rgba(255,255,255,0.1)" strokeWidth="1" rx="1"/><circle cx="46" cy="22" r="3" fill="#555"/><circle cx="46" cy="34" r="3" fill="#555"/></>);
+
+  if (n.includes('hood') || n.includes('extractor'))
+    return mk(<><polygon points="6,18 50,18 42,46 14,46" fill={cf} stroke={cs} strokeWidth={sw}/><rect x="18" y="6" width="20" height="14" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><line x1="6" y1="26" x2="50" y2="26" stroke={cs} strokeWidth="1"/></>);
+
+  if (n.includes('dishwasher'))
+    return mk(<><rect x="6" y="8" width="44" height="42" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="6" y1="20" x2="50" y2="20" stroke={cs} strokeWidth="1"/><circle cx="28" cy="14" r="3" fill="#5b8def" fillOpacity="0.6"/><rect x="12" y="26" width="32" height="18" fill="none" stroke={cs} strokeWidth="1" rx="1"/></>);
+
+  if (n.includes('pendant') || n.includes('ceiling') || n.includes('spot') || n.includes('led') || n.includes('strip'))
+    return mk(<><line x1="28" y1="4" x2="28" y2="16" stroke={cs} strokeWidth="2"/><polygon points="16,16 40,16 36,38 20,38" fill={cf} stroke={cs} strokeWidth={sw}/><circle cx="28" cy="28" r="6" fill="#ffd080" fillOpacity="0.7"/></>);
+
+  if (n.includes('worktop') || n.includes('quartz') || n.includes('laminate'))
+    return mk(<><rect x="2" y="18" width="52" height="10" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><rect x="4" y="28" width="48" height="20" fill="#e0d8c8" stroke={cs} strokeWidth="1" rx="1"/></>);
+
+  if (n.includes('sink') || n.includes('tap'))
+    return mk(<><rect x="8" y="16" width="40" height="28" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><ellipse cx="28" cy="30" rx="12" ry="8" fill="#c0bab0" stroke={cs} strokeWidth="1"/><line x1="28" y1="14" x2="28" y2="20" stroke={cs} strokeWidth="3" strokeLinecap="round"/></>);
+
+  if (n.includes('stool') || n.includes('chair'))
+    return mk(<><rect x="12" y="22" width="32" height="8" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="16" y1="30" x2="14" y2="52" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/><line x1="40" y1="30" x2="42" y2="52" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/><line x1="14" y1="42" x2="42" y2="42" stroke={cs} strokeWidth="1.5"/></>);
+
+  if (n.includes('bench'))
+    return mk(<><rect x="4" y="22" width="48" height="8" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="10" y1="30" x2="10" y2="50" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/><line x1="46" y1="30" x2="46" y2="50" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/><line x1="10" y1="42" x2="46" y2="42" stroke={cs} strokeWidth="1.5"/></>);
+
+  if (n.includes('table'))
+    return mk(<><rect x="4" y="22" width="48" height="8" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="10" y1="30" x2="10" y2="50" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/><line x1="46" y1="30" x2="46" y2="50" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/></>);
+
+  if (n.includes('rail') || n.includes('hook'))
+    return mk(<><line x1="4" y1="18" x2="52" y2="18" stroke={cs} strokeWidth="3" strokeLinecap="round"/><line x1="14" y1="18" x2="14" y2="38" stroke={cs} strokeWidth="2"/><line x1="28" y1="18" x2="28" y2="34" stroke={cs} strokeWidth="2"/><line x1="42" y1="18" x2="42" y2="42" stroke={cs} strokeWidth="2"/></>);
+
+  if (n.includes('waste') || n.includes('organiser') || n.includes('basket'))
+    return mk(<><rect x="10" y="14" width="36" height="36" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="10" y1="26" x2="46" y2="26" stroke={cs} strokeWidth="1"/><line x1="28" y1="14" x2="28" y2="50" stroke={cs} strokeWidth="1" strokeDasharray="3 2"/></>);
+
+  if (n.includes('glass'))
+    return mk(<><rect x="4" y="8" width="48" height="40" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><rect x="8" y="12" width="18" height="32" fill="rgba(91,141,239,0.15)" stroke={cs} strokeWidth="1" rx="1"/><rect x="30" y="12" width="18" height="32" fill="rgba(91,141,239,0.15)" stroke={cs} strokeWidth="1" rx="1"/></>);
+
+  // default cabinet with door
+  return mk(<><rect x="4" y="8" width="48" height="40" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><line x1="28" y1="8" x2="28" y2="48" stroke={cs} strokeWidth="1"/><circle cx="20" cy="28" r="2" fill={cs}/><circle cx="36" cy="28" r="2" fill={cs}/></>);
+}
+
+function starRating(seed) {
+  const vals = [4.5, 4.8, 4.2, 4.7, 4.4, 4.9, 4.3, 4.6, 4.1, 4.7];
+  const r = vals[seed % vals.length];
+  return { full: Math.floor(r), half: r % 1 >= 0.5, empty: Math.floor(5 - r), value: r };
+}
+
+function StarRow({ seed = 0 }) {
+  const { full, half, empty, value } = starRating(seed);
+  const star = (t, i) => <span key={t+i} style={{ color: t==='e' ? 'rgba(26,24,21,0.2)' : '#f59e0b', fontSize:10 }}>{t==='f'?'★':t==='h'?'⯨':'☆'}</span>;
+  return (
+    <span style={{ display:'inline-flex', alignItems:'center', gap:1 }}>
+      {Array(full).fill('f').map(star)}{half?star('h','h'):[]}
+      {Array(empty).fill('e').map(star)}
+      <span style={{ fontSize:10, color:'rgba(26,24,21,0.45)', marginLeft:3 }}>{value}</span>
+    </span>
+  );
+}
+
 /* ── Kitchen catalog data ──────────────────────────────────── */
 const CATALOG_TABS = [
   { id:'cabinets',  label:'Cabinets',       icon:'▦' },
@@ -287,29 +369,42 @@ const CABINET_SECTIONS = [
     title: 'Base cabinets',
     code: 'KBX-BC',
     items: [
-      'For corner','For sink','For hob','For hob & oven','For dishwasher',
-      'With drawers','With door','With door & drawer','With pull-out',
-      'With wire basket','Open cabinets','Other','Filler pieces & cover panels',
+      { name:'For corner',           variants:['600×600mm','900×900mm'],         price:'₹18–24k' },
+      { name:'For sink',             variants:['800mm','1000mm'],                price:'₹12–16k' },
+      { name:'For hob',              variants:['600mm','900mm'],                 price:'₹9–14k'  },
+      { name:'With drawers',         variants:['400mm','600mm','800mm'],         price:'₹14–22k' },
+      { name:'With door',            variants:['300mm','600mm','900mm'],         price:'₹8–18k'  },
+      { name:'With door & drawer',   variants:['600mm','800mm'],                 price:'₹16–22k' },
+      { name:'Pull-out pantry',      variants:['300mm','600mm'],                 price:'₹22–32k' },
+      { name:'Wire basket unit',     variants:['400mm','600mm'],                 price:'₹6–10k'  },
+      { name:'Open base',            variants:['600mm','900mm'],                 price:'₹7–12k'  },
+      { name:'Filler & cover panel', variants:['50mm','100mm','200mm'],          price:'₹2–5k'   },
     ],
   },
   {
     title: 'Wall cabinets',
     code: 'KBX-WC',
     items: [
-      'With door','With glass doors','Horizontal cabinets','For corner',
-      'For extractor hood','For microwave oven','For dish drainer',
-      'Top cabinets','Open cabinets','Other','Filler pieces & cover panels',
+      { name:'With door',            variants:['400mm','600mm','800mm'],         price:'₹6–14k'  },
+      { name:'With glass doors',     variants:['400mm','600mm'],                 price:'₹8–16k'  },
+      { name:'Horizontal cabinet',   variants:['600mm','900mm','1200mm'],        price:'₹10–20k' },
+      { name:'For corner',           variants:['600×600mm'],                     price:'₹12–18k' },
+      { name:'For extractor hood',   variants:['600mm','900mm'],                 price:'₹8–14k'  },
+      { name:'For microwave',        variants:['600mm'],                         price:'₹10–16k' },
+      { name:'Open wall cabinet',    variants:['600mm','900mm'],                 price:'₹5–10k'  },
+      { name:'Filler & cover panel', variants:['50mm','100mm'],                  price:'₹1–4k'   },
     ],
   },
   {
     title: 'High cabinets',
     code: 'KBX-HC',
     items: [
-      'For fridge & freezer','For oven','For microwave oven','For combi oven',
-      'For oven & microwave oven','For oven & combi oven',
-      'For microwave / combi oven','For microwave / combi / steam oven',
-      'With door & drawer','With door','With cleaning interior',
-      'High cabinets with pullout','Filler pieces & cover panels',
+      { name:'For fridge & freezer', variants:['600mm','900mm'],                 price:'₹22–36k' },
+      { name:'For oven',             variants:['600mm'],                         price:'₹18–28k' },
+      { name:'For microwave & oven', variants:['600mm'],                         price:'₹24–34k' },
+      { name:'Pantry pull-out',      variants:['300mm','600mm'],                 price:'₹28–42k' },
+      { name:'With door & drawer',   variants:['600mm','900mm'],                 price:'₹20–30k' },
+      { name:'Filler & cover panel', variants:['50mm','100mm'],                  price:'₹3–6k'   },
     ],
   },
 ];
@@ -319,17 +414,23 @@ const APPLIANCE_SECTIONS = [
     title: 'Integrated in cabinet',
     code: 'KBX-AI',
     items: [
-      'Fridge & freezer','Hob','Oven','Hob & oven','Microwave oven',
-      'Combi oven','Oven & microwave oven','Oven & combi oven',
-      'Microwave / combi oven','Microwave / combi / steam oven',
-      'Choose your hood','Dishwasher',
+      { name:'Fridge & freezer',       variants:['250L','350L','450L'],          price:'₹35–75k' },
+      { name:'Induction hob',          variants:['2 zone','4 zone'],             price:'₹12–28k' },
+      { name:'Gas hob',                variants:['3 burner','4 burner'],         price:'₹8–20k'  },
+      { name:'Built-in oven',          variants:['60L','90L'],                   price:'₹22–55k' },
+      { name:'Microwave oven',         variants:['20L','28L','34L'],             price:'₹8–22k'  },
+      { name:'Steam / combi oven',     variants:['45L','60L'],                   price:'₹45–90k' },
+      { name:'Extractor hood',         variants:['60cm','90cm'],                 price:'₹12–45k' },
+      { name:'Dishwasher',             variants:['6 place','13 place'],          price:'₹22–55k' },
     ],
   },
   {
     title: 'Freestanding',
     code: 'KBX-AF',
     items: [
-      'Fridge & freezer','Hob','Choose your hood','Use your own',
+      { name:'Fridge / side-by-side',  variants:['500L','600L'],                 price:'₹45–90k' },
+      { name:'Gas range',              variants:['4 burner','5 burner'],         price:'₹25–55k' },
+      { name:'Island hood',            variants:['90cm','120cm'],                price:'₹30–65k' },
     ],
   },
 ];
@@ -338,12 +439,20 @@ const DINING_SECTIONS = [
   {
     title: 'Tables',
     code: 'KBX-DT',
-    items: ['Dining tables','Extendable tables','Bar tables','Corner benches'],
+    items: [
+      { name:'Dining table',           variants:['4 seat','6 seat','8 seat'],    price:'₹18–60k' },
+      { name:'Extendable table',       variants:['4→6 seat','6→8 seat'],         price:'₹25–75k' },
+      { name:'Breakfast bar',          variants:['2 seat','4 seat'],             price:'₹12–35k' },
+    ],
   },
   {
     title: 'Seating',
     code: 'KBX-DS',
-    items: ['Dining chairs','Bar stools','Benches','Chair pads'],
+    items: [
+      { name:'Dining chair',           variants:['Fabric','Leather','Cane'],     price:'₹4–18k'  },
+      { name:'Bar stool',              variants:['65cm','75cm'],                 price:'₹5–16k'  },
+      { name:'Bench',                  variants:['120cm','160cm','200cm'],       price:'₹8–22k'  },
+    ],
   },
 ];
 
@@ -352,27 +461,50 @@ const EXTRAS_SECTIONS = [
     title: 'Organisation',
     code: 'KBX-OR',
     items: [
-      'Drawer organisers','Pull-out shelves','Waste sorting',
-      'Spice racks','Knife blocks','Hooks & rails',
+      { name:'Drawer organiser',       variants:['400mm','600mm'],               price:'₹2–6k'   },
+      { name:'Pull-out shelf',         variants:['300mm','450mm','600mm'],       price:'₹3–8k'   },
+      { name:'Waste sorting unit',     variants:['20L','30L dual'],              price:'₹4–10k'  },
+      { name:'Spice rack pull-out',    variants:['150mm','200mm'],               price:'₹3–7k'   },
+      { name:'Knife block',            variants:['In-drawer','Wall-mount'],      price:'₹2–5k'   },
+      { name:'Rail system',            variants:['60cm','90cm','120cm'],         price:'₹2–6k'   },
     ],
   },
   {
     title: 'Lighting',
     code: 'KBX-LT',
-    items: ['Under-cabinet lighting','Ceiling spotlights','Pendant lights','LED strips'],
+    items: [
+      { name:'Under-cabinet LED',      variants:['500mm','1000mm','1500mm'],     price:'₹3–9k'   },
+      { name:'Ceiling spotlight',      variants:['3-light','5-light'],           price:'₹5–14k'  },
+      { name:'Pendant light',          variants:['Single','Twin','Triple'],      price:'₹6–20k'  },
+      { name:'LED strip',              variants:['1m','5m kit'],                 price:'₹1–4k'   },
+    ],
   },
   {
     title: 'Worktops & sinks',
     code: 'KBX-WS',
-    items: ['Quartz worktops','Laminate worktops','Stainless sinks','Composite sinks','Taps'],
+    items: [
+      { name:'Quartz worktop',         variants:['20mm','30mm thick'],           price:'₹850–1400/sqft' },
+      { name:'Laminate worktop',       variants:['25mm','38mm thick'],           price:'₹350–650/sqft'  },
+      { name:'Stainless sink',         variants:['Single bowl','Double bowl'],   price:'₹4–12k'  },
+      { name:'Composite sink',         variants:['Single','1.5 bowl'],           price:'₹6–18k'  },
+      { name:'Kitchen tap',            variants:['Single lever','Pull-out'],     price:'₹4–14k'  },
+    ],
   },
 ];
 
 /* ── Catalog panel ─────────────────────────────────────────── */
-function CatalogPanel() {
+function CatalogPanel({ onAdd }) {
   const { useState: useS } = React;
-  const [activeTab, setActiveTab] = useS('cabinets');
-  const [search, setSearch]       = useS('');
+  const [activeTab, setActiveTab]           = useS('cabinets');
+  const [search, setSearch]                 = useS('');
+  const [catalogView, setCatalogView]       = useS('grid');
+  const [selectedVariants, setSelectedVariants] = useS({});
+
+  const getSelVariant = (item) => {
+    const name = typeof item === 'string' ? item : item.name;
+    return selectedVariants[name] || (item.variants && item.variants[0]) || '';
+  };
+  const pickVariant = (name, v) => setSelectedVariants(s => ({ ...s, [name]: v }));
 
   let sections = [];
   if (activeTab === 'cabinets')   sections = CABINET_SECTIONS;
@@ -383,121 +515,163 @@ function CatalogPanel() {
   const filtered = sections.map(sec => ({
     ...sec,
     items: search
-      ? sec.items.filter(it => it.toLowerCase().includes(search.toLowerCase()))
+      ? sec.items.filter(it => {
+          const n = typeof it === 'string' ? it : it.name;
+          return n.toLowerCase().includes(search.toLowerCase());
+        })
       : sec.items,
   })).filter(sec => sec.items.length > 0);
+
+  const allItems = filtered.flatMap((sec, si) => sec.items.map((item, ii) => ({ item, idx: si * 20 + ii })));
 
   return (
     <div style={{ ...pStyles.panel, width:300, flexShrink:0 }}>
       {/* Tab bar */}
-      <div style={{
-        display:'flex', overflowX:'auto', borderBottom:`1px solid ${pLine}`,
-        scrollbarWidth:'none', flexShrink:0,
-      }}>
+      <div style={{ display:'flex', overflowX:'auto', borderBottom:`1px solid ${pLine}`, scrollbarWidth:'none', flexShrink:0 }}>
         {CATALOG_TABS.map(tab => {
           const active = tab.id === activeTab;
           return (
             <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSearch(''); }} style={{
               display:'flex', flexDirection:'column', alignItems:'center', gap:4,
-              padding:'10px 12px', border:'none', background:'transparent', cursor:'pointer',
+              padding:'10px 10px', border:'none', background:'transparent', cursor:'pointer',
               borderBottom: active ? `2px solid ${pAccent}` : '2px solid transparent',
               color: active ? pAccent : pMute,
               fontSize:9, fontWeight:700, fontFamily:'JetBrains Mono,monospace',
-              letterSpacing:'0.08em', textTransform:'uppercase', whiteSpace:'nowrap',
-              flexShrink:0,
+              letterSpacing:'0.06em', textTransform:'uppercase', whiteSpace:'nowrap', flexShrink:0,
             }}>
-              <span style={{ fontSize:16 }}>{tab.icon}</span>
+              <span style={{ fontSize:15 }}>{tab.icon}</span>
               {tab.label}
             </button>
           );
         })}
       </div>
 
-      {/* Search */}
-      {activeTab !== 'search' ? (
-        <div style={{ padding:'10px 14px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
-          <div style={{
-            display:'flex', alignItems:'center', gap:8, padding:'8px 12px',
-            background:'rgba(26,24,21,0.04)', borderRadius:8, fontSize:12, color:pMute,
-          }}>
-            <span>⌕</span>
-            <input
-              value={search} onChange={e => setSearch(e.target.value)}
-              placeholder={`Search ${activeTab}…`}
-              style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Inter Tight",sans-serif' }}
-            />
-            {search && (
-              <span onClick={() => setSearch('')} style={{ cursor:'pointer', fontSize:14, lineHeight:1 }}>×</span>
-            )}
-          </div>
+      {/* Search + view toggle */}
+      <div style={{ padding:'8px 12px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', background:'rgba(26,24,21,0.04)', borderRadius:8, fontSize:12, color:pMute, marginBottom:8 }}>
+          <span>⌕</span>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${activeTab}…`}
+            style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Inter Tight",sans-serif' }} />
+          {search && <span onClick={() => setSearch('')} style={{ cursor:'pointer', fontSize:14, lineHeight:1 }}>×</span>}
         </div>
-      ) : (
-        <div style={{ padding:'10px 14px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
-          <div style={{
-            display:'flex', alignItems:'center', gap:8, padding:'8px 12px',
-            background:'rgba(26,24,21,0.04)', borderRadius:8, fontSize:12, color:pMute,
-          }}>
-            <span>⌕</span>
-            <input
-              value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search all 1,240 items…"
-              style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Inter Tight",sans-serif' }}
-              autoFocus
-            />
-          </div>
+        <div style={{ display:'flex', gap:4 }}>
+          {[['grid','⊞ Grid'],['list','≡ List']].map(([v,l]) => (
+            <button key={v} onClick={() => setCatalogView(v)} style={{
+              flex:1, padding:'5px', border:`1px solid ${v===catalogView?pAccent:pLine}`,
+              borderRadius:6, fontSize:10, fontWeight:700, cursor:'pointer',
+              background: v===catalogView ? 'rgba(201,100,66,0.08)' : 'transparent',
+              color: v===catalogView ? pAccent : pMute,
+            }}>{l}</button>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Sections + items */}
-      <div style={{ flex:1, overflowY:'auto', padding:'6px 0' }}>
-        {filtered.length === 0 && (
-          <div style={{ padding:'24px 20px', fontSize:12, color:pMute, textAlign:'center' }}>
-            No results for "{search}"
-          </div>
+      {/* Content */}
+      <div style={{ flex:1, overflowY:'auto', padding:'8px' }}>
+        {allItems.length === 0 && (
+          <div style={{ padding:'24px', fontSize:12, color:pMute, textAlign:'center' }}>No results for "{search}"</div>
         )}
-        {filtered.map(sec => (
-          <div key={sec.title} style={{ marginBottom:4 }}>
-            <div style={{
-              padding:'10px 20px 6px',
-              fontSize:10, fontWeight:700, letterSpacing:'0.18em',
-              textTransform:'uppercase', color:pMute,
-              fontFamily:'JetBrains Mono,monospace',
-            }}>
-              {sec.title}
-              <span style={{ marginLeft:8, fontSize:9, opacity:0.7 }}>{sec.code}</span>
-            </div>
-            {sec.items.map(item => (
-              <div key={item} style={{
-                display:'flex', alignItems:'center', gap:10,
-                padding:'9px 20px', cursor:'grab', fontSize:13,
-                borderLeft:'2px solid transparent',
-                transition:'background 0.1s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background='rgba(26,24,21,0.04)'; e.currentTarget.style.borderLeftColor=pAccent; }}
-              onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderLeftColor='transparent'; }}
-              >
-                <div style={{
-                  width:36, height:36, borderRadius:6, background:'#e8e2d5',
-                  border:`1px solid ${pLine}`, flexShrink:0,
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  fontSize:8, fontFamily:'JetBrains Mono,monospace', color:pMute,
-                }}>▦</div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontWeight:500, lineHeight:1.3 }}>{item}</div>
+
+        {catalogView === 'grid' ? (
+          /* ── E-commerce grid ── */
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+            {allItems.map(({ item, idx }) => {
+              const name = typeof item === 'string' ? item : item.name;
+              const variants = typeof item === 'object' ? (item.variants || []) : [];
+              const price = typeof item === 'object' ? (item.price || '') : '';
+              const selV = getSelVariant(item);
+              return (
+                <div key={name} style={{
+                  background:pPaper, border:`1px solid ${pLine}`, borderRadius:10, padding:'10px 8px',
+                  display:'flex', flexDirection:'column', gap:6,
+                  transition:'box-shadow 0.15s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow=`0 4px 16px rgba(0,0,0,0.10)`; e.currentTarget.style.borderColor=pAccent; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow='none'; e.currentTarget.style.borderColor=pLine; }}
+                >
+                  <div style={{ display:'flex', justifyContent:'center', padding:'6px 0', background:'rgba(26,24,21,0.02)', borderRadius:8 }}>
+                    <ProductIcon name={name} size={52} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize:11, fontWeight:600, lineHeight:1.3 }}>{name}</div>
+                    <StarRow seed={idx} />
+                    {price && <div style={{ fontSize:9, color:pMute, fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>{price}</div>}
+                  </div>
+                  {variants.length > 0 && (
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:3 }}>
+                      {variants.map(v => (
+                        <span key={v} onClick={() => pickVariant(name, v)} style={{
+                          padding:'2px 6px', borderRadius:4, fontSize:9, fontWeight:600, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                          border:`1px solid ${v===selV ? pAccent : pLine}`,
+                          background: v===selV ? 'rgba(201,100,66,0.08)' : 'transparent',
+                          color: v===selV ? pAccent : pMute,
+                        }}>{v}</span>
+                      ))}
+                    </div>
+                  )}
+                  <button onClick={() => onAdd && onAdd({ name, variant: selV, price })} style={{
+                    padding:'6px', borderRadius:6, fontSize:10, fontWeight:700, border:'none',
+                    background:pInk, color:pPaper, cursor:'pointer', marginTop:'auto',
+                  }}>+ Add to room</button>
                 </div>
-                <span style={{ fontSize:12, color:pMute, flexShrink:0 }}>+</span>
+              );
+            })}
+          </div>
+        ) : (
+          /* ── List view ── */
+          <div>
+            {filtered.map(sec => (
+              <div key={sec.title} style={{ marginBottom:4 }}>
+                <div style={{ padding:'10px 8px 6px', fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace' }}>
+                  {sec.title} <span style={{ marginLeft:6, fontSize:9, opacity:0.7 }}>{sec.code}</span>
+                </div>
+                {sec.items.map((item, idx) => {
+                  const name = typeof item === 'string' ? item : item.name;
+                  const variants = typeof item === 'object' ? (item.variants || []) : [];
+                  const price = typeof item === 'object' ? (item.price || '') : '';
+                  const selV = getSelVariant(item);
+                  return (
+                    <div key={name} style={{ padding:'8px 8px 10px', borderLeft:'2px solid transparent', borderRadius:6, transition:'background 0.1s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background='rgba(26,24,21,0.04)'; e.currentTarget.style.borderLeftColor=pAccent; }}
+                      onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderLeftColor='transparent'; }}
+                    >
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <div style={{ width:36, height:36, borderRadius:6, background:'#ede8e0', border:`1px solid ${pLine}`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          <ProductIcon name={name} size={30} />
+                        </div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontWeight:500, fontSize:12, lineHeight:1.3 }}>{name}</div>
+                          {price && <div style={{ fontSize:9, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>{price}</div>}
+                        </div>
+                        <button onClick={() => onAdd && onAdd({ name, variant: selV, price })} style={{
+                          padding:'4px 8px', borderRadius:5, fontSize:10, fontWeight:700, border:'none', background:pInk, color:pPaper, cursor:'pointer', flexShrink:0,
+                        }}>+</button>
+                      </div>
+                      {variants.length > 0 && (
+                        <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:6, paddingLeft:44 }}>
+                          {variants.map(v => (
+                            <span key={v} onClick={() => pickVariant(name, v)} style={{
+                              padding:'2px 7px', borderRadius:4, fontSize:9, fontWeight:600, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                              border:`1px solid ${v===selV ? pAccent : pLine}`,
+                              background: v===selV ? 'rgba(201,100,66,0.08)' : 'transparent',
+                              color: v===selV ? pAccent : pMute,
+                            }}>{v}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
-        ))}
+        )}
 
-        {/* Finishes section (always shown at bottom of cabinets) */}
+        {/* Finishes swatch (cabinets, no search) */}
         {activeTab === 'cabinets' && !search && (
-          <div style={{ padding:'14px 20px', borderTop:`1px solid ${pLine}`, marginTop:8 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:10 }}>
-              Finishes
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
+          <div style={{ padding:'12px 8px', borderTop:`1px solid ${pLine}`, marginTop:8 }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>Finishes</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:6 }}>
               {[
                 { tone:['#d4ccbe','#b8a995'], label:'Bali oak' },
                 { tone:['#3a352e','#1a1815'], label:'Espresso' },
@@ -506,13 +680,9 @@ function CatalogPanel() {
                 { tone:['#b8b0a0','#a09880'], label:'Linen white' },
                 { tone:['#8c7660','#6e5c48'], label:'Smoked teak' },
               ].map(sw => (
-                <div key={sw.label}>
-                  <div style={{
-                    height:44, borderRadius:6, marginBottom:5, border:`1px solid ${pLine}`,
-                    backgroundImage:`linear-gradient(45deg,rgba(255,255,255,0.18) 25%,transparent 25%,transparent 50%,rgba(255,255,255,0.18) 50%,rgba(255,255,255,0.18) 75%,transparent 75%),linear-gradient(135deg,${sw.tone[0]},${sw.tone[1]})`,
-                    backgroundSize:'10px 10px,100% 100%', cursor:'pointer',
-                  }}/>
-                  <div style={{ fontSize:10, fontWeight:500, color:pInk }}>{sw.label}</div>
+                <div key={sw.label} style={{ cursor:'pointer' }}>
+                  <div style={{ height:36, borderRadius:6, marginBottom:4, border:`1px solid ${pLine}`, backgroundImage:`linear-gradient(45deg,rgba(255,255,255,0.18) 25%,transparent 25%,transparent 50%,rgba(255,255,255,0.18) 50%,rgba(255,255,255,0.18) 75%,transparent 75%),linear-gradient(135deg,${sw.tone[0]},${sw.tone[1]})`, backgroundSize:'8px 8px,100% 100%' }}/>
+                  <div style={{ fontSize:9, fontWeight:500, color:pInk }}>{sw.label}</div>
                 </div>
               ))}
             </div>
@@ -596,6 +766,7 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
   const { useState: useS } = React;
   const [name, setName]   = useS('');
   const [phone, setPhone] = useS('');
+  const [city, setCity]   = useS('');
   const [notes, setNotes] = useS('');
   const fmt = n => '₹ ' + n.toLocaleString('en-IN');
   const ok  = name.trim().length > 0;
@@ -630,6 +801,7 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
           {[
             { label:'Your name *', val:name, set:setName, ph:'e.g. Priya Sharma', type:'text' },
             { label:'Phone (optional)', val:phone, set:setPhone, ph:'+91 98765 43210', type:'tel' },
+            { label:'City (for delivery routing)', val:city, set:setCity, ph:'e.g. Mumbai', type:'text' },
           ].map(({ label, val, set, ph, type }) => (
             <div key={label} style={{ marginBottom:12 }}>
               <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:6 }}>{label}</div>
@@ -647,7 +819,7 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
             }} />
           </div>
           <div style={{ display:'flex', gap:10 }}>
-            <button disabled={!ok} onClick={() => ok && onSubmit({ customerName:name, customerPhone:phone, notes })} style={{
+            <button disabled={!ok} onClick={() => ok && onSubmit({ customerName:name, customerPhone:phone, customerCity:city, notes })} style={{
               flex:1, ...pStyles.primaryBtn, padding:'13px', borderRadius:8, border:'none',
               opacity:ok?1:0.4, cursor:ok?'pointer':'not-allowed', fontSize:13,
             }}>Submit quote request →</button>
@@ -702,6 +874,19 @@ function PlannerFrontend({ accent = pAccent }) {
   const [submitted, setSubmitted] = useS(null);
   const [saveTs, setSaveTs]   = useS(null);
   const [editDim, setEditDim] = useS(false);
+  const [roomItems, setRoomItems] = useS([]);
+
+  const addToRoom = (item) => {
+    setRoomItems(prev => {
+      const key = `${item.name}||${item.variant}`;
+      const ex = prev.find(r => `${r.name}||${r.variant}` === key);
+      if (ex) return prev.map(r => `${r.name}||${r.variant}` === key ? { ...r, qty: r.qty + 1 } : r);
+      return [...prev, { ...item, qty: 1 }];
+    });
+  };
+  const removeFromRoom = (name, variant) => {
+    setRoomItems(prev => prev.filter(r => !(r.name === name && r.variant === variant)));
+  };
 
   useE(() => {
     const draft = KreoStore.getDraft();
@@ -728,7 +913,7 @@ function PlannerFrontend({ accent = pAccent }) {
       id: KreoStore.nextOrderId(), ts: Date.now(), status: 'new',
       ...customerData,
       room: { W:roomW, D:roomD, H:roomH, layout },
-      finish, hardware, bom, subtotal, markup, gst, total,
+      finish, hardware, roomItems, bom, subtotal, markup, gst, total,
     };
     KreoStore.addOrder(order);
     setSubmitted(order);
@@ -766,12 +951,17 @@ function PlannerFrontend({ accent = pAccent }) {
           <span style={{ fontSize:11, color:pMute, ...pStyles.mono }}>{saveLabel}</span>
           <button onClick={handleSave} style={{ ...pStyles.pillBtn, border:`1px solid ${pLine}`, cursor:'pointer', fontSize:12 }}>Save draft</button>
           <button onClick={() => setShowModal(true)} style={{ ...pStyles.primaryBtn, border:'none', cursor:'pointer', fontSize:12 }}>Request quote →</button>
+          <a href="backend.html" style={{
+            padding:'8px 14px', borderRadius:8, fontSize:12, fontWeight:600,
+            background:'rgba(26,24,21,0.06)', border:`1px solid ${pLine}`,
+            color:pMute, textDecoration:'none', display:'flex', alignItems:'center', gap:6,
+          }}>Studio <span style={{ opacity:0.5 }}>→</span></a>
         </div>
       </div>
 
       <div style={pStyles.body}>
         {/* LEFT — Catalog */}
-        <CatalogPanel />
+        <CatalogPanel onAdd={addToRoom} />
 
         {/* CENTER — Viewport */}
         <div style={{ flex:1, position:'relative', background:pBg, display:'flex', flexDirection:'column', minWidth:0 }}>
@@ -869,20 +1059,38 @@ function PlannerFrontend({ accent = pAccent }) {
           </div>
         </div>
 
-        {/* RIGHT — BOM + Actions */}
+        {/* RIGHT — Cart + BOM + Actions */}
         <div style={{ ...pStyles.panel, width:300, borderLeft:`1px solid ${pLine}`, borderRight:'none' }}>
-          <div style={{ padding:'20px 20px 14px', borderBottom:`1px solid ${pLine}` }}>
-            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>Selected item</div>
-            <div style={{ ...pStyles.fraunces, fontSize:20, marginTop:4 }}>Pantry pull-out</div>
-            <div style={{ fontSize:11, color:pMute, ...pStyles.mono, marginTop:2 }}>KBX-HC-PP · 600 × 2400 × 600 mm</div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginTop:14 }}>
-              {[['Width','600 mm'],['Height','2,400 mm'],['Finish', finish],['Hardware', hardware]].map(([k,v]) => (
-                <div key={k}>
-                  <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>{k}</div>
-                  <div style={{ fontSize:13, fontWeight:600, marginTop:2 }}>{v}</div>
-                </div>
-              ))}
+          {/* Room items (cart) */}
+          <div style={{ padding:'14px 18px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>
+                Room items
+              </div>
+              {roomItems.length > 0 && (
+                <span style={{ background:pAccent, color:'#fff', fontSize:9, fontWeight:700, padding:'1px 7px', borderRadius:999 }}>
+                  {roomItems.reduce((s,r) => s+r.qty, 0)}
+                </span>
+              )}
             </div>
+            {roomItems.length === 0 ? (
+              <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'14px 0' }}>
+                Add items from the catalog →
+              </div>
+            ) : (
+              <div style={{ maxHeight:160, overflowY:'auto' }}>
+                {roomItems.map(r => (
+                  <div key={`${r.name}||${r.variant}`} style={{ display:'flex', alignItems:'center', gap:8, padding:'5px 0', borderTop:`1px solid ${pLine}`, fontSize:11 }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontWeight:500, lineHeight:1.3 }}>{r.name}</div>
+                      {r.variant && <div style={{ fontSize:10, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>{r.variant}</div>}
+                    </div>
+                    <span style={{ fontSize:12, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>×{r.qty}</span>
+                    <span onClick={() => removeFromRoom(r.name, r.variant)} style={{ cursor:'pointer', color:pMute, fontSize:14, lineHeight:1 }}>×</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div style={{ flex:1, overflowY:'auto', padding:'14px 20px' }}>

@@ -67,7 +67,7 @@ function FSidebar({ active = 'Factory' }) {
       ['Pipeline', 14, null], ['Plans', 14, null], ['Drawings', null, null], ['Approvals', 5, fAccent],
     ],
     Operations: [
-      ['Vendors', null, null], ['POs', 3, null], ['Inventory', null, null], ['Factory', 12, fAccent],
+      ['Vendors', null, null], ['POs', 3, null], ['Inventory', null, null], ['Factory', 12, fAccent], ['Logistics', null, null],
     ],
     Studio: [
       ['Team', null, null], ['Margin', null, null], ['Library', null, null], ['Admin', null, null],
@@ -183,6 +183,36 @@ const KreoStore = (() => {
   };
 })();
 
+/* ── LOGISTICS DATA ───────────────────────────────────────────── */
+const FACTORIES = [
+  { id:'FAC-MUM', name:'Mumbai Manufacturing',   location:'Bhiwandi, Maharashtra',  capacity:120, active:true,  zones:['Mumbai','Pune','Nashik','Goa','Surat','Ahmedabad'] },
+  { id:'FAC-BLR', name:'Bengaluru Manufacturing', location:'Peenya, Karnataka',      capacity:80,  active:true,  zones:['Bengaluru','Hyderabad','Chennai','Kochi','Coimbatore','Mysuru','Visakhapatnam'] },
+  { id:'FAC-DEL', name:'Delhi NCR Manufacturing', location:'Manesar, Haryana',       capacity:100, active:true,  zones:['Delhi','Gurugram','Noida','Jaipur','Chandigarh','Lucknow','Bhopal','Indore'] },
+];
+
+const DEPOTS = [
+  // Tier 1 — 1 depot per 10 km
+  { city:'Mumbai',         state:'Maharashtra',      tier:1, depots:8,  radius:10, factory:'FAC-MUM' },
+  { city:'Delhi NCR',      state:'Delhi / Haryana',  tier:1, depots:12, radius:10, factory:'FAC-DEL' },
+  { city:'Bengaluru',      state:'Karnataka',        tier:1, depots:7,  radius:10, factory:'FAC-BLR' },
+  { city:'Hyderabad',      state:'Telangana',        tier:1, depots:6,  radius:10, factory:'FAC-BLR' },
+  { city:'Chennai',        state:'Tamil Nadu',       tier:1, depots:5,  radius:10, factory:'FAC-BLR' },
+  { city:'Pune',           state:'Maharashtra',      tier:1, depots:4,  radius:10, factory:'FAC-MUM' },
+  { city:'Ahmedabad',      state:'Gujarat',          tier:1, depots:4,  radius:10, factory:'FAC-MUM' },
+  { city:'Kolkata',        state:'West Bengal',      tier:1, depots:5,  radius:10, factory:'FAC-BLR' },
+  // Tier 2 — 1 depot per 20 km
+  { city:'Jaipur',         state:'Rajasthan',        tier:2, depots:2,  radius:20, factory:'FAC-DEL' },
+  { city:'Surat',          state:'Gujarat',          tier:2, depots:2,  radius:20, factory:'FAC-MUM' },
+  { city:'Lucknow',        state:'Uttar Pradesh',    tier:2, depots:2,  radius:20, factory:'FAC-DEL' },
+  { city:'Chandigarh',     state:'Punjab/Haryana',   tier:2, depots:1,  radius:20, factory:'FAC-DEL' },
+  { city:'Kochi',          state:'Kerala',           tier:2, depots:2,  radius:20, factory:'FAC-BLR' },
+  { city:'Coimbatore',     state:'Tamil Nadu',       tier:2, depots:1,  radius:20, factory:'FAC-BLR' },
+  { city:'Indore',         state:'Madhya Pradesh',   tier:2, depots:1,  radius:20, factory:'FAC-MUM' },
+  { city:'Nagpur',         state:'Maharashtra',      tier:2, depots:1,  radius:20, factory:'FAC-MUM' },
+  { city:'Bhopal',         state:'Madhya Pradesh',   tier:2, depots:1,  radius:20, factory:'FAC-DEL' },
+  { city:'Visakhapatnam',  state:'Andhra Pradesh',   tier:2, depots:1,  radius:20, factory:'FAC-BLR' },
+];
+
 const JOB_STAGES = ['Queued','Material Check','Cutting','Edge Banding','Assembly','Finishing','QC','Done'];
 const STAGE_COLORS = ['rgba(255,255,255,0.5)','#d9a049','#c96442','#5b8def','#7c5cff','#c96442','#d9a049','#4cba85'];
 
@@ -295,6 +325,9 @@ function FactoryModule() {
                     </div>
                     <div style={{ fontSize:12, color:'#fff', fontWeight:600, marginBottom:2 }}>{j.customerName}</div>
                     <div style={{ fontSize:11, color:fMute }}>{j.finish} · {j.room?.layout}</div>
+                    <div style={{ fontSize:10, color:fMute, ...fS.mono, marginTop:2 }}>
+                      {j.factoryId || 'FAC-MUM'} → {j.depotCity || 'Mumbai'}
+                    </div>
                     <div style={{ marginTop:6, height:3, background:'rgba(255,255,255,0.06)', borderRadius:2, overflow:'hidden' }}>
                       <div style={{ height:'100%', width:`${j.progress || 0}%`, background:sc }}></div>
                     </div>
@@ -434,7 +467,7 @@ function AdminModule() {
   const { useState: useS, useEffect: useE } = React;
   const [settings, setSettings] = useS(() => KreoStore.getSettings());
   const [saved, setSaved] = useS(false);
-  const [adminTab, setAdminTab] = useS('pricing');
+  const [adminTab, setAdminTab] = useS('dashboard');
 
   const update = (key, val) => setSettings(s => ({ ...s, [key]: val }));
   const handleSave = () => {
@@ -457,7 +490,7 @@ function AdminModule() {
     </div>
   );
 
-  const ADMIN_TABS = ['pricing','finishes','vendors','team','audit'];
+  const ADMIN_TABS = ['dashboard','pricing','finishes','vendors','team','audit','logistics'];
 
   return (
     <div style={fS.shell}>
@@ -483,6 +516,72 @@ function AdminModule() {
         </div>
 
         <div style={{ flex:1, overflow:'auto', padding:22, background:fBg }}>
+          {adminTab === 'dashboard' && (
+            <div>
+              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:fMute, fontWeight:700, marginBottom:6 }}>Kreobox ERP Platform</div>
+              <div style={{ ...fS.fraunces, fontSize:26, color:'#fff', marginBottom:4 }}>Back-office Dashboard</div>
+              <div style={{ fontSize:13, color:fMute, marginBottom:24 }}>Manage your entire kitchen manufacturing operation from one place.</div>
+
+              {/* KPI row from live data */}
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12, marginBottom:28 }}>
+                {(() => {
+                  const orders = KreoStore.getOrders();
+                  const jobs = KreoStore.getJobs();
+                  const revenue = orders.filter(o => o.status !== 'new').reduce((s,o) => s+(o.total||0), 0);
+                  return [
+                    { l:'Orders',     v:String(orders.length),    s:'total received',       c:fAccent },
+                    { l:'Revenue',    v:`₹${Math.round(revenue/100000)}L`, s:'pipeline + delivered', c:fOk },
+                    { l:'Active jobs',v:String(jobs.filter(j=>(j.currentStage||0)>0&&(j.currentStage||0)<7).length), s:'on factory floor', c:fInfo },
+                    { l:'Depots',     v:'73', s:'across 18 cities', c:'#fff' },
+                    { l:'Lead time',  v:`${KreoStore.getSettings().leadTimeDays}d`, s:'target avg', c:'#fff' },
+                  ].map((k,i) => (
+                    <div key={i} style={{ ...fS.card }}>
+                      <div style={{ ...fS.mono, fontSize:9, color:fMute, letterSpacing:'0.14em', textTransform:'uppercase' }}>{k.l}</div>
+                      <div style={{ ...fS.fraunces, fontSize:24, color:k.c, marginTop:4 }}>{k.v}</div>
+                      <div style={{ fontSize:10, color:fMute, marginTop:2 }}>{k.s}</div>
+                    </div>
+                  ));
+                })()}
+              </div>
+
+              {/* ERP module cards */}
+              <div style={{ fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase', color:fMute, fontWeight:700, marginBottom:12 }}>ERP Modules</div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
+                {[
+                  { id:'crm',      icon:'⊠', label:'CRM & Orders',   desc:'Customer orders, quote review, design approval workflow.', page:'backend.html', color:fAccent },
+                  { id:'finance',  icon:'₹', label:'Finance',         desc:'Revenue dashboard, order ledger, margin & GST tracking.', page:'backend.html#finance', color:fOk },
+                  { id:'factory',  icon:'⚙', label:'Manufacturing',   desc:'Shop floor, 8-stage production, cut list & CNC nesting.', page:'factory.html', color:'#7c5cff' },
+                  { id:'proc',     icon:'⊞', label:'Procurement',     desc:'Vendor management, PO tracking, material inventory.', page:'backend.html#procurement', color:fInfo },
+                  { id:'log',      icon:'⊡', label:'Logistics',       desc:'3 factories, 73 depots, Tier 1/2 city delivery network.', page:null, color:fWarn },
+                  { id:'hr',       icon:'⊟', label:'HR & Team',       desc:'Staff directory, roles, access levels, activity log.', page:'backend.html#hr', color:'#ff9060' },
+                  { id:'pricing',  icon:'✦', label:'Pricing & Rates', desc:'Cabinet rates, markup, GST, lead time, finish catalog.', page:null, color:'#c0b0f0' },
+                  { id:'audit',    icon:'≡', label:'Audit Trail',     desc:'Full order history, status changes, delivery tracking.', page:null, color:'#a0b0c0' },
+                  { id:'settings', icon:'◈', label:'Settings',        desc:'Studio profile, notifications, integrations, API keys.', page:null, color:fMute },
+                ].map(m => (
+                  <div key={m.id} style={{ ...fS.card, borderLeft:`3px solid ${m.color}`, cursor: m.page ? 'pointer' : 'default', transition:'background 0.15s' }}
+                    onClick={() => {
+                      if (m.page && m.page.startsWith('backend')) setAdminTab(m.id === 'crm' ? 'pricing' : 'pricing');
+                      if (m.id === 'log') setAdminTab('logistics');
+                      if (m.id === 'pricing') setAdminTab('pricing');
+                      if (m.id === 'audit') setAdminTab('audit');
+                      if (m.id === 'settings') setAdminTab('pricing');
+                      if (m.page && !m.page.includes('#')) window.open(m.page, '_blank');
+                    }}
+                    onMouseEnter={e => { if (m.page || m.id === 'log' || m.id === 'pricing' || m.id === 'audit') e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = fSub; }}
+                  >
+                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+                      <span style={{ fontSize:20, color:m.color }}>{m.icon}</span>
+                      <span style={{ fontSize:14, color:'#fff', fontWeight:600 }}>{m.label}</span>
+                      {m.page && <span style={{ marginLeft:'auto', fontSize:10, color:fMute }}>→</span>}
+                    </div>
+                    <div style={{ fontSize:12, color:fMute, lineHeight:1.5 }}>{m.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {adminTab === 'pricing' && (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, maxWidth:900 }}>
               <div style={fS.card}>
@@ -612,6 +711,111 @@ function AdminModule() {
                     <span style={{ color:fMute }}>{o.room?.layout} · {o.finish}</span>
                     <span style={{ ...fS.mono, color:'#fff' }}>₹ {Number(o.total).toLocaleString('en-IN')}</span>
                     <span style={{ ...fS.pill, background:'rgba(255,255,255,0.05)', color:fMute, textTransform:'uppercase' }}>{o.status}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {adminTab === 'logistics' && (
+            <div style={{ maxWidth:1100 }}>
+              {/* Factory cards */}
+              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:fMute, fontWeight:700, marginBottom:12 }}>
+                Manufacturing Facilities · India
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16, marginBottom:28 }}>
+                {FACTORIES.map(f => {
+                  const depotCount = DEPOTS.filter(d => d.factory === f.id).reduce((s,d) => s+d.depots, 0);
+                  const cityCount  = DEPOTS.filter(d => d.factory === f.id).length;
+                  const color = f.id === 'FAC-MUM' ? fAccent : f.id === 'FAC-BLR' ? fOk : fInfo;
+                  return (
+                    <div key={f.id} style={{ ...fS.card, borderLeft:`3px solid ${color}` }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:10 }}>
+                        <div>
+                          <div style={{ ...fS.mono, fontSize:9, color, letterSpacing:'0.12em', fontWeight:700 }}>{f.id}</div>
+                          <div style={{ fontSize:14, color:'#fff', fontWeight:600, marginTop:3 }}>{f.name}</div>
+                          <div style={{ fontSize:11, color:fMute, marginTop:2 }}>{f.location}</div>
+                        </div>
+                        <span style={{ ...fS.pill, background: f.active ? 'rgba(76,186,133,0.15)' : 'rgba(255,255,255,0.05)', color: f.active ? fOk : fMute, textTransform:'uppercase' }}>
+                          {f.active ? '● Active' : 'Offline'}
+                        </span>
+                      </div>
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8, marginTop:10 }}>
+                        {[
+                          ['Capacity', `${f.capacity} jobs/mo`, '#fff'],
+                          ['Depots', String(depotCount), color],
+                          ['Cities', String(cityCount), '#fff'],
+                        ].map(([l,v,c]) => (
+                          <div key={l} style={{ background:'rgba(255,255,255,0.04)', borderRadius:6, padding:'8px 10px' }}>
+                            <div style={{ ...fS.mono, fontSize:9, color:fMute, letterSpacing:'0.1em' }}>{l}</div>
+                            <div style={{ fontSize:16, fontWeight:700, color:c, marginTop:2 }}>{v}</div>
+                          </div>
+                        ))}
+                      </div>
+                      <div style={{ marginTop:10 }}>
+                        <div style={{ fontSize:9, letterSpacing:'0.1em', color:fMute, marginBottom:5, textTransform:'uppercase' }}>Service zones</div>
+                        <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
+                          {f.zones.map(z => (
+                            <span key={z} style={{ ...fS.pill, background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.65)', fontSize:9 }}>{z}</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Depot network */}
+              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:fMute, fontWeight:700, marginBottom:12 }}>
+                Depot Network · {DEPOTS.reduce((s,d) => s+d.depots,0)} depots · {DEPOTS.length} cities
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+                {[1,2].map(tier => (
+                  <div key={tier} style={fS.card}>
+                    <div style={{ fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase', fontWeight:700, color: tier===1 ? fAccent : fInfo, marginBottom:12 }}>
+                      Tier {tier} cities · coverage {tier===1?'10':'20'} km radius
+                    </div>
+                    <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
+                      <thead>
+                        <tr style={{ borderBottom:`1px solid ${fLine}` }}>
+                          {['City','State','Depots','Factory'].map(h => (
+                            <th key={h} style={{ ...fS.mono, fontSize:9, color:fMute, fontWeight:700, padding:'4px 8px', textAlign:'left', letterSpacing:'0.1em', textTransform:'uppercase' }}>{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {DEPOTS.filter(d => d.tier === tier).map((d,i) => {
+                          const fac = FACTORIES.find(f => f.id === d.factory);
+                          const facColor = d.factory==='FAC-MUM' ? fAccent : d.factory==='FAC-BLR' ? fOk : fInfo;
+                          return (
+                            <tr key={d.city} style={{ borderTop:i?`1px solid ${fLine}`:'none' }}>
+                              <td style={{ padding:'7px 8px', color:'#fff', fontWeight:600 }}>{d.city}</td>
+                              <td style={{ padding:'7px 8px', color:fMute, fontSize:10 }}>{d.state}</td>
+                              <td style={{ padding:'7px 8px', ...fS.mono, color: tier===1?fAccent:fInfo, fontWeight:700 }}>{d.depots}</td>
+                              <td style={{ padding:'7px 8px' }}>
+                                <span style={{ ...fS.mono, fontSize:9, color:facColor }}>{d.factory}</span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+              </div>
+
+              {/* Summary KPIs */}
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginTop:16 }}>
+                {[
+                  { l:'Total factories', v:'3', s:'Mumbai · Bengaluru · Delhi NCR', c:fAccent },
+                  { l:'Total depots', v:String(DEPOTS.reduce((s,d)=>s+d.depots,0)), s:'across India', c:'#fff' },
+                  { l:'Tier 1 cities', v:String(DEPOTS.filter(d=>d.tier===1).length), s:'10 km coverage', c:fOk },
+                  { l:'Tier 2 cities', v:String(DEPOTS.filter(d=>d.tier===2).length), s:'20 km coverage', c:fInfo },
+                ].map((k,i) => (
+                  <div key={i} style={{ ...fS.card }}>
+                    <div style={{ ...fS.mono, fontSize:9, color:fMute, letterSpacing:'0.14em', textTransform:'uppercase' }}>{k.l}</div>
+                    <div style={{ ...fS.fraunces, fontSize:28, color:k.c, marginTop:4 }}>{k.v}</div>
+                    <div style={{ fontSize:11, color:fMute, marginTop:2 }}>{k.s}</div>
                   </div>
                 ))}
               </div>
