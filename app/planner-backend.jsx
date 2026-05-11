@@ -94,7 +94,7 @@ function BLogo({ size = 20, accent = bAccent }) {
   );
 }
 
-function BSidebar({ newCount = 0, section = 'orders', onSection }) {
+function BSidebar({ newCount = 0, section = 'orders', onSection, activeModule = 'studio' }) {
   const go = s => onSection && onSection(s);
   const sb  = bStyles.sbItem;
   const act = s => section === s ? { ...sb, ...bStyles.sbItemActive } : sb;
@@ -111,34 +111,31 @@ function BSidebar({ newCount = 0, section = 'orders', onSection }) {
         <div style={{ fontSize:13, fontWeight:600, color:'#fff', marginTop:2 }}>Atelier Reema</div>
       </div>
 
-      {/* ── Studio (design/CRM) ── */}
-      <div style={bStyles.sbSection}>Studio</div>
-      <div style={act('pipeline')}  onClick={() => go('pipeline')}>{dot('#d9a049')} Pipeline</div>
-      <div style={act('orders')}    onClick={() => go('orders')}>{dot(bAccent)} Orders {badge(newCount)}</div>
-      <div style={act('drawings')}  onClick={() => go('drawings')}>{dot('#5b8def')} Drawings</div>
-      <div style={act('approvals')} onClick={() => go('approvals')}>{dot('#7c5cff')} Approvals {badge(newCount, '#5b8def')}</div>
+      {/* ── Show only the section matching the active top tab ── */}
+      {activeModule === 'studio' && <>
+        <div style={bStyles.sbSection}>Studio</div>
+        <div style={act('pipeline')}  onClick={() => go('pipeline')}>{dot('#d9a049')} Pipeline</div>
+        <div style={act('orders')}    onClick={() => go('orders')}>{dot(bAccent)} Orders {badge(newCount)}</div>
+        <div style={act('drawings')}  onClick={() => go('drawings')}>{dot('#5b8def')} Drawings</div>
+        <div style={act('approvals')} onClick={() => go('approvals')}>{dot('#7c5cff')} Approvals {badge(newCount, '#5b8def')}</div>
+      </>}
 
-      {/* ── Factory Floor (pre-cut ops) ── */}
-      <div style={bStyles.sbSection}>Factory Floor</div>
-      <div style={act('cutjobs')}   onClick={() => go('cutjobs')}>{dot('#7c5cff')} Cut Jobs</div>
-      <div style={act('cutsheets')} onClick={() => go('cutsheets')}>{dot('#c96442')} Cut Sheets</div>
-      <div style={act('depotstock')}onClick={() => go('depotstock')}>{dot('#4cba85')} Depot Stock</div>
-      <div style={act('factoryload')}onClick={() => go('factoryload')}>{dot('#5b8def')} Factory Load</div>
+      {activeModule === 'factory' && <>
+        <div style={bStyles.sbSection}>Factory Floor</div>
+        <div style={act('vendors')}     onClick={() => go('vendors')}>{dot('#aaa')} Vendors</div>
+        <div style={act('pos')}         onClick={() => go('pos')}>{dot('#aaa')} POs</div>
+        <div style={act('inventory')}   onClick={() => go('inventory')}>{dot('#4cba85')} Inventory</div>
+        <div style={act('fabrication')} onClick={() => go('fabrication')}>{dot('#7c5cff')} Fabrication</div>
+      </>}
 
-      {/* ── Admin ── */}
-      <div style={bStyles.sbSection}>Admin</div>
-      <div style={act('margin')}   onClick={() => go('margin')}>{dot('#4cba85')} Margin</div>
-      <div style={act('vendors')}  onClick={() => go('vendors')}>{dot('#aaa')} Vendors</div>
-      <div style={act('team')}     onClick={() => go('team')}>{dot('#aaa')} Team</div>
+      {activeModule === 'admin' && <>
+        <div style={bStyles.sbSection}>Admin</div>
+        <div style={act('team')}    onClick={() => go('team')}>{dot('#aaa')} Team</div>
+        <div style={act('margin')}  onClick={() => go('margin')}>{dot('#4cba85')} Margin</div>
+        <div style={act('library')} onClick={() => go('library')}>{dot('#aaa')} Library</div>
+      </>}
 
       <div style={{ flex:1 }}></div>
-      <a href="planner.html" style={{
-        display:'flex', alignItems:'center', gap:6, padding:'7px 10px', borderRadius:6,
-        background:'rgba(201,100,66,0.1)', border:`1px solid rgba(201,100,66,0.25)`,
-        textDecoration:'none', marginBottom:8,
-      }}>
-        <span style={{ fontSize:11, color:bAccent }}>← Planner</span>
-      </a>
       <div style={{ display:'flex', alignItems:'center', gap:8, padding:8, borderRadius:6, background:'rgba(255,255,255,0.04)' }}>
         <div style={{ width:26, height:26, borderRadius:'50%', background:`linear-gradient(135deg,${bAccent},#d97042)` }}></div>
         <div style={{ display:'flex', flexDirection:'column' }}>
@@ -349,9 +346,9 @@ const STATUS_COLORS = {
 
 /* ── ERP MODULE STRIP — 3 tabs matching sidebar sections ─────── */
 const ERP_MODULES = [
-  { id:'studio',  label:'Studio',        icon:'✏', color:'#c96442', section:'orders'    },
-  { id:'factory', label:'Factory Floor', icon:'⚙', color:'#7c5cff', section:'cutjobs'   },
-  { id:'admin',   label:'Admin',         icon:'⊞', color:'#4cba85', section:'margin'    },
+  { id:'studio',  label:'Studio',        icon:'✏', color:'#c96442', section:'orders'      },
+  { id:'factory', label:'Factory Floor', icon:'⚙', color:'#7c5cff', section:'fabrication' },
+  { id:'admin',   label:'Admin',         icon:'⊞', color:'#4cba85', section:'margin'      },
 ];
 
 function ERPModuleStrip({ active, onChange, orders }) {
@@ -473,14 +470,10 @@ const DEPOT_STOCK = [
   { city:'Hyderabad', depot:'HYD-01', modules:{ 'BC-600':10, 'BC-800':8,  'BC-900':5,  'WC-600':9,  'WC-900':6,  'HC-600':3  }, min:5  },
 ];
 
-/* ── FACTORY FLOOR MODULE (pre-cut concept) ───────────────────── */
-function FactoryFloorModule({ orders, subSection = 'cutjobs' }) {
-  const STAGES = ['Queued','Panel cut','Laminate','Edge band','Bundle','To depot'];
-  const SCLR   = ['rgba(255,255,255,0.35)','#c96442','#d9a049','#5b8def','#7c5cff','#4cba85'];
-  const fabOrders = orders.filter(o => ['approved','in-fab'].includes(o.status));
-
-  const card = (children, extra = {}) => (
-    <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px', ...extra }}>
+/* ── FACTORY FLOOR MODULE ─────────────────────────────────────── */
+function FactoryFloorModule({ orders, subSection = 'fabrication' }) {
+  const card = (children) => (
+    <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
       {children}
     </div>
   );
@@ -488,15 +481,126 @@ function FactoryFloorModule({ orders, subSection = 'cutjobs' }) {
     <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:12 }}>{t}</div>
   );
 
-  /* ── Cut Jobs ── */
-  if (subSection === 'cutjobs') return (
+  /* ── Vendors ── */
+  if (subSection === 'vendors') return (
     <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      {hdr('Vendors')}
+      {card(
+        [
+          { n:'Greenlam Industries', cat:'Laminates · 18mm HDF / 6mm HDF', role:'Carcass panels', c:'#c96442', status:'active' },
+          { n:'Hettich India',       cat:'Hardware · Hinges, drawer slides', role:'Fittings', c:'#5b8def', status:'active' },
+          { n:'Rehau / Dollken',     cat:'PVC edge band · 0.4mm–2mm', role:'Edge banding', c:'#d9a049', status:'active' },
+          { n:'Caesarstone India',   cat:'Quartz slabs · 20mm / 30mm', role:'Worktops', c:'#7c5cff', status:'active' },
+          { n:'Faber India',         cat:'Appliances · Hoods, hobs', role:'Appliances', c:'#4cba85', status:'active' },
+          { n:'Hafele India',        cat:'Premium hardware · Systems', role:'Specialty fittings', c:'#aaa', status:'inactive' },
+        ].map((v,i) => (
+          <div key={i} style={{ display:'grid', gridTemplateColumns:'14px 1.5fr 1.5fr auto', gap:14, padding:'12px 0', borderTop:i?`1px solid rgba(255,255,255,0.05)`:'none', alignItems:'center' }}>
+            <span style={{ width:8, height:8, borderRadius:'50%', background:v.c, display:'inline-block' }}/>
+            <div>
+              <div style={{ fontSize:13, color:'#fff', fontWeight:600 }}>{v.n}</div>
+              <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', marginTop:2 }}>{v.cat}</div>
+            </div>
+            <span style={{ fontSize:11, color:'rgba(255,255,255,0.5)' }}>{v.role}</span>
+            <span style={{ padding:'3px 10px', borderRadius:999, fontSize:9, fontWeight:700, textTransform:'uppercase',
+              background: v.status==='active'?'rgba(76,186,133,0.15)':'rgba(255,255,255,0.04)',
+              color: v.status==='active'?'#4cba85':'rgba(255,255,255,0.35)' }}>{v.status}</span>
+          </div>
+        ))
+      )}
+    </div>
+  );
+
+  /* ── POs ── */
+  if (subSection === 'pos') return (
+    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      {hdr('Purchase Orders')}
+      {card(
+        [
+          { id:'PO-2026-041', vendor:'Greenlam Industries', item:'18mm HDF 8×4 sheets', qty:240, unit:'sheets', status:'delivered', amt:336000 },
+          { id:'PO-2026-042', vendor:'Hettich India',       item:'Soft-close hinges',   qty:600, unit:'pcs',    status:'transit',   amt:90000  },
+          { id:'PO-2026-043', vendor:'Rehau / Dollken',     item:'PVC edge band 2mm',   qty:5000, unit:'m',     status:'pending',   amt:45000  },
+          { id:'PO-2026-044', vendor:'Greenlam Industries', item:'6mm HDF back panels', qty:120, unit:'sheets', status:'pending',   amt:72000  },
+        ].map((p,i) => {
+          const sc = { delivered:'#4cba85', transit:'#d9a049', pending:'rgba(255,255,255,0.4)' };
+          return (
+            <div key={p.id} style={{ display:'grid', gridTemplateColumns:'110px 1.5fr 1fr auto auto', gap:12, padding:'10px 0', borderTop:i?`1px solid rgba(255,255,255,0.05)`:'none', alignItems:'center', fontSize:11 }}>
+              <span style={{ fontFamily:'JetBrains Mono,monospace', color:bAccent, fontWeight:700, fontSize:10 }}>{p.id}</span>
+              <div>
+                <div style={{ color:'#fff', fontWeight:500 }}>{p.vendor}</div>
+                <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)' }}>{p.item}</div>
+              </div>
+              <span style={{ color:'rgba(255,255,255,0.6)', fontSize:10 }}>{p.qty} {p.unit}</span>
+              <span style={{ fontFamily:'JetBrains Mono,monospace', color:'rgba(255,255,255,0.7)' }}>₹{(p.amt/1000).toFixed(0)}k</span>
+              <span style={{ padding:'2px 8px', borderRadius:999, fontSize:9, fontWeight:700, textTransform:'uppercase',
+                background:`${sc[p.status]}22`, color:sc[p.status] }}>{p.status}</span>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+
+  /* ── Inventory ── */
+  if (subSection === 'inventory') return (
+    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      {hdr('Depot inventory — pre-cut module stock')}
+      <div style={{ overflowX:'auto' }}>
+        <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
+          <thead>
+            <tr style={{ borderBottom:`1px solid rgba(255,255,255,0.1)` }}>
+              {['Depot','City', ...PRECUT_TYPES.map(t=>t.id),'Status'].map(h => (
+                <th key={h} style={{ padding:'6px 10px', textAlign:'left', fontSize:9, letterSpacing:'0.1em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700 }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {DEPOT_STOCK.map((d) => {
+              const anyLow = Object.entries(d.modules).some(([,qty]) => qty < d.min);
+              return (
+                <tr key={d.depot} style={{ borderTop:`1px solid rgba(255,255,255,0.05)`, background: anyLow ? 'rgba(255,80,80,0.04)' : 'transparent' }}>
+                  <td style={{ padding:'10px', fontFamily:'JetBrains Mono,monospace', color:'rgba(255,255,255,0.6)', fontSize:10 }}>{d.depot}</td>
+                  <td style={{ padding:'10px', color:'#fff', fontWeight:600 }}>{d.city}</td>
+                  {PRECUT_TYPES.map(t => {
+                    const qty = d.modules[t.id] || 0;
+                    const low = qty < d.min;
+                    return (
+                      <td key={t.id} style={{ padding:'10px', fontFamily:'JetBrains Mono,monospace', fontWeight:700, color: low ? '#ff8080' : qty >= d.min*2 ? '#4cba85' : '#d9a049' }}>
+                        {qty}{low && <span style={{ fontSize:8, marginLeft:2 }}>▼</span>}
+                      </td>
+                    );
+                  })}
+                  <td style={{ padding:'10px' }}>
+                    <span style={{ padding:'2px 8px', borderRadius:999, fontSize:9, fontWeight:700, textTransform:'uppercase',
+                      background: anyLow ? 'rgba(255,80,80,0.15)' : 'rgba(76,186,133,0.15)',
+                      color: anyLow ? '#ff8080' : '#4cba85' }}>
+                      {anyLow ? 'Replenish' : 'OK'}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  /* ── Fabrication (default) — pre-cut production jobs ── */
+  const STAGES = ['Queued','Panel cut','Laminate','Edge band','Bundle','To depot'];
+  const SCLR   = ['rgba(255,255,255,0.35)','#c96442','#d9a049','#5b8def','#7c5cff','#4cba85'];
+  const fabOrders = orders.filter(o => ['approved','in-fab'].includes(o.status));
+  return (
+    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      <div style={{ marginBottom:20, padding:'12px 14px', background:'rgba(124,92,255,0.07)', border:`1px solid rgba(124,92,255,0.2)`, borderRadius:8, fontSize:11, color:'rgba(255,255,255,0.6)', lineHeight:1.7 }}>
+        <span style={{ color:'rgba(255,255,255,0.85)', fontWeight:600 }}>Pre-cut model · </span>
+        All panels are laminated, CNC-cut and PVC edge-banded at the factory in batch runs. Pre-cut module bundles (BC-600/800/900, WC-600/900, HC-600) are stocked at every city depot. When an order is confirmed the nearest depot ships the kit to the site. Lead time: 5–7 days.
+      </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:20 }}>
         {[
-          { l:'Cutting now', v: fabOrders.filter(o=>o.status==='in-fab').length, c:'#7c5cff' },
-          { l:'Queued',      v: fabOrders.filter(o=>o.status==='approved').length, c:'#d9a049' },
-          { l:'Dispatched',  v: orders.filter(o=>o.status==='delivered').length, c:'#4cba85' },
-          { l:'Factories',   v: 3, c:'#5b8def' },
+          { l:'Cutting now', v: fabOrders.filter(o=>o.status==='in-fab').length,   c:'#7c5cff' },
+          { l:'Queued',      v: fabOrders.filter(o=>o.status==='approved').length,  c:'#d9a049' },
+          { l:'Dispatched',  v: orders.filter(o=>o.status==='delivered').length,    c:'#4cba85' },
+          { l:'Factories',   v: 3,                                                  c:'#5b8def' },
         ].map((k,i) => (
           <div key={i} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'14px 16px' }}>
             <div style={{ fontSize:9, letterSpacing:'0.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700 }}>{k.l}</div>
@@ -505,9 +609,9 @@ function FactoryFloorModule({ orders, subSection = 'cutjobs' }) {
         ))}
       </div>
       {card(<>
-        {hdr('Active cut jobs — pre-cut modules per order')}
+        {hdr('Active fabrication jobs')}
         {fabOrders.length === 0 ? (
-          <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>No active jobs. Approve an order from Studio to queue a cut run.</div>
+          <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>No active jobs. Approve an order from Studio to queue a fabrication run.</div>
         ) : fabOrders.map((o, i) => {
           const stage = o.status === 'in-fab' ? 3 : 0;
           return (
@@ -534,129 +638,9 @@ function FactoryFloorModule({ orders, subSection = 'cutjobs' }) {
       </>)}
     </div>
   );
-
-  /* ── Cut Sheets ── */
-  if (subSection === 'cutsheets') return (
-    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
-      {card(<>
-        {hdr('Pre-cut module panel specs — batch optimization')}
-        <div style={{ overflowX:'auto' }}>
-          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
-            <thead>
-              <tr style={{ borderBottom:`1px solid rgba(255,255,255,0.1)` }}>
-                {['Module','Description','Panels/kit','Sheet','Laminate','Edge'].map(h => (
-                  <th key={h} style={{ padding:'6px 10px', textAlign:'left', fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700 }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {PRECUT_TYPES.map((t, i) => (
-                <tr key={t.id} style={{ borderTop:`1px solid rgba(255,255,255,0.05)` }}>
-                  <td style={{ padding:'10px 10px', fontFamily:'JetBrains Mono,monospace', color:bAccent, fontWeight:700 }}>{t.id}</td>
-                  <td style={{ padding:'10px 10px', color:'rgba(255,255,255,0.8)' }}>{t.desc}</td>
-                  <td style={{ padding:'10px 10px', color:'#fff', fontWeight:700 }}>{t.panels}</td>
-                  <td style={{ padding:'10px 10px', color:'rgba(255,255,255,0.6)', fontFamily:'JetBrains Mono,monospace' }}>18mm HDF</td>
-                  <td style={{ padding:'10px 10px', color:'#d9a049', fontFamily:'JetBrains Mono,monospace' }}>Greenlam</td>
-                  <td style={{ padding:'10px 10px', color:'#5b8def', fontFamily:'JetBrains Mono,monospace' }}>{t.edge}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div style={{ marginTop:14, padding:'10px 12px', background:'rgba(201,100,66,0.07)', borderRadius:6, fontSize:11, color:'rgba(255,255,255,0.6)' }}>
-          All panels are laminated, cut to ±0.5mm, and PVC edge-banded at factory before dispatch to depot. Assembly hardware packed separately.
-        </div>
-      </>)}
-    </div>
-  );
-
-  /* ── Depot Stock ── */
-  if (subSection === 'depotstock') return (
-    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
-      {hdr.toString && null}
-      <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Depot stock — minimum pre-cut module inventory</div>
-      <div style={{ overflowX:'auto' }}>
-        <table style={{ width:'100%', borderCollapse:'collapse', fontSize:11 }}>
-          <thead>
-            <tr style={{ borderBottom:`1px solid rgba(255,255,255,0.1)` }}>
-              {['Depot','City', ...PRECUT_TYPES.map(t=>t.id),'Status'].map(h => (
-                <th key={h} style={{ padding:'6px 10px', textAlign:'left', fontSize:9, letterSpacing:'0.1em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700 }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {DEPOT_STOCK.map((d, i) => {
-              const anyLow = Object.entries(d.modules).some(([,qty]) => qty < d.min);
-              return (
-                <tr key={d.depot} style={{ borderTop:`1px solid rgba(255,255,255,0.05)`, background: anyLow ? 'rgba(255,80,80,0.04)' : 'transparent' }}>
-                  <td style={{ padding:'10px 10px', fontFamily:'JetBrains Mono,monospace', color:'rgba(255,255,255,0.6)', fontSize:10 }}>{d.depot}</td>
-                  <td style={{ padding:'10px 10px', color:'#fff', fontWeight:600 }}>{d.city}</td>
-                  {PRECUT_TYPES.map(t => {
-                    const qty = d.modules[t.id] || 0;
-                    const low = qty < d.min;
-                    return (
-                      <td key={t.id} style={{ padding:'10px 10px', fontFamily:'JetBrains Mono,monospace', fontWeight:700, color: low ? '#ff8080' : qty >= d.min*2 ? '#4cba85' : '#d9a049' }}>
-                        {qty}{low && <span style={{ fontSize:8, marginLeft:2, color:'#ff8080' }}>▼</span>}
-                      </td>
-                    );
-                  })}
-                  <td style={{ padding:'10px 10px' }}>
-                    <span style={{ padding:'2px 8px', borderRadius:999, fontSize:9, fontWeight:700, textTransform:'uppercase',
-                      background: anyLow ? 'rgba(255,80,80,0.15)' : 'rgba(76,186,133,0.15)',
-                      color: anyLow ? '#ff8080' : '#4cba85' }}>
-                      {anyLow ? 'Replenish' : 'OK'}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      <div style={{ marginTop:14, padding:'10px 12px', background:'rgba(76,186,133,0.06)', borderRadius:6, fontSize:11, color:'rgba(255,255,255,0.5)' }}>
-        Min threshold: {DEPOT_STOCK[0].min} kits per module type. Replenishment triggered automatically when stock falls below minimum.
-      </div>
-    </div>
-  );
-
-  /* ── Factory Load ── */
-  return (
-    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
-      <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Factory load — pre-cut capacity</div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:20 }}>
-        {[
-          { id:'FAC-MUM', name:'Mumbai Factory', loc:'Bhiwandi, Maharashtra', cap:120, used:87, depots:['Mumbai','Pune','Nashik','Surat'], c:'#c96442' },
-          { id:'FAC-BLR', name:'Bengaluru Factory', loc:'Peenya, Karnataka', cap:80, used:54, depots:['Bengaluru','Chennai','Hyderabad','Kochi'], c:'#4cba85' },
-          { id:'FAC-DEL', name:'Delhi NCR Factory', loc:'Manesar, Haryana', cap:100, used:61, depots:['Delhi','Jaipur','Lucknow','Chandigarh'], c:'#5b8def' },
-        ].map(f => (
-          <div key={f.id} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderLeft:`3px solid ${f.c}`, borderRadius:8, padding:'16px' }}>
-            <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', color:f.c, fontWeight:700, letterSpacing:'0.1em' }}>{f.id}</div>
-            <div style={{ fontSize:14, color:'#fff', fontWeight:600, marginTop:4 }}>{f.name}</div>
-            <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', marginTop:2 }}>{f.loc}</div>
-            <div style={{ marginTop:12 }}>
-              <div style={{ display:'flex', justifyContent:'space-between', fontSize:10, marginBottom:5 }}>
-                <span style={{ color:'rgba(255,255,255,0.5)' }}>{f.used} / {f.cap} kits this week</span>
-                <span style={{ color:f.c, fontWeight:700 }}>{Math.round(f.used/f.cap*100)}%</span>
-              </div>
-              <div style={{ height:6, background:'rgba(255,255,255,0.07)', borderRadius:3 }}>
-                <div style={{ height:'100%', width:`${f.used/f.cap*100}%`, background:f.c, borderRadius:3 }}/>
-              </div>
-            </div>
-            <div style={{ marginTop:10, fontSize:10, color:'rgba(255,255,255,0.4)' }}>
-              Serves: {f.depots.join(' · ')}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'14px 16px', fontSize:11, color:'rgba(255,255,255,0.55)', lineHeight:1.7 }}>
-        <span style={{ color:'rgba(255,255,255,0.8)', fontWeight:600 }}>Pre-cut model: </span>
-        All panels are laminated, CNC-cut and PVC edge-banded at the factory in batch runs. Finished module bundles are dispatched to city depots. When a confirmed order arrives, the nearest depot ships the pre-cut kit to the site installer. Lead time: 5–7 days from order confirmation to site delivery.
-      </div>
-    </div>
-  );
 }
 
-/* ── ADMIN MODULE (Finance + Vendors + Team) ─────────────────── */
+/* ── ADMIN MODULE (Margin + Team + Library) ──────────────────── */
 function AdminModule({ orders, subSection = 'margin' }) {
   const fmt = n => '₹ ' + Number(n).toLocaleString('en-IN');
 
@@ -699,37 +683,8 @@ function AdminModule({ orders, subSection = 'margin' }) {
     );
   }
 
-  /* ── Vendors ── */
-  if (subSection === 'vendors') return (
-    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
-      <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Vendors</div>
-      <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
-        {[
-          { n:'Greenlam Industries', cat:'Laminates · 18mm HDF / 6mm HDF', role:'Carcass panels', c:'#c96442', status:'active' },
-          { n:'Hettich India',       cat:'Hardware · Hinges, drawer slides', role:'Fittings', c:'#5b8def', status:'active' },
-          { n:'Rehau / Dollken',     cat:'PVC edge band · 0.4mm–2mm', role:'Edge banding', c:'#d9a049', status:'active' },
-          { n:'Caesarstone India',   cat:'Quartz slabs · 20mm / 30mm', role:'Worktops', c:'#7c5cff', status:'active' },
-          { n:'Faber India',         cat:'Appliances · Hoods, hobs', role:'Appliances', c:'#4cba85', status:'active' },
-          { n:'Hafele India',        cat:'Premium hardware · Systems', role:'Specialty fittings', c:'#aaa', status:'inactive' },
-        ].map((v,i)=>(
-          <div key={i} style={{ display:'grid', gridTemplateColumns:'14px 1.5fr 1.5fr auto', gap:14, padding:'12px 0', borderTop:i?`1px solid rgba(255,255,255,0.05)`:'none', alignItems:'center' }}>
-            <span style={{ width:8, height:8, borderRadius:'50%', background:v.c, display:'inline-block' }}/>
-            <div>
-              <div style={{ fontSize:13, color:'#fff', fontWeight:600 }}>{v.n}</div>
-              <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)', marginTop:2 }}>{v.cat}</div>
-            </div>
-            <span style={{ fontSize:11, color:'rgba(255,255,255,0.5)' }}>{v.role}</span>
-            <span style={{ padding:'3px 10px', borderRadius:999, fontSize:9, fontWeight:700, textTransform:'uppercase',
-              background: v.status==='active'?'rgba(76,186,133,0.15)':'rgba(255,255,255,0.04)',
-              color: v.status==='active'?'#4cba85':'rgba(255,255,255,0.35)' }}>{v.status}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
   /* ── Team ── */
-  return (
+  if (subSection === 'team') return (
     <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
       <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Team</div>
       <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
@@ -747,6 +702,28 @@ function AdminModule({ orders, subSection = 'margin' }) {
               <div style={{ fontSize:11, color:'rgba(255,255,255,0.45)' }}>{m.role} · <span style={{ color:'rgba(255,255,255,0.3)' }}>{m.dept}</span></div>
             </div>
             <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:'rgba(255,255,255,0.35)' }}>{m.l}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  /* ── Library (default) ── */
+  return (
+    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      <div style={{ fontSize:9, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Design Library</div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
+        {[
+          { label:'Kitchen templates',   count:12, icon:'⬛', c:'#c96442' },
+          { label:'Wardrobe layouts',    count:8,  icon:'⬛', c:'#5b8def' },
+          { label:'Office setups',       count:6,  icon:'⬛', c:'#4cba85' },
+          { label:'Finish swatches',     count:24, icon:'⬛', c:'#d9a049' },
+          { label:'Hardware catalog',    count:18, icon:'⬛', c:'#7c5cff' },
+          { label:'Appliance specs',     count:15, icon:'⬛', c:'#aaa'    },
+        ].map((item,i) => (
+          <div key={i} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderLeft:`3px solid ${item.c}`, borderRadius:8, padding:'14px 16px', cursor:'pointer' }}>
+            <div style={{ fontSize:9, letterSpacing:'0.12em', textTransform:'uppercase', color:item.c, fontWeight:700 }}>{item.count} items</div>
+            <div style={{ fontSize:13, color:'#fff', fontWeight:500, marginTop:4 }}>{item.label}</div>
           </div>
         ))}
       </div>
@@ -799,7 +776,6 @@ function PlannerBackend() {
   const [section, setSection] = useS('orders');
   const [studioNote, setStudioNote] = useS('');
   const [quoteTotal, setQuoteTotal] = useS('');
-  const [erpModule, setErpModule] = useS('crm');
 
   const reload = () => setOrders(KreoStore.getOrders());
 
@@ -854,17 +830,9 @@ function PlannerBackend() {
   const WORKFLOW_STEPS = ['Concept','Layout','Materials','Cost','Sign-off','Fab'];
   const statusStep = { new:0, reviewing:1, quoted:2, approved:3, 'in-fab':4, delivered:5 };
 
-  // Sync section → erpModule
-  const SECTION_MODULE = {
-    pipeline:'studio', orders:'studio', drawings:'studio', approvals:'studio',
-    cutjobs:'factory', cutsheets:'factory', depotstock:'factory', factoryload:'factory',
-    margin:'admin', vendors:'admin', team:'admin',
-  };
-  const handleSection = s => { setSection(s); setErpModule(SECTION_MODULE[s] || 'studio'); };
-
   return (
     <div style={bStyles.shell}>
-      <BSidebar newCount={newCount} section={section} onSection={handleSection} />
+      <BSidebar newCount={newCount} section={section} onSection={setSection} activeModule="studio" />
 
       <div style={bStyles.main}>
         {/* Top context bar */}
@@ -896,7 +864,7 @@ function PlannerBackend() {
             </>
           ) : (
             <div style={{ ...bStyles.mono, fontSize:11, color:bMute }}>
-              {erpModule === 'factory' ? 'FACTORY FLOOR' : erpModule === 'admin' ? 'ADMIN' : 'STUDIO'} · {orders.length} orders · {newCount} new
+              STUDIO · {orders.length} orders · {newCount} new
             </div>
           )}
           <div style={{ flex:1 }}></div>
@@ -910,20 +878,11 @@ function PlannerBackend() {
           )}
         </div>
 
-        {/* ERP module strip */}
-        <ERPModuleStrip active={erpModule} onChange={(m, defaultSection) => { setErpModule(m); setSection(defaultSection || m); }} orders={orders} />
-
-        {/* Factory Floor module */}
-        {erpModule === 'factory' && <FactoryFloorModule orders={orders} subSection={section} />}
-
-        {/* Admin module */}
-        {erpModule === 'admin' && <AdminModule orders={orders} subSection={section} />}
-
         {/* Studio — Pipeline kanban */}
-        {erpModule === 'studio' && section === 'pipeline' && <PipelineView orders={orders} onSelect={id => { setSelId(id); setSection('orders'); }} />}
+        {section === 'pipeline' && <PipelineView orders={orders} onSelect={id => { setSelId(id); setSection('orders'); }} />}
 
         {/* Studio — Orders (3-column CRM view) */}
-        {erpModule === 'studio' && section !== 'pipeline' && <div style={{ flex:1, display:'grid', gridTemplateColumns:'280px 1fr 300px', minHeight:0 }}>
+        {section !== 'pipeline' && <div style={{ flex:1, display:'grid', gridTemplateColumns:'280px 1fr 300px', minHeight:0 }}>
 
           {/* LEFT — order inbox */}
           <div style={{ background:'#191613', borderRight:`1px solid ${bLine}`, display:'flex', flexDirection:'column', overflow:'hidden' }}>
