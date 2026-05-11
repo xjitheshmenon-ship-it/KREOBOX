@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Kreobox · Shop &amp; Catalogue</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0eee9;--paper:#fafaf7;--ink:#1a1815;--mute:rgba(26,24,21,0.5);
+  --line:rgba(26,24,21,0.09);--accent:#c96442;--ok:#4cba85;
+}
+html,body{background:var(--bg);color:var(--ink);font-family:"Inter Tight",-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:0 32px;height:60px;display:flex;align-items:center;gap:20px}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.nav-wordmark{font-family:"Fraunces",serif;font-size:18px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase}
+.nav-links{display:flex;gap:6px;margin-left:24px}
+.nav-link{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;color:var(--mute);text-decoration:none;transition:color 0.15s,background 0.15s}
+.nav-link:hover,.nav-link.active{color:var(--ink);background:rgba(26,24,21,0.06)}
+.nav-spacer{flex:1}
+.nav-cta{padding:8px 16px;background:var(--ink);color:var(--bg);border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;transition:opacity 0.15s}
+.nav-cta:hover{opacity:0.85}
+
+/* ── HERO ── */
+.hero{padding:80px 32px 64px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.hero-eyebrow{font-size:10px;font-weight:700;letter-spacing:0.22em;text-transform:uppercase;color:var(--accent);font-family:"JetBrains Mono",monospace;margin-bottom:16px}
+.hero-title{font-family:"Fraunces",serif;font-size:clamp(36px,5vw,58px);font-weight:400;line-height:1.1;margin-bottom:20px}
+.hero-title em{font-style:italic;color:var(--accent)}
+.hero-body{font-size:15px;color:var(--mute);line-height:1.65;margin-bottom:28px;max-width:420px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn-primary{padding:12px 22px;background:var(--ink);color:var(--bg);border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn-outline{padding:12px 22px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:6px}
+.hero-visual{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:32px;min-height:320px;display:flex;align-items:center;justify-content:center}
+
+/* ── SECTION ── */
+.section{padding:64px 32px;max-width:1100px;margin:0 auto}
+.section-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:32px}
+.section-title{font-family:"Fraunces",serif;font-size:28px;font-weight:400}
+.section-link{font-size:12px;font-weight:600;color:var(--accent);text-decoration:none}
+
+/* ── CATEGORY STRIP ── */
+.cat-strip{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-bottom:48px}
+.cat-strip::-webkit-scrollbar{display:none}
+.cat-pill{padding:8px 18px;border-radius:999px;border:1px solid var(--line);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;background:var(--paper);color:var(--mute);transition:all 0.15s}
+.cat-pill.active,.cat-pill:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* ── PRODUCT GRID ── */
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.product-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:box-shadow 0.18s,transform 0.14s;cursor:pointer}
+.product-card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.1);transform:translateY(-2px)}
+.product-card:hover .product-cta{opacity:1;transform:translateY(0)}
+.product-img{background:linear-gradient(135deg,#ede8e0,#e4ddd2);height:180px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.product-badge{position:absolute;top:10px;left:10px;padding:3px 8px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
+.badge-new{background:var(--accent);color:#fff}
+.badge-popular{background:rgba(76,186,133,0.15);color:#2d8f60;border:1px solid rgba(76,186,133,0.3)}
+.badge-sale{background:rgba(217,160,73,0.15);color:#a0700a;border:1px solid rgba(217,160,73,0.3)}
+.product-body{padding:16px}
+.product-category{font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--mute);font-family:"JetBrains Mono",monospace;margin-bottom:6px}
+.product-name{font-size:14px;font-weight:600;line-height:1.35;margin-bottom:4px}
+.product-desc{font-size:12px;color:var(--mute);line-height:1.5;margin-bottom:10px}
+.product-stars{display:flex;align-items:center;gap:4px;margin-bottom:8px}
+.stars{color:#f59e0b;font-size:11px;letter-spacing:-1px}
+.star-count{font-size:10px;color:var(--mute)}
+.product-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.product-price{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:700;color:var(--ink)}
+.product-price span{font-size:10px;font-weight:400;color:var(--mute)}
+.product-cta{padding:6px 12px;background:var(--ink);color:var(--bg);border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;opacity:0;transform:translateY(4px);transition:all 0.18s}
+
+/* ── CATEGORY SHOWCASE ── */
+.cat-showcase{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.cat-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:28px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:12px;transition:box-shadow 0.18s,border-color 0.18s,transform 0.14s;min-height:200px}
+.cat-card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.1);border-color:var(--accent);transform:translateY(-2px)}
+.cat-card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.cat-card-label{font-size:9px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--mute);font-family:"JetBrains Mono",monospace}
+.cat-card-title{font-family:"Fraunces",serif;font-size:22px;font-weight:400;line-height:1.2}
+.cat-card-desc{font-size:12px;color:var(--mute);line-height:1.55;flex:1}
+.cat-card-cta{font-size:12px;font-weight:600;color:var(--accent)}
+
+/* ── FINISH SWATCHES ── */
+.swatch-row{display:flex;gap:10px;flex-wrap:wrap}
+.swatch{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.swatch-chip{width:52px;height:52px;border-radius:10px;border:2px solid transparent;transition:border-color 0.15s}
+.swatch:hover .swatch-chip{border-color:var(--accent)}
+.swatch-name{font-size:9px;font-weight:600;color:var(--mute);font-family:"JetBrains Mono",monospace;text-align:center;max-width:60px}
+
+/* ── TRUST STRIP ── */
+.trust-strip{background:var(--ink);color:var(--bg);padding:32px;display:flex;justify-content:center;gap:48px;flex-wrap:wrap;margin-top:64px}
+.trust-item{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.trust-val{font-family:"Fraunces",serif;font-size:28px;font-weight:400;color:var(--accent)}
+.trust-label{font-size:11px;color:rgba(255,255,255,0.55);font-weight:500}
+
+/* ── FOOTER ── */
+footer{background:#0e0d0b;padding:40px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:gap}
+.footer-brand{font-family:"Fraunces",serif;font-size:16px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.7)}
+.footer-links{display:flex;gap:16px}
+.footer-link{font-size:11px;color:rgba(255,255,255,0.35);text-decoration:none;font-family:"JetBrains Mono",monospace}
+.footer-link:hover{color:rgba(255,255,255,0.7)}
+
+/* ── UTILITY ── */
+.divider{height:1px;background:var(--line);margin:0 32px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <svg width="26" height="26" viewBox="0 0 100 100">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M10 32 H90 V90 Q90 97 83 97 H17 Q10 97 10 90 Z M24 46 H76 V82 H24 Z" fill="#c96442"/>
+      <rect x="11" y="10" width="80" height="17" rx="3" transform="rotate(-7 51 18)" fill="#c96442" fill-opacity="0.72"/>
+    </svg>
+    <span class="nav-wordmark">Kreobox</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link active" href="catalog.html">Shop</a>
+    <a class="nav-link" href="planner.html">Planner</a>
+    <a class="nav-link" href="#">About</a>
+    <a class="nav-link" href="#">Projects</a>
+  </div>
+  <div class="nav-spacer"></div>
+  <a class="nav-cta" href="planner.html">Design it yourself →</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow">Panel furniture · Planned to the mm</div>
+    <h1 class="hero-title">Your space,<br/><em>designed right.</em></h1>
+    <p class="hero-body">Modular kitchens, wardrobes and office furniture — manufactured in India, delivered to your door. Every piece planned in 2D &amp; 3D before a single cut is made.</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="planner.html">Start planning →</a>
+      <a class="btn-outline" href="#collections">Browse collection</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <!-- Kitchen plan SVG illustration -->
+    <svg viewBox="0 0 340 260" width="340" height="260">
+      <rect width="340" height="260" fill="#f0eee9" rx="12"/>
+      <rect x="28" y="28" width="284" height="204" fill="url(#hero-grid)" opacity="0.6"/>
+      <defs>
+        <pattern id="hero-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+          <path d="M20 0L0 0 0 20" fill="none" stroke="rgba(26,24,21,0.07)" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <!-- L-shape kitchen plan -->
+      <path d="M36 220 L36 36 L304 36" fill="none" stroke="#1a1815" stroke-width="5" stroke-linejoin="round"/>
+      <path d="M304 36 L304 120" fill="none" stroke="#1a1815" stroke-width="5" stroke-linecap="round"/>
+      <path d="M36 220 L136 220" fill="none" stroke="#1a1815" stroke-width="5" stroke-linecap="round"/>
+      <!-- cabinets top wall -->
+      <rect x="38" y="38" width="240" height="48" fill="#e4ddd0" stroke="#c8bfa8" stroke-width="1.5" rx="2"/>
+      <line x1="118" y1="38" x2="118" y2="86" stroke="#c8bfa8" stroke-width="1"/>
+      <line x1="198" y1="38" x2="198" y2="86" stroke="#c8bfa8" stroke-width="1"/>
+      <!-- hob -->
+      <rect x="120" y="44" width="76" height="36" fill="#2a2520" rx="2"/>
+      <circle cx="138" cy="56" r="5" fill="none" stroke="#c96442" stroke-width="1.5"/>
+      <circle cx="158" cy="56" r="5" fill="none" stroke="#c96442" stroke-width="1.5"/>
+      <circle cx="138" cy="72" r="5" fill="none" stroke="#c96442" stroke-width="1.5"/>
+      <circle cx="158" cy="72" r="5" fill="none" stroke="#c96442" stroke-width="1.5"/>
+      <!-- sink -->
+      <rect x="40" y="44" width="74" height="36" fill="#3a352e" rx="2"/>
+      <rect x="48" y="50" width="58" height="22" fill="#8cb8d0" rx="2"/>
+      <!-- left wall cabinets -->
+      <rect x="38" y="88" width="48" height="128" fill="#e4ddd0" stroke="#c8bfa8" stroke-width="1.5" rx="2"/>
+      <line x1="38" y1="148" x2="86" y2="148" stroke="#c8bfa8" stroke-width="1"/>
+      <!-- island -->
+      <rect x="140" y="148" width="148" height="68" fill="#3a352e" stroke="#c96442" stroke-width="2" rx="4"/>
+      <text x="214" y="186" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="9" font-family="JetBrains Mono,monospace">ISLAND</text>
+      <!-- dims -->
+      <text x="170" y="25" text-anchor="middle" fill="rgba(26,24,21,0.4)" font-size="8" font-family="JetBrains Mono,monospace">3,800 mm</text>
+      <text x="15" y="130" text-anchor="middle" fill="rgba(26,24,21,0.4)" font-size="8" font-family="JetBrains Mono,monospace" transform="rotate(-90,15,130)">2,840 mm</text>
+    </svg>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- CATEGORY SHOWCASE -->
+<div class="section" id="collections">
+  <div class="section-header">
+    <h2 class="section-title">Shop by room</h2>
+  </div>
+  <div class="cat-showcase">
+    <a class="cat-card" href="planner.html">
+      <div class="cat-card-icon" style="background:rgba(201,100,66,0.10)">🍳</div>
+      <span class="cat-card-label">Kitchen</span>
+      <div class="cat-card-title">Modular kitchens</div>
+      <p class="cat-card-desc">Base, wall &amp; high cabinets. METOD-compatible frames, 7 door finishes, quartz &amp; laminate worktops. L-shape, U-shape, island &amp; galley layouts.</p>
+      <span class="cat-card-cta">Browse &amp; plan →</span>
+    </a>
+    <a class="cat-card" href="planner.html">
+      <div class="cat-card-icon" style="background:rgba(91,141,239,0.10)">🚪</div>
+      <span class="cat-card-label">Wardrobe</span>
+      <div class="cat-card-title">Fitted wardrobes</div>
+      <p class="cat-card-desc">Hinged, sliding &amp; mirrored fronts. Walk-in systems from 2–6 m². Interior fittings: pull-out rails, shoe shelves, drawers, LED lighting.</p>
+      <span class="cat-card-cta">Browse &amp; plan →</span>
+    </a>
+    <a class="cat-card" href="planner.html">
+      <div class="cat-card-icon" style="background:rgba(76,186,133,0.10)">💼</div>
+      <span class="cat-card-label">Office</span>
+      <div class="cat-card-title">Home &amp; studio office</div>
+      <p class="cat-card-desc">Solid pine, birch plywood, bamboo &amp; oak veneer desks. Sit-stand, L-shape, wall-mounted &amp; floating. No particleboard, no plastic.</p>
+      <span class="cat-card-cta">Browse &amp; plan →</span>
+    </a>
+  </div>
+
+  <!-- FINISH SWATCHES -->
+  <div style="background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:28px;margin-bottom:16px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--mute);font-family:'JetBrains Mono',monospace;margin-bottom:18px">Cabinet finishes</div>
+    <div class="swatch-row">
+      <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(135deg,#d4ccbe,#b8a995)"></div><span class="swatch-name">Bali oak</span></div>
+      <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(135deg,#fafaf7,#dcd8d0)"></div><span class="swatch-name">Bone matte</span></div>
+      <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(135deg,#3a352e,#1a1815)"></div><span class="swatch-name">Espresso</span></div>
+      <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(135deg,#c8bfa8,#b0a68e)"></div><span class="swatch-name">Sand grey</span></div>
+      <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(135deg,#8c7660,#6e5c48)"></div><span class="swatch-name">Smoked teak</span></div>
+      <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(135deg,#4a4a52,#2e2e36)"></div><span class="swatch-name">Graphite</span></div>
+      <div class="swatch"><div class="swatch-chip" style="background:linear-gradient(135deg,#c4b49a,#b0a080)"></div><span class="swatch-name">Nat. walnut</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FEATURED PRODUCTS -->
+<div class="section">
+  <div class="section-header">
+    <h2 class="section-title">Featured products</h2>
+    <a class="section-link" href="planner.html">See all in planner →</a>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:28px;overflow-x:auto;scrollbar-width:none">
+    <button class="cat-pill active" onclick="filterCat(this,'all')">All</button>
+    <button class="cat-pill" onclick="filterCat(this,'kitchen')">Kitchen</button>
+    <button class="cat-pill" onclick="filterCat(this,'wardrobe')">Wardrobe</button>
+    <button class="cat-pill" onclick="filterCat(this,'office')">Office</button>
+    <button class="cat-pill" onclick="filterCat(this,'dining')">Dining</button>
+  </div>
+  <div class="product-grid" id="product-grid"></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<div class="section">
+  <div class="section-header">
+    <h2 class="section-title">How it works</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(201,100,66,0.10);display:flex;align-items:center;justify-content:center;font-size:20px">📐</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);font-family:'JetBrains Mono',monospace">Step 1</div>
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:400">Plan in 2D &amp; 3D</div>
+      <p style="font-size:13px;color:var(--mute);line-height:1.6">Drag cabinets, appliances and furniture onto the canvas. See your room to scale in real time.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(76,186,133,0.10);display:flex;align-items:center;justify-content:center;font-size:20px">₹</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#2d8f60;font-family:'JetBrains Mono',monospace">Step 2</div>
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:400">Get a live estimate</div>
+      <p style="font-size:13px;color:var(--mute);line-height:1.6">The planner computes a real BOM — cabinets, worktops, appliances, hardware — with GST-inclusive pricing.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(91,141,239,0.10);display:flex;align-items:center;justify-content:center;font-size:20px">🏭</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#3b6fc9;font-family:'JetBrains Mono',monospace">Step 3</div>
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:400">Factory to door</div>
+      <p style="font-size:13px;color:var(--mute);line-height:1.6">Your order is routed to the nearest factory (Mumbai/Bengaluru/Delhi) and delivered via our depot network.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(217,160,73,0.10);display:flex;align-items:center;justify-content:center;font-size:20px">🪛</div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#a0700a;font-family:'JetBrains Mono',monospace">Step 4</div>
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:400">Installed &amp; finished</div>
+      <p style="font-size:13px;color:var(--mute);line-height:1.6">Our installation team fits everything. Lead time 21 days from approval for Tier 1 cities.</p>
+    </div>
+  </div>
+</div>
+
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="trust-item"><div class="trust-val">21</div><div class="trust-label">Day lead time</div></div>
+  <div class="trust-item"><div class="trust-val">3</div><div class="trust-label">Factories across India</div></div>
+  <div class="trust-item"><div class="trust-val">18</div><div class="trust-label">Depot cities</div></div>
+  <div class="trust-item"><div class="trust-val">₹0</div><div class="trust-label">Design fee</div></div>
+  <div class="trust-item"><div class="trust-val">10y</div><div class="trust-label">Warranty on carcass</div></div>
+</div>
+
+<!-- FOOTER -->
+<footer style="background:#0e0d0b;padding:32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+  <span style="font-family:'Fraunces',serif;font-size:15px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.6)">Kreobox</span>
+  <div style="display:flex;gap:20px">
+    <a href="planner.html" style="font-size:11px;color:rgba(255,255,255,0.35);text-decoration:none;font-family:'JetBrains Mono',monospace">Planner</a>
+    <a href="designos.html" style="font-size:11px;color:rgba(255,255,255,0.35);text-decoration:none;font-family:'JetBrains Mono',monospace">Studio ERP</a>
+    <a href="index.html" style="font-size:11px;color:rgba(255,255,255,0.35);text-decoration:none;font-family:'JetBrains Mono',monospace">Hub</a>
+  </div>
+  <span style="font-size:10px;color:rgba(255,255,255,0.2);font-family:'JetBrains Mono',monospace">© 2026 Kreobox · Made in India</span>
+</footer>
+
+<script>
+const PRODUCTS = [
+  { cat:'kitchen', name:'L-shape modular kitchen', desc:'Base + wall cabinets, quartz worktop, 2 appliances', price:'₹4–7.5L', stars:4.8, reviews:124, badge:'popular', icon:'🍳' },
+  { cat:'kitchen', name:'Island kitchen complete', desc:'5×4m with 1.5m Caesarstone island, 4-burner induction', price:'₹9–14L', stars:4.9, reviews:67, badge:'new', icon:'🔥' },
+  { cat:'kitchen', name:'Base cabinet with drawers', desc:'METOD frame, Hettich slides, 400/600/800mm', price:'₹15–24k', stars:4.6, reviews:310, badge:'', icon:'▦' },
+  { cat:'kitchen', name:'Quartz worktop 30mm', desc:'Caesarstone · ₹850–1,400/sqft', price:'From ₹850/sqft', stars:4.7, reviews:88, badge:'', icon:'⬜' },
+  { cat:'kitchen', name:'Induction hob 4-zone', desc:'Faber built-in, 60cm, touch control', price:'₹18–28k', stars:4.5, reviews:203, badge:'', icon:'⚡' },
+  { cat:'kitchen', name:'Extractor hood 90cm', desc:'Faber chimney, 1200 m³/hr, baffle filter', price:'₹22–42k', stars:4.4, reviews:176, badge:'sale', icon:'💨' },
+  { cat:'wardrobe', name:'3-door hinged wardrobe', desc:'200×58×200cm, white matte or grey, full-extension rails', price:'₹35–55k', stars:4.7, reviews:92, badge:'popular', icon:'🚪' },
+  { cat:'wardrobe', name:'Mirrored sliding wardrobe', desc:'200×65×200cm, full-length mirrors, soft-close', price:'₹52–80k', stars:4.8, reviews:58, badge:'new', icon:'🪞' },
+  { cat:'wardrobe', name:'Walk-in system 4m²', desc:'3-wall layout, 75cm depth frames, LED included', price:'₹95–145k', stars:4.9, reviews:34, badge:'', icon:'👗' },
+  { cat:'wardrobe', name:'Pull-out trouser rack', desc:'50cm, soft-close, mounts inside any frame', price:'₹4–9k', stars:4.5, reviews:218, badge:'', icon:'👔' },
+  { cat:'office', name:'Birch plywood writing desk', desc:'120×60cm, solid birch legs, cable management', price:'₹18–28k', stars:4.8, reviews:156, badge:'popular', icon:'📋' },
+  { cat:'office', name:'Sit-stand solid wood desk', desc:'120–160cm, steel frame, oak/pine/bamboo top', price:'₹36–62k', stars:4.7, reviews:89, badge:'new', icon:'↕' },
+  { cat:'office', name:'L-shape corner desk', desc:'180×120cm, solid pine + plywood, cable tray', price:'₹32–52k', stars:4.6, reviews:71, badge:'', icon:'📐' },
+  { cat:'office', name:'Solid oak floating shelf-desk', desc:'140×40cm, wall-mounted, 80kg capacity', price:'₹16–28k', stars:4.5, reviews:112, badge:'sale', icon:'📌' },
+  { cat:'dining', name:'Extendable dining table', desc:'6→8 seat, solid mango wood, 160–220cm', price:'₹28–55k', stars:4.7, reviews:143, badge:'popular', icon:'🍽' },
+  { cat:'dining', name:'Bar stool set ×2', desc:'75cm, solid oak, Hettich swivel base', price:'₹12–22k', stars:4.6, reviews:204, badge:'', icon:'🪑' },
+];
+
+let currentCat = 'all';
+
+function filterCat(el, cat) {
+  document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentCat = cat;
+  renderProducts();
+}
+
+function stars(n) {
+  const full = Math.floor(n), half = n - full >= 0.5 ? 1 : 0, empty = 5 - full - half;
+  return '★'.repeat(full) + (half ? '⯨' : '') + '☆'.repeat(empty);
+}
+
+function renderProducts() {
+  const grid = document.getElementById('product-grid');
+  const items = currentCat === 'all' ? PRODUCTS : PRODUCTS.filter(p => p.cat === currentCat);
+  grid.innerHTML = items.map(p => `
+    <div class="product-card" onclick="window.location='planner.html'">
+      <div class="product-img">
+        <span style="font-size:52px;opacity:0.7">${p.icon}</span>
+        ${p.badge ? `<span class="product-badge badge-${p.badge}">${p.badge}</span>` : ''}
+      </div>
+      <div class="product-body">
+        <div class="product-category">${p.cat}</div>
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-stars">
+          <span class="stars">${stars(p.stars)}</span>
+          <span class="star-count">${p.stars} (${p.reviews})</span>
+        </div>
+        <div class="product-footer">
+          <div class="product-price">${p.price} <span>incl. GST</span></div>
+          <a class="product-cta" href="planner.html">Plan →</a>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+renderProducts();
+</script>
+</body>
+</html>

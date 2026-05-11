@@ -50,14 +50,13 @@ function KreoboxWordmark({ size = 18, color = pInk }) {
 }
 
 /* ── 2D top-down kitchen plan (blank canvas, drag-and-drop) ── */
-function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onDrop, onItemMove, onItemDelete }) {
+function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onDrop, onItemMove, onItemDelete, roomW: ROOM_W = 3800, roomD: ROOM_D = 2840 }) {
   const { useState: useS, useRef } = React;
   const svgRef = useRef(null);
   const [drag, setDrag] = useS(null); // { id, startSX, startSY, origX, origY }
 
   const SVG_W = 480, SVG_H = 380;
   const PX = 48, PY = 44, PW = 390, PH = 292;
-  const ROOM_W = 3800, ROOM_D = 2840;
   const r2s  = (rx, ry) => ({ x: PX + rx * PW / ROOM_W, y: PY + ry * PH / ROOM_D });
   const r2sw = w => w * PW / ROOM_W;
   const r2sh = h => h * PH / ROOM_D;
@@ -155,11 +154,11 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onD
           <line x1={PX} y1={PY-8} x2={PX+PW} y2={PY-8} stroke={dimColor} strokeWidth="1"/>
           <line x1={PX} y1={PY-12} x2={PX} y2={PY-4} stroke={dimColor} strokeWidth="1"/>
           <line x1={PX+PW} y1={PY-12} x2={PX+PW} y2={PY-4} stroke={dimColor} strokeWidth="1"/>
-          <text x={PX+PW/2} y={PY-14} textAnchor="middle">3,800 mm</text>
+          <text x={PX+PW/2} y={PY-14} textAnchor="middle">{ROOM_W.toLocaleString('en-IN')} mm</text>
           <line x1={PX-8} y1={PY} x2={PX-8} y2={PY+PH} stroke={dimColor} strokeWidth="1"/>
           <line x1={PX-12} y1={PY} x2={PX-4} y2={PY} stroke={dimColor} strokeWidth="1"/>
           <line x1={PX-12} y1={PY+PH} x2={PX-4} y2={PY+PH} stroke={dimColor} strokeWidth="1"/>
-          <text x={PX-20} y={PY+PH/2} textAnchor="middle" transform={`rotate(-90,${PX-20},${PY+PH/2})`}>2,840 mm</text>
+          <text x={PX-20} y={PY+PH/2} textAnchor="middle" transform={`rotate(-90,${PX-20},${PY+PH/2})`}>{ROOM_D.toLocaleString('en-IN')} mm</text>
         </g>
 
         {/* Empty state */}
@@ -214,55 +213,133 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onD
   );
 }
 
-/* ── Front elevation ───────────────────────────────────────── */
-function KitchenElevation({ accent = pAccent }) {
+/* ── Front elevation — driven by placed items ──────────────── */
+function KitchenElevation({ accent = pAccent, items = [], roomW = 3800, roomH = 2400 }) {
   const cabFill = '#e8e2d5', cabStroke = '#a99a82', dimColor = pMute;
+  const SVG_W = 480, SVG_H = 340;
+  const L = 30, R = SVG_W - 30, B = 300, T = 40;
+  const availW = R - L;
+  const availH = B - T;
+  // scale: room mm → svg px
+  const scaleX = availW / roomW;
+  const scaleH = availH / roomH;
+
+  // Filter items that are cabinets/storage (not appliances on floor)
+  const cabItems = items.filter(it => {
+    const n = it.name.toLowerCase();
+    return n.includes('cabinet') || n.includes('wardrobe') || n.includes('pantry') || n.includes('frame') || n.includes('desk') || n.includes('shelf');
+  });
+
+  // Sort by x position for elevation rendering
+  const sorted = [...cabItems].sort((a, b) => a.x - b.x);
+
+  // If no placed items show placeholder message
+  if (items.length === 0) {
+    return (
+      <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ width:'100%', height:'100%', display:'block' }}>
+        <rect width={SVG_W} height={SVG_H} fill={pBg}/>
+        <line x1={L} y1={B} x2={R} y2={B} stroke="#1a1815" strokeWidth="3"/>
+        <line x1={L} y1={T} x2={R} y2={T} stroke="rgba(26,24,21,0.12)" strokeWidth="1" strokeDasharray="4 4"/>
+        <text x={SVG_W/2} y={SVG_H/2 - 8} fill="rgba(26,24,21,0.18)" fontSize="12" fontFamily="JetBrains Mono,monospace" textAnchor="middle">
+          Drag items to 2D plan to see elevation
+        </text>
+        <text x={SVG_W/2} y={SVG_H/2 + 10} fill="rgba(26,24,21,0.1)" fontSize="10" fontFamily="JetBrains Mono,monospace" textAnchor="middle">
+          FRONT ELEVATION · {(roomW/1000).toFixed(1)} m
+        </text>
+        <g fill={dimColor} fontSize="9" fontFamily="JetBrains Mono,monospace">
+          <line x1={L} y1={B+16} x2={R} y2={B+16} stroke={dimColor} strokeWidth="1"/>
+          <line x1={L} y1={B+12} x2={L} y2={B+20} stroke={dimColor} strokeWidth="1"/>
+          <line x1={R} y1={B+12} x2={R} y2={B+20} stroke={dimColor} strokeWidth="1"/>
+          <text x={SVG_W/2} y={B+30} textAnchor="middle">{(roomW/1000).toFixed(1)*1000} mm · FRONT ELEVATION</text>
+        </g>
+      </svg>
+    );
+  }
+
+  // Draw each placed item as a cabinet elevation block
+  const BASE_CAB_H = 870; // mm (base cabinet standard height incl worktop)
+  const WALL_CAB_Y = 1380; // mm from floor (wall cabinet bottom)
+  const WALL_CAB_H = 720;
+
   return (
-    <svg viewBox="0 0 480 340" style={{ width:'100%', height:'100%', display:'block' }}>
-      <rect width="480" height="340" fill={pBg}/>
-      <line x1="30" y1="300" x2="450" y2="300" stroke="#1a1815" strokeWidth="3"/>
-      <line x1="30" y1="40" x2="450" y2="40" stroke="rgba(26,24,21,0.15)" strokeWidth="1" strokeDasharray="4 4"/>
-      <rect x="30" y="40" width="420" height="260" fill="rgba(232,226,213,0.15)"/>
-      <rect x="32" y="196" width="80" height="104" fill={cabFill} stroke={cabStroke} strokeWidth="1.5"/>
-      <line x1="72" y1="196" x2="72" y2="300" stroke={cabStroke} strokeWidth="1"/>
-      <rect x="114" y="196" width="100" height="104" fill={cabFill} stroke={cabStroke} strokeWidth="1.5"/>
-      <rect x="124" y="208" width="80" height="44" fill="#d0c8b8" stroke={cabStroke} strokeWidth="1" rx="2"/>
-      <circle cx="164" cy="230" r="4" fill="#a99a82"/>
-      <rect x="216" y="196" width="84" height="104" fill={cabFill} stroke={cabStroke} strokeWidth="1.5"/>
-      <rect x="226" y="208" width="64" height="44" fill="#1a1815" rx="2"/>
-      <circle cx="242" cy="222" r="4" fill="#3a352e"/>
-      <circle cx="264" cy="222" r="4" fill="#3a352e"/>
-      <rect x="302" y="196" width="86" height="104" fill={cabFill} stroke={cabStroke} strokeWidth="1.5"/>
-      <line x1="345" y1="196" x2="345" y2="300" stroke={cabStroke} strokeWidth="1"/>
-      <rect x="390" y="40" width="58" height="260" fill={cabFill} stroke={accent} strokeWidth="2.5"/>
-      <line x1="390" y1="144" x2="448" y2="144" stroke={cabStroke} strokeWidth="1"/>
-      <line x1="390" y1="220" x2="448" y2="220" stroke={cabStroke} strokeWidth="1"/>
-      <rect x="32" y="100" width="346" height="78" fill="rgba(232,226,213,0.6)" stroke={cabStroke} strokeWidth="1.5"/>
-      <line x1="112" y1="100" x2="112" y2="178" stroke={cabStroke} strokeWidth="1"/>
-      <line x1="196" y1="100" x2="196" y2="178" stroke={cabStroke} strokeWidth="1"/>
-      <line x1="268" y1="100" x2="268" y2="178" stroke={cabStroke} strokeWidth="1"/>
-      <text x="200" y="145" fill={dimColor} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle">WALL CABINETS · 720h</text>
-      <rect x="32" y="188" width="418" height="8" fill="#c8c0b0" stroke={cabStroke} strokeWidth="1"/>
+    <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ width:'100%', height:'100%', display:'block' }}>
+      <rect width={SVG_W} height={SVG_H} fill={pBg}/>
+      <line x1={L} y1={T} x2={R} y2={T} stroke="rgba(26,24,21,0.1)" strokeWidth="1" strokeDasharray="4 4"/>
+      <rect x={L} y={T} width={availW} height={availH} fill="rgba(232,226,213,0.12)"/>
+
+      {/* Render placed items as elevation blocks */}
+      {sorted.map((item, i) => {
+        const n = item.name.toLowerCase();
+        const isWall = n.includes('wall') || n.includes('floating');
+        const isHigh = n.includes('high') || n.includes('pantry high') || n.includes('wardrobe') || n.includes('frame');
+        const itemW = Math.max(20, item.w * scaleX);
+        const svgX = L + item.x * scaleX;
+
+        let cabH, svgY, fill;
+        if (isHigh) {
+          cabH = availH; svgY = T; fill = cabFill;
+        } else if (isWall) {
+          cabH = WALL_CAB_H * scaleH; svgY = B - BASE_CAB_H * scaleH - cabH - 4; fill = 'rgba(232,226,213,0.7)';
+        } else {
+          cabH = BASE_CAB_H * scaleH; svgY = B - cabH; fill = cabFill;
+        }
+
+        const isAppliance = n.includes('hob') || n.includes('oven') || n.includes('sink') || n.includes('dishwasher') || n.includes('fridge');
+        const appFill = n.includes('hob') || n.includes('oven') ? '#2a2520' : n.includes('sink') ? '#a0b8c8' : n.includes('fridge') ? '#b8c8b0' : cabFill;
+
+        return (
+          <g key={item.id}>
+            <rect x={svgX} y={svgY} width={itemW} height={cabH}
+              fill={isAppliance ? appFill : fill} stroke={cabStroke} strokeWidth="1.2" rx="1"/>
+            {!isAppliance && itemW > 24 && <line x1={svgX+itemW/2} y1={svgY+cabH*0.1} x2={svgX+itemW/2} y2={svgY+cabH*0.9} stroke={cabStroke} strokeWidth="0.7" strokeDasharray="2 2"/>}
+            {itemW > 18 && <circle cx={svgX+itemW*0.3} cy={svgY+cabH*0.5} r="2.5" fill={cabStroke}/>}
+            {itemW > 40 && (
+              <text x={svgX+itemW/2} y={svgY+cabH+12} fill={pMute} fontSize="7" fontFamily="JetBrains Mono,monospace" textAnchor="middle"
+                style={{ pointerEvents:'none' }}>
+                {item.name.split(' ').slice(0,2).join(' ')}
+              </text>
+            )}
+          </g>
+        );
+      })}
+
+      {/* Worktop line */}
+      {items.length > 0 && (
+        <rect x={L} y={B - BASE_CAB_H * scaleH} width={availW} height={8} fill="#c8c0b0" stroke={cabStroke} strokeWidth="0.8"/>
+      )}
+
+      {/* Floor line */}
+      <line x1={L} y1={B} x2={R} y2={B} stroke="#1a1815" strokeWidth="3"/>
+
+      {/* Dimension lines */}
       <g fill={dimColor} fontSize="9" fontFamily="JetBrains Mono,monospace">
-        <line x1="16" y1="40" x2="16" y2="300" stroke={dimColor} strokeWidth="1"/>
-        <line x1="12" y1="40" x2="20" y2="40" stroke={dimColor} strokeWidth="1"/>
-        <line x1="12" y1="300" x2="20" y2="300" stroke={dimColor} strokeWidth="1"/>
-        <text x="8" y="170" textAnchor="middle" transform="rotate(-90,8,170)">2,400 mm</text>
-        <line x1="32" y1="316" x2="448" y2="316" stroke={dimColor} strokeWidth="1"/>
-        <line x1="32" y1="312" x2="32" y2="320" stroke={dimColor} strokeWidth="1"/>
-        <line x1="448" y1="312" x2="448" y2="320" stroke={dimColor} strokeWidth="1"/>
-        <text x="240" y="330" textAnchor="middle">3,800 mm · FRONT ELEVATION</text>
+        <line x1={L-14} y1={T} x2={L-14} y2={B} stroke={dimColor} strokeWidth="1"/>
+        <line x1={L-18} y1={T} x2={L-10} y2={T} stroke={dimColor} strokeWidth="1"/>
+        <line x1={L-18} y1={B} x2={L-10} y2={B} stroke={dimColor} strokeWidth="1"/>
+        <text x={L-22} y={(T+B)/2+3} textAnchor="middle" transform={`rotate(-90,${L-22},${(T+B)/2})`}>{roomH} mm</text>
+        <line x1={L} y1={B+16} x2={R} y2={B+16} stroke={dimColor} strokeWidth="1"/>
+        <line x1={L} y1={B+12} x2={L} y2={B+20} stroke={dimColor} strokeWidth="1"/>
+        <line x1={R} y1={B+12} x2={R} y2={B+20} stroke={dimColor} strokeWidth="1"/>
+        <text x={SVG_W/2} y={B+30} textAnchor="middle">{roomW} mm · FRONT ELEVATION</text>
       </g>
     </svg>
   );
 }
 
-/* ── TRUE PERSPECTIVE 3D view ──────────────────────────────── */
-function KitchenPlan3D({ accent = pAccent }) {
+/* ── Item price estimator ──────────────────────────────────── */
+function estimateItemPrice(priceStr) {
+  if (!priceStr) return 0;
+  const m = priceStr.match(/₹\s*([\d.]+)\s*[–\-]\s*([\d.]+)\s*([kLM])?/i);
+  if (!m) return 0;
+  const mult = m[3] === 'L' ? 100000 : m[3] === 'M' ? 1000000 : 1000;
+  return Math.round((parseFloat(m[1]) + parseFloat(m[2])) / 2 * mult);
+}
+
+/* ── TRUE PERSPECTIVE 3D view — driven by placed items ──────── */
+function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: RD = 2840, roomH: RH = 2400 }) {
   const { useState: useS, useCallback: useCB, useMemo: useM, useRef } = React;
-  const RW = 3800, RD = 2840, RH = 2400;
   const SVG_W = 620, SVG_H = 440;
-  const m = Math.sqrt(RW * RW + RD * RD);
+  const denom = Math.sqrt(RW * RW + RD * RD);
   const p = SVG_W * 0.65;
   const [yaw, setYaw]     = useS(-35);
   const [pitch, setPitch] = useS(55);
@@ -273,45 +350,55 @@ function KitchenPlan3D({ accent = pAccent }) {
     const cy = Math.cos(yaw*Math.PI/180), sy = Math.sin(yaw*Math.PI/180);
     const cp = Math.cos(pitch*Math.PI/180), sp = Math.sin(pitch*Math.PI/180);
     const rx = tx*cy + tz*sy, rz = -tx*sy + tz*cy;
-    const ry = ty*cp - rz*sp, depth = ty*sp + rz*cp + m;
+    const ry = ty*cp - rz*sp, depth = ty*sp + rz*cp + denom;
     if (depth < 1) return { x: SVG_W/2, y: SVG_H/2, z: -1 };
     return { x: SVG_W/2 + rx*p/depth, y: SVG_H/2 - ry*p/depth, z: depth };
-  }, [yaw, pitch]);
+  }, [yaw, pitch, RW, RD, RH]);
 
   const polys = useM(() => {
     const ps = [];
     const face = (pts3, fill, stroke='#00000018', sw=0.5) => ps.push({ pts3, fill, stroke, sw });
+
+    // Room shell — floor + back wall + left wall
     face([[0,0,0],[RW,0,0],[RW,0,RD],[0,0,RD]], '#d8d3c8', '#c4bfb4');
     face([[0,0,0],[RW,0,0],[RW,RH,0],[0,RH,0]], '#edeae4', '#d8d3c8');
     face([[0,0,0],[0,0,RD],[0,RH,RD],[0,RH,0]], '#e8e4dc', '#d8d3c8');
-    const cf = '#d8d0c0', cfd = '#c8c0b0', cft = '#e4ddd0';
-    face([[0,720,0],[3200,720,0],[3200,720,600],[0,720,600]], cft,'#00000020',0.3);
-    face([[0,0,0],[3200,0,0],[3200,720,0],[0,720,0]], cfd,'#00000020',0.3);
-    face([[0,0,600],[3200,0,600],[3200,720,600],[0,720,600]], cf,'#00000030',0.5);
-    face([[3200,0,0],[3200,0,600],[3200,720,600],[3200,720,0]], cf,'#00000030',0.5);
-    face([[0,720,0],[600,720,0],[600,720,2200],[0,720,2200]], cft,'#00000020',0.3);
-    face([[0,0,0],[0,0,2200],[600,0,2200],[600,0,0]], cfd,'#00000020',0.3);
-    face([[0,0,2200],[0,720,2200],[600,720,2200],[600,0,2200]], cf,'#00000030',0.5);
-    face([[600,0,0],[600,0,2200],[600,720,2200],[600,720,0]], cf,'#00000020',0.3);
-    face([[0,728,0],[3200,728,0],[3200,728,640],[0,728,640]], '#c8c0b0','#b4ada0');
-    face([[0,728,0],[640,728,0],[640,728,2200],[0,728,2200]], '#c8c0b0','#b4ada0');
-    const wf = '#ccc6ba', wfd = '#bbb5a9';
-    face([[200,2100,0],[2900,2100,0],[2900,2100,350],[200,2100,350]], wf,'#00000018',0.3);
-    face([[200,1380,0],[2900,1380,0],[2900,2100,0],[200,2100,0]], wfd,'#00000018',0.3);
-    face([[200,1380,350],[200,2100,350],[2900,2100,350],[2900,1380,350]], wf,'#00000025',0.4);
-    const pf = '#cdb99a', pfl = '#bca88a', pfd = '#d4c4a8';
-    face([[3200,0,0],[3800,0,0],[3800,2400,0],[3200,2400,0]], pfl,'#00000020',0.3);
-    face([[3200,0,0],[3200,0,600],[3800,0,600],[3800,0,0]], pfd,'#00000020',0.3);
-    face([[3800,0,0],[3800,0,600],[3800,2400,600],[3800,2400,0]], pf,'#00000030',0.4);
-    face([[3200,0,600],[3800,0,600],[3800,2400,600],[3200,2400,600]], pf, accent+'22', 0.4);
-    face([[3200,2400,0],[3800,2400,0],[3800,2400,600],[3200,2400,600]], pfd,'#00000025',0.3);
-    face([[1200,900,1600],[2500,900,1600],[2500,900,2500],[1200,900,2500]], '#252018','#ffffff10',0.3);
-    face([[1200,0,1600],[2500,0,1600],[2500,900,1600],[1200,900,1600]], '#201d19','#ffffff08',0.3);
-    face([[1200,0,2500],[2500,0,2500],[2500,900,2500],[1200,900,2500]], '#1a1815','#ffffff08',0.3);
-    face([[1200,0,1600],[1200,0,2500],[1200,900,2500],[1200,900,1600]], '#1a1815','#ffffff08',0.3);
-    face([[2500,0,1600],[2500,0,2500],[2500,900,2500],[2500,900,1600]], '#1a1815','#ffffff08',0.3);
+
+    if (items.length === 0) {
+      // Placeholder ghost of a base cabinet run so the room doesn't look empty
+      const cf = 'rgba(200,192,176,0.35)';
+      face([[0,0,0],[2400,0,0],[2400,870,0],[0,870,0]], cf, '#00000010', 0.3);
+      face([[0,870,0],[2400,870,0],[2400,870,580],[0,870,580]], cf, '#00000010', 0.3);
+    }
+
+    // Each dropped item as a 3D box
+    items.forEach(item => {
+      const n = item.name.toLowerCase();
+      const isWall = (n.includes('wall') && n.includes('cabinet')) || n.includes('floating') || n.includes('wall shelf');
+      const isHigh = n.includes('high cabinet') || n.includes('pantry high') || n.includes('wardrobe') || n.includes('frame');
+      const bx = Math.max(0, item.x);
+      const bz = Math.max(0, item.y);
+      const bw = Math.max(150, item.w || 600);
+      const bd = Math.max(100, item.h || 580);
+      let by0, by1;
+      if (isHigh)      { by0 = 0; by1 = 2200; }
+      else if (isWall) { by0 = 1380; by1 = 2100; }
+      else             { by0 = 0; by1 = 870; }
+      const fc = item.color || '#c8c0b0';
+      // Front face (door side, toward room center)
+      face([[bx,by0,bz+bd],[bx+bw,by0,bz+bd],[bx+bw,by1,bz+bd],[bx,by1,bz+bd]], fc, '#00000022', 1.2);
+      // Back face (against wall)
+      face([[bx,by0,bz],[bx+bw,by0,bz],[bx+bw,by1,bz],[bx,by1,bz]], fc, '#00000015', 0.5);
+      // Top face
+      face([[bx,by1,bz],[bx+bw,by1,bz],[bx+bw,by1,bz+bd],[bx,by1,bz+bd]], fc, '#00000012', 0.4);
+      // Right side
+      face([[bx+bw,by0,bz],[bx+bw,by0,bz+bd],[bx+bw,by1,bz+bd],[bx+bw,by1,bz]], fc, '#00000030', 0.5);
+      // Left side
+      face([[bx,by0,bz],[bx,by0,bz+bd],[bx,by1,bz+bd],[bx,by1,bz]], fc, '#00000028', 0.5);
+    });
+
     return ps;
-  }, [yaw, pitch, accent]);
+  }, [yaw, pitch, accent, items, RW, RD, RH]);
 
   const projected = useM(() =>
     polys.map(poly => {
@@ -471,16 +558,21 @@ function getCabColor(name) {
   return '#c8c0b0';
 }
 
-/* ── Catalog tab config ────────────────────────────────────── */
-const CATALOG_TABS = [
-  { id:'cabinets',  label:'Kitchen',        icon:'▦' },
-  { id:'appliances',label:'Appliances',     icon:'⊡' },
-  { id:'dining',    label:'Dining',         icon:'⊞' },
-  { id:'extras',    label:'Extras',         icon:'⊟' },
-  { id:'office',    label:'Office',         icon:'⊟' },
-  { id:'wardrobe',  label:'Wardrobe',       icon:'⊠' },
-  { id:'search',    label:'Search',         icon:'⌕' },
-];
+/* ── Catalog tabs per room type ────────────────────────────── */
+const CATALOG_TABS_BY_ROOM = {
+  kitchen:  [
+    { id:'cabinets',   label:'Kitchen',     icon:'▦' },
+    { id:'appliances', label:'Appliances',  icon:'⊡' },
+    { id:'dining',     label:'Dining',      icon:'⊞' },
+    { id:'extras',     label:'Extras',      icon:'⊟' },
+  ],
+  wardrobe: [
+    { id:'wardrobe',   label:'Wardrobe',    icon:'⊠' },
+  ],
+  office:   [
+    { id:'office',     label:'Desks',       icon:'⊟' },
+  ],
+};
 
 /* ── Kitchen preset layouts ────────────────────────────────── */
 const KITCHEN_PRESETS = [
@@ -750,10 +842,37 @@ const WARDROBE_SECTIONS = [
   },
 ];
 
+/* ── Room size presets per room type ───────────────────────── */
+const ROOM_SIZES = {
+  kitchen: [
+    { label:'2.4×2.4m', W:2400, D:2400, layout:'Straight' },
+    { label:'3×2.8m',   W:3000, D:2840, layout:'L-shape'  },
+    { label:'3.8×2.8m', W:3800, D:2840, layout:'L-shape'  },
+    { label:'4×3m',     W:4000, D:3000, layout:'U-shape'  },
+    { label:'5×4m',     W:5000, D:4000, layout:'Island'   },
+  ],
+  wardrobe: [
+    { label:'1.0m wide',  W:1000, D:600,  layout:'2-door'  },
+    { label:'1.5m wide',  W:1500, D:600,  layout:'3-door'  },
+    { label:'2.0m wide',  W:2000, D:600,  layout:'4-door'  },
+    { label:'2.5m wide',  W:2500, D:650,  layout:'Sliding' },
+    { label:'Walk-in 4m²',W:2000, D:2000, layout:'Walk-in' },
+  ],
+  office: [
+    { label:'3×3m',  W:3000, D:3000, layout:'Open' },
+    { label:'4×3m',  W:4000, D:3000, layout:'Open' },
+    { label:'4×4m',  W:4000, D:4000, layout:'Open' },
+    { label:'5×4m',  W:5000, D:4000, layout:'Open' },
+  ],
+};
+
 /* ── Catalog panel ─────────────────────────────────────────── */
-function CatalogPanel({ onAdd, activeTab, onTabChange }) {
+function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, roomD, roomType = 'kitchen' }) {
   const { useState: useS } = React;
   const setActiveTab = t => { onTabChange && onTabChange(t); };
+  const catalogTabs = CATALOG_TABS_BY_ROOM[roomType] || CATALOG_TABS_BY_ROOM.kitchen;
+  // Auto-correct activeTab if it doesn't belong to current room type
+  const validActiveTab = catalogTabs.find(t => t.id === activeTab) ? activeTab : catalogTabs[0]?.id;
   const [search, setSearch]                 = useS('');
   const [catalogView, setCatalogView]       = useS('grid');
   const [selectedVariants, setSelectedVariants] = useS({});
@@ -764,15 +883,19 @@ function CatalogPanel({ onAdd, activeTab, onTabChange }) {
   };
   const pickVariant = (name, v) => setSelectedVariants(s => ({ ...s, [name]: v }));
 
+  const tab = validActiveTab;
   let sections = [];
-  if (activeTab === 'cabinets')   sections = CABINET_SECTIONS;
-  if (activeTab === 'appliances') sections = APPLIANCE_SECTIONS;
-  if (activeTab === 'dining')     sections = DINING_SECTIONS;
-  if (activeTab === 'extras')     sections = EXTRAS_SECTIONS;
-  if (activeTab === 'office')     sections = DESK_SECTIONS;
-  if (activeTab === 'wardrobe')   sections = WARDROBE_SECTIONS;
+  if (tab === 'cabinets')   sections = CABINET_SECTIONS;
+  if (tab === 'appliances') sections = APPLIANCE_SECTIONS;
+  if (tab === 'dining')     sections = DINING_SECTIONS;
+  if (tab === 'extras')     sections = EXTRAS_SECTIONS;
+  if (tab === 'office')     sections = DESK_SECTIONS;
+  if (tab === 'wardrobe')   sections = WARDROBE_SECTIONS;
 
-  const presets = activeTab === 'cabinets' ? KITCHEN_PRESETS : activeTab === 'wardrobe' ? WARDROBE_PRESETS : null;
+  // Determine which room type's sizes to show
+  const sizeRoomType = roomType;
+  const roomSizes = ROOM_SIZES[sizeRoomType] || [];
+  const currentSizeLabel = roomSizes.find(s => s.W === roomW && s.D === roomD)?.label || null;
 
   const filtered = sections.map(sec => ({
     ...sec,
@@ -788,14 +911,14 @@ function CatalogPanel({ onAdd, activeTab, onTabChange }) {
 
   return (
     <div style={{ ...pStyles.panel, width:300, flexShrink:0 }}>
-      {/* Tab bar */}
+      {/* Tab bar — only shows tabs relevant to current room type */}
       <div style={{ display:'flex', overflowX:'auto', borderBottom:`1px solid ${pLine}`, scrollbarWidth:'none', flexShrink:0 }}>
-        {CATALOG_TABS.map(tab => {
-          const active = tab.id === activeTab;
+        {catalogTabs.map(tab => {
+          const active = tab.id === validActiveTab;
           return (
             <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSearch(''); }} style={{
               display:'flex', flexDirection:'column', alignItems:'center', gap:4,
-              padding:'10px 10px', border:'none', background:'transparent', cursor:'pointer',
+              padding:'10px 16px', border:'none', background:'transparent', cursor:'pointer',
               borderBottom: active ? `2px solid ${pAccent}` : '2px solid transparent',
               color: active ? pAccent : pMute,
               fontSize:9, fontWeight:700, fontFamily:'JetBrains Mono,monospace',
@@ -812,7 +935,7 @@ function CatalogPanel({ onAdd, activeTab, onTabChange }) {
       <div style={{ padding:'8px 12px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', background:'rgba(26,24,21,0.04)', borderRadius:8, fontSize:12, color:pMute, marginBottom:8 }}>
           <span>⌕</span>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${activeTab}…`}
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${roomType}…`}
             style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Inter Tight",sans-serif' }} />
           {search && <span onClick={() => setSearch('')} style={{ cursor:'pointer', fontSize:14, lineHeight:1 }}>×</span>}
         </div>
@@ -828,70 +951,31 @@ function CatalogPanel({ onAdd, activeTab, onTabChange }) {
         </div>
       </div>
 
+      {/* Room size selector */}
+      {!search && roomSizes.length > 0 && (
+        <div style={{ padding:'8px 12px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
+          <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:6 }}>Room size</div>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
+            {roomSizes.map(rs => {
+              const active = currentSizeLabel === rs.label;
+              return (
+                <span key={rs.label} onClick={() => onSizePreset && onSizePreset(rs)} style={{
+                  padding:'4px 8px', borderRadius:5, fontSize:10, fontWeight:600,
+                  fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                  border:`1px solid ${active ? pAccent : pLine}`,
+                  background: active ? 'rgba(201,100,66,0.1)' : 'rgba(26,24,21,0.03)',
+                  color: active ? pAccent : pMute,
+                }}>{rs.label}</span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       <div style={{ flex:1, overflowY:'auto', padding:'8px' }}>
 
-        {/* ── Preset designs block ── */}
-        {presets && !search && (
-          <div style={{ marginBottom:10 }}>
-            <div style={{ padding:'8px 4px 6px', fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace' }}>
-              Preset designs
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-              {presets.map((p, idx) => {
-                const selV = selectedVariants[p.name] || p.variants[0];
-                return (
-                  <div key={p.name} style={{ background:`linear-gradient(135deg,${pPaper},rgba(201,100,66,0.04))`, border:`1px solid ${pLine}`, borderRadius:10, padding:'10px 12px' }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8 }}>
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontSize:11, fontWeight:700 }}>{p.name}</div>
-                        {p.desc && <div style={{ fontSize:10, color:pMute, lineHeight:1.4, marginTop:2 }}>{p.desc}</div>}
-                        <div style={{ fontSize:9, color:pAccent, fontFamily:'JetBrains Mono,monospace', marginTop:4 }}>{p.price}</div>
-                      </div>
-                      <StarRow seed={idx + 80} />
-                    </div>
-                    <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:6 }}>
-                      {p.variants.map(v => (
-                        <span key={v} onClick={() => pickVariant(p.name, v)} style={{
-                          padding:'2px 6px', borderRadius:4, fontSize:9, fontWeight:600, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
-                          border:`1px solid ${v===selV ? pAccent : pLine}`,
-                          background: v===selV ? 'rgba(201,100,66,0.08)' : 'transparent',
-                          color: v===selV ? pAccent : pMute,
-                        }}>{v}</span>
-                      ))}
-                    </div>
-                    <button onClick={() => onAdd && onAdd({ name:p.name, variant:selV, price:p.price })}
-                      style={{ marginTop:8, width:'100%', padding:'6px', borderRadius:6, fontSize:10, fontWeight:700, border:'none', background:pInk, color:pPaper, cursor:'pointer' }}>
-                      + Select preset
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Design it yourself CTA */}
-            <div style={{ marginTop:8, background:`linear-gradient(135deg,rgba(26,24,21,0.96),rgba(60,53,46,0.98))`, borderRadius:10, padding:'14px 14px', color:pPaper }}>
-              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', fontWeight:700, marginBottom:4 }}>Design it yourself</div>
-              <div style={{ fontSize:12, lineHeight:1.5, color:'rgba(255,255,255,0.85)', marginBottom:10 }}>
-                Pick your frame size, door style, finish, and interior — the planner assembles a live BOM instantly.
-              </div>
-              <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:10 }}>
-                {(activeTab === 'cabinets'
-                  ? ['L-shape','U-shape','Island','Galley']
-                  : ['2-door','3-door','Sliding','Walk-in']
-                ).map(opt => (
-                  <span key={opt} style={{ padding:'4px 9px', borderRadius:5, fontSize:10, fontWeight:600, background:'rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.8)', cursor:'pointer', border:'1px solid rgba(255,255,255,0.15)' }}>{opt}</span>
-                ))}
-              </div>
-              <button onClick={() => onAdd && onAdd({ name:`Custom ${activeTab === 'cabinets' ? 'Kitchen' : 'Wardrobe'} Design`, variant:'Bespoke', price:'Contact for quote' })}
-                style={{ width:'100%', padding:'8px', borderRadius:7, fontSize:11, fontWeight:700, border:'none', background:pAccent, color:'#fff', cursor:'pointer' }}>
-                Start designing →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {allItems.length === 0 && !presets && (
+        {allItems.length === 0 && (
           <div style={{ padding:'24px', fontSize:12, color:pMute, textAlign:'center' }}>No results for "{search}"</div>
         )}
 
@@ -998,8 +1082,8 @@ function CatalogPanel({ onAdd, activeTab, onTabChange }) {
           </div>
         )}
 
-        {/* Finishes swatch (cabinets, no search) */}
-        {activeTab === 'cabinets' && !search && (
+        {/* Finishes swatch (kitchen cabinets only) */}
+        {tab === 'cabinets' && !search && (
           <div style={{ padding:'12px 8px', borderTop:`1px solid ${pLine}`, marginTop:8 }}>
             <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>Finishes</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:6 }}>
@@ -1207,8 +1291,18 @@ function PlannerFrontend({ accent = pAccent }) {
   const [editDim, setEditDim] = useS(false);
   const [roomType, setRoomType] = useS('kitchen'); // 'kitchen' | 'wardrobe' | 'office'
   const [catalogTab, setCatalogTab] = useS('cabinets');
-  const [roomItems, setRoomItems] = useS([]);
   const [placedItems, setPlacedItems] = useS([]);
+
+  // roomItems is always derived from placedItems — single source of truth
+  const roomItems = useM(() => {
+    const map = {};
+    placedItems.forEach(item => {
+      const key = `${item.name}||${item.variant}`;
+      if (!map[key]) map[key] = { name: item.name, variant: item.variant, price: item.price, qty: 0 };
+      map[key].qty++;
+    });
+    return Object.values(map);
+  }, [placedItems]);
 
   const handleRoomType = type => {
     setRoomType(type);
@@ -1220,9 +1314,7 @@ function PlannerFrontend({ accent = pAccent }) {
 
   const handleDrop2D = (data) => {
     const id = `item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
-    const color = getCabColor(data.name);
-    setPlacedItems(prev => [...prev, { ...data, id, color }]);
-    addToRoom({ name: data.name, variant: data.variant, price: data.price });
+    setPlacedItems(prev => [...prev, { ...data, id, color: getCabColor(data.name) }]);
   };
   const handleItemMove2D = (id, x, y) => {
     setPlacedItems(prev => prev.map(it => it.id === id ? { ...it, x, y } : it));
@@ -1231,16 +1323,19 @@ function PlannerFrontend({ accent = pAccent }) {
     setPlacedItems(prev => prev.filter(it => it.id !== id));
   };
 
-  const addToRoom = (item) => {
-    setRoomItems(prev => {
-      const key = `${item.name}||${item.variant}`;
-      const ex = prev.find(r => `${r.name}||${r.variant}` === key);
-      if (ex) return prev.map(r => `${r.name}||${r.variant}` === key ? { ...r, qty: r.qty + 1 } : r);
-      return [...prev, { ...item, qty: 1 }];
-    });
+  // "Add to room" button in catalog: places item at a staggered default position on canvas
+  const addToCanvas = (itemData) => {
+    const id = `item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    const { w, h } = getDefaultDims(itemData.name);
+    const offset = placedItems.length * 150;
+    const x = 200 + (offset % Math.max(1, roomW - 600));
+    const y = 200 + Math.floor(offset / Math.max(1, roomW - 600)) * 300;
+    setPlacedItems(prev => [...prev, { ...itemData, id, color: getCabColor(itemData.name), w, h, x, y }]);
   };
-  const removeFromRoom = (name, variant) => {
-    setRoomItems(prev => prev.filter(r => !(r.name === name && r.variant === variant)));
+
+  // Remove all instances of this item from canvas
+  const removeFromCanvas = (name, variant) => {
+    setPlacedItems(prev => prev.filter(it => !(it.name === name && it.variant === variant)));
   };
 
   useE(() => {
@@ -1253,10 +1348,22 @@ function PlannerFrontend({ accent = pAccent }) {
     }
   }, []);
 
-  const { bom, subtotal, markup, gst, total } = useM(
+  // Keep computeBOM for the formal quote modal
+  const { bom, subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal } = useM(
     () => computeBOM(roomW, roomD, layout, finish),
     [roomW, roomD, layout, finish]
   );
+
+  // Live estimate from actual placed items
+  const { subtotal, markup, gst, total } = useM(() => {
+    if (roomItems.length === 0) return { subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal };
+    const s = KreoStore.getSettings();
+    const sub = roomItems.reduce((acc, r) => acc + estimateItemPrice(r.price) * r.qty, 0);
+    if (sub === 0) return { subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal };
+    const m = Math.round(sub * s.markup / 100);
+    const g = Math.round((sub + m) * s.gst / 100);
+    return { subtotal: sub, markup: m, gst: g, total: sub + m + g };
+  }, [roomItems, bomSub, bomMarkup, bomGst, bomTotal]);
 
   const handleSave = () => {
     KreoStore.saveDraft({ room: { W:roomW, D:roomD, H:roomH, layout }, finish, hardware, ts: Date.now() });
@@ -1329,7 +1436,9 @@ function PlannerFrontend({ accent = pAccent }) {
 
       <div style={pStyles.body}>
         {/* LEFT — Catalog */}
-        <CatalogPanel onAdd={addToRoom} activeTab={catalogTab} onTabChange={setCatalogTab} />
+        <CatalogPanel onAdd={addToCanvas} activeTab={catalogTab} onTabChange={setCatalogTab}
+          roomType={roomType} roomW={roomW} roomD={roomD}
+          onSizePreset={rs => { setRoomW(rs.W); setRoomD(rs.D); if (rs.layout) setLayout(rs.layout); setPlacedItems([]); }} />
 
         {/* CENTER — Viewport */}
         <div style={{ flex:1, position:'relative', background:pBg, display:'flex', flexDirection:'column', minWidth:0 }}>
@@ -1409,9 +1518,9 @@ function PlannerFrontend({ accent = pAccent }) {
               borderRadius:12, border:`1px solid ${pLine}`,
               boxShadow:'0 30px 80px -30px rgba(0,0,0,0.18)', overflow:'hidden',
             }}>
-              {view === '2D plan'   && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} />}
-              {view === 'Elevation' && <KitchenElevation accent={accent} />}
-              {view === '3D walk'   && <KitchenPlan3D accent={accent} />}
+              {view === '2D plan'   && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} roomW={roomW} roomD={roomD} />}
+              {view === 'Elevation' && <KitchenElevation accent={accent} items={placedItems} roomW={roomW} roomH={roomH} />}
+              {view === '3D walk'   && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH} />}
             </div>
           </div>
 
@@ -1454,7 +1563,7 @@ function PlannerFrontend({ accent = pAccent }) {
                       {r.variant && <div style={{ fontSize:10, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>{r.variant}</div>}
                     </div>
                     <span style={{ fontSize:12, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>×{r.qty}</span>
-                    <span onClick={() => removeFromRoom(r.name, r.variant)} style={{ cursor:'pointer', color:pMute, fontSize:14, lineHeight:1 }}>×</span>
+                    <span onClick={() => removeFromCanvas(r.name, r.variant)} style={{ cursor:'pointer', color:pMute, fontSize:14, lineHeight:1 }}>×</span>
                   </div>
                 ))}
               </div>
@@ -1463,22 +1572,32 @@ function PlannerFrontend({ accent = pAccent }) {
 
           <div style={{ flex:1, overflowY:'auto', padding:'14px 20px' }}>
             <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600, marginBottom:10 }}>Live cost estimate</div>
-            {bom.map((b,i) => (
-              <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderTop:i?`1px solid ${pLine}`:'none', fontSize:12 }}>
-                <div>
-                  <div style={{ fontWeight:500 }}>{b.category}</div>
-                  <div style={{ fontSize:10, color:pMute, ...pStyles.mono }}>×{b.qty} {b.unit}</div>
-                </div>
-                <span style={{ ...pStyles.mono, color:pMute, fontSize:11, alignSelf:'center' }}>{fmt(b.amount)}</span>
+            {roomItems.length === 0 ? (
+              <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'12px 0' }}>
+                Drag items to canvas to see cost
               </div>
-            ))}
-            <div style={{ marginTop:8, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
-              {[['Studio margin', markup],['GST (18%)', gst]].map(([l,v]) => (
-                <div key={l} style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
-                  <span>{l}</span><span style={pStyles.mono}>{fmt(v)}</span>
+            ) : roomItems.map((r, i) => {
+              const unitPrice = estimateItemPrice(r.price);
+              const amount = unitPrice * r.qty;
+              return (
+                <div key={`${r.name}||${r.variant}`} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderTop:i?`1px solid ${pLine}`:'none', fontSize:12 }}>
+                  <div>
+                    <div style={{ fontWeight:500 }}>{r.name}</div>
+                    <div style={{ fontSize:10, color:pMute, ...pStyles.mono }}>×{r.qty} · {r.variant}</div>
+                  </div>
+                  <span style={{ ...pStyles.mono, color:pMute, fontSize:11, alignSelf:'center' }}>{amount > 0 ? fmt(amount) : r.price}</span>
                 </div>
-              ))}
-            </div>
+              );
+            })}
+            {roomItems.length > 0 && (
+              <div style={{ marginTop:8, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
+                {[['Studio margin', markup],['GST (18%)', gst]].map(([l,v]) => (
+                  <div key={l} style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
+                    <span>{l}</span><span style={pStyles.mono}>{fmt(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div style={{ borderTop:`1px solid ${pLine}`, padding:'16px 20px', background:pPaper }}>
