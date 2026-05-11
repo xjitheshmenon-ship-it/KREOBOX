@@ -273,6 +273,88 @@ function ViewToggle({ value, onChange }) {
   );
 }
 
+/* ── Product icon SVG ──────────────────────────────────────── */
+function ProductIcon({ name = '', size = 52 }) {
+  const n = name.toLowerCase();
+  const cf = '#d8d0c0', cs = '#a99a82', sw = 1.5;
+  const mk = (body) => <svg width={size} height={size} viewBox="0 0 56 56">{body}</svg>;
+
+  if (n.includes('corner'))
+    return mk(<><rect x="4" y="24" width="22" height="28" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><rect x="24" y="4" width="28" height="24" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><line x1="4" y1="36" x2="26" y2="36" stroke={cs} strokeWidth="1"/><line x1="38" y1="4" x2="38" y2="28" stroke={cs} strokeWidth="1"/></>);
+
+  if (n.includes('sink'))
+    return mk(<><rect x="4" y="16" width="48" height="32" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><ellipse cx="28" cy="32" rx="14" ry="10" fill="#c8c2b0" stroke={cs} strokeWidth="1"/><circle cx="28" cy="20" r="2" fill={cs}/></>);
+
+  if (n.includes('hob') || n.includes('burner') || n.includes('gas'))
+    return mk(<><rect x="4" y="16" width="48" height="32" fill="#2a2520" stroke={cs} strokeWidth={sw} rx="2"/><circle cx="18" cy="26" r="6" fill="none" stroke="#555" strokeWidth="2"/><circle cx="38" cy="26" r="6" fill="none" stroke="#555" strokeWidth="2"/><circle cx="18" cy="40" r="5" fill="none" stroke="#555" strokeWidth="2"/><circle cx="38" cy="40" r="5" fill="none" stroke="#555" strokeWidth="2"/></>);
+
+  if (n.includes('drawer'))
+    return mk(<><rect x="4" y="10" width="48" height="38" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><line x1="4" y1="22" x2="52" y2="22" stroke={cs} strokeWidth="1"/><line x1="4" y1="34" x2="52" y2="34" stroke={cs} strokeWidth="1"/><circle cx="28" cy="16" r="2" fill={cs}/><circle cx="28" cy="28" r="2" fill={cs}/><circle cx="28" cy="40" r="2" fill={cs}/></>);
+
+  if (n.includes('pantry') || n.includes('pull-out'))
+    return mk(<><rect x="12" y="4" width="32" height="48" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><line x1="12" y1="18" x2="44" y2="18" stroke={cs} strokeWidth="1"/><line x1="12" y1="32" x2="44" y2="32" stroke={cs} strokeWidth="1"/><line x1="12" y1="42" x2="44" y2="42" stroke={cs} strokeWidth="1"/><circle cx="24" cy="25" r="2" fill={cs}/></>);
+
+  if (n.includes('fridge') || n.includes('freezer'))
+    return mk(<><rect x="10" y="4" width="36" height="48" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="10" y1="22" x2="46" y2="22" stroke={cs} strokeWidth="1.5"/><line x1="16" y1="12" x2="16" y2="20" stroke={cs} strokeWidth="2" strokeLinecap="round"/><line x1="16" y1="28" x2="16" y2="46" stroke={cs} strokeWidth="2" strokeLinecap="round"/></>);
+
+  if (n.includes('oven') || n.includes('microwave') || n.includes('combi') || n.includes('steam'))
+    return mk(<><rect x="6" y="12" width="44" height="34" fill="#2a2520" stroke={cs} strokeWidth={sw} rx="2"/><rect x="10" y="16" width="30" height="24" fill="#1a1815" stroke="rgba(255,255,255,0.1)" strokeWidth="1" rx="1"/><circle cx="46" cy="22" r="3" fill="#555"/><circle cx="46" cy="34" r="3" fill="#555"/></>);
+
+  if (n.includes('hood') || n.includes('extractor'))
+    return mk(<><polygon points="6,18 50,18 42,46 14,46" fill={cf} stroke={cs} strokeWidth={sw}/><rect x="18" y="6" width="20" height="14" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><line x1="6" y1="26" x2="50" y2="26" stroke={cs} strokeWidth="1"/></>);
+
+  if (n.includes('dishwasher'))
+    return mk(<><rect x="6" y="8" width="44" height="42" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="6" y1="20" x2="50" y2="20" stroke={cs} strokeWidth="1"/><circle cx="28" cy="14" r="3" fill="#5b8def" fillOpacity="0.6"/><rect x="12" y="26" width="32" height="18" fill="none" stroke={cs} strokeWidth="1" rx="1"/></>);
+
+  if (n.includes('pendant') || n.includes('ceiling') || n.includes('spot') || n.includes('led') || n.includes('strip'))
+    return mk(<><line x1="28" y1="4" x2="28" y2="16" stroke={cs} strokeWidth="2"/><polygon points="16,16 40,16 36,38 20,38" fill={cf} stroke={cs} strokeWidth={sw}/><circle cx="28" cy="28" r="6" fill="#ffd080" fillOpacity="0.7"/></>);
+
+  if (n.includes('worktop') || n.includes('quartz') || n.includes('laminate'))
+    return mk(<><rect x="2" y="18" width="52" height="10" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><rect x="4" y="28" width="48" height="20" fill="#e0d8c8" stroke={cs} strokeWidth="1" rx="1"/></>);
+
+  if (n.includes('sink') || n.includes('tap'))
+    return mk(<><rect x="8" y="16" width="40" height="28" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><ellipse cx="28" cy="30" rx="12" ry="8" fill="#c0bab0" stroke={cs} strokeWidth="1"/><line x1="28" y1="14" x2="28" y2="20" stroke={cs} strokeWidth="3" strokeLinecap="round"/></>);
+
+  if (n.includes('stool') || n.includes('chair'))
+    return mk(<><rect x="12" y="22" width="32" height="8" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="16" y1="30" x2="14" y2="52" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/><line x1="40" y1="30" x2="42" y2="52" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/><line x1="14" y1="42" x2="42" y2="42" stroke={cs} strokeWidth="1.5"/></>);
+
+  if (n.includes('bench'))
+    return mk(<><rect x="4" y="22" width="48" height="8" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="10" y1="30" x2="10" y2="50" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/><line x1="46" y1="30" x2="46" y2="50" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/><line x1="10" y1="42" x2="46" y2="42" stroke={cs} strokeWidth="1.5"/></>);
+
+  if (n.includes('table'))
+    return mk(<><rect x="4" y="22" width="48" height="8" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="10" y1="30" x2="10" y2="50" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/><line x1="46" y1="30" x2="46" y2="50" stroke={cs} strokeWidth="2.5" strokeLinecap="round"/></>);
+
+  if (n.includes('rail') || n.includes('hook'))
+    return mk(<><line x1="4" y1="18" x2="52" y2="18" stroke={cs} strokeWidth="3" strokeLinecap="round"/><line x1="14" y1="18" x2="14" y2="38" stroke={cs} strokeWidth="2"/><line x1="28" y1="18" x2="28" y2="34" stroke={cs} strokeWidth="2"/><line x1="42" y1="18" x2="42" y2="42" stroke={cs} strokeWidth="2"/></>);
+
+  if (n.includes('waste') || n.includes('organiser') || n.includes('basket'))
+    return mk(<><rect x="10" y="14" width="36" height="36" fill={cf} stroke={cs} strokeWidth={sw} rx="2"/><line x1="10" y1="26" x2="46" y2="26" stroke={cs} strokeWidth="1"/><line x1="28" y1="14" x2="28" y2="50" stroke={cs} strokeWidth="1" strokeDasharray="3 2"/></>);
+
+  if (n.includes('glass'))
+    return mk(<><rect x="4" y="8" width="48" height="40" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><rect x="8" y="12" width="18" height="32" fill="rgba(91,141,239,0.15)" stroke={cs} strokeWidth="1" rx="1"/><rect x="30" y="12" width="18" height="32" fill="rgba(91,141,239,0.15)" stroke={cs} strokeWidth="1" rx="1"/></>);
+
+  // default cabinet with door
+  return mk(<><rect x="4" y="8" width="48" height="40" fill={cf} stroke={cs} strokeWidth={sw} rx="1"/><line x1="28" y1="8" x2="28" y2="48" stroke={cs} strokeWidth="1"/><circle cx="20" cy="28" r="2" fill={cs}/><circle cx="36" cy="28" r="2" fill={cs}/></>);
+}
+
+function starRating(seed) {
+  const vals = [4.5, 4.8, 4.2, 4.7, 4.4, 4.9, 4.3, 4.6, 4.1, 4.7];
+  const r = vals[seed % vals.length];
+  return { full: Math.floor(r), half: r % 1 >= 0.5, empty: Math.floor(5 - r), value: r };
+}
+
+function StarRow({ seed = 0 }) {
+  const { full, half, empty, value } = starRating(seed);
+  const star = (t, i) => <span key={t+i} style={{ color: t==='e' ? 'rgba(26,24,21,0.2)' : '#f59e0b', fontSize:10 }}>{t==='f'?'★':t==='h'?'⯨':'☆'}</span>;
+  return (
+    <span style={{ display:'inline-flex', alignItems:'center', gap:1 }}>
+      {Array(full).fill('f').map(star)}{half?star('h','h'):[]}
+      {Array(empty).fill('e').map(star)}
+      <span style={{ fontSize:10, color:'rgba(26,24,21,0.45)', marginLeft:3 }}>{value}</span>
+    </span>
+  );
+}
+
 /* ── Kitchen catalog data ──────────────────────────────────── */
 const CATALOG_TABS = [
   { id:'cabinets',  label:'Cabinets',       icon:'▦' },
@@ -411,10 +493,18 @@ const EXTRAS_SECTIONS = [
 ];
 
 /* ── Catalog panel ─────────────────────────────────────────── */
-function CatalogPanel() {
+function CatalogPanel({ onAdd }) {
   const { useState: useS } = React;
-  const [activeTab, setActiveTab] = useS('cabinets');
-  const [search, setSearch]       = useS('');
+  const [activeTab, setActiveTab]           = useS('cabinets');
+  const [search, setSearch]                 = useS('');
+  const [catalogView, setCatalogView]       = useS('grid');
+  const [selectedVariants, setSelectedVariants] = useS({});
+
+  const getSelVariant = (item) => {
+    const name = typeof item === 'string' ? item : item.name;
+    return selectedVariants[name] || (item.variants && item.variants[0]) || '';
+  };
+  const pickVariant = (name, v) => setSelectedVariants(s => ({ ...s, [name]: v }));
 
   let sections = [];
   if (activeTab === 'cabinets')   sections = CABINET_SECTIONS;
@@ -432,140 +522,156 @@ function CatalogPanel() {
       : sec.items,
   })).filter(sec => sec.items.length > 0);
 
+  const allItems = filtered.flatMap((sec, si) => sec.items.map((item, ii) => ({ item, idx: si * 20 + ii })));
+
   return (
     <div style={{ ...pStyles.panel, width:300, flexShrink:0 }}>
       {/* Tab bar */}
-      <div style={{
-        display:'flex', overflowX:'auto', borderBottom:`1px solid ${pLine}`,
-        scrollbarWidth:'none', flexShrink:0,
-      }}>
+      <div style={{ display:'flex', overflowX:'auto', borderBottom:`1px solid ${pLine}`, scrollbarWidth:'none', flexShrink:0 }}>
         {CATALOG_TABS.map(tab => {
           const active = tab.id === activeTab;
           return (
             <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSearch(''); }} style={{
               display:'flex', flexDirection:'column', alignItems:'center', gap:4,
-              padding:'10px 12px', border:'none', background:'transparent', cursor:'pointer',
+              padding:'10px 10px', border:'none', background:'transparent', cursor:'pointer',
               borderBottom: active ? `2px solid ${pAccent}` : '2px solid transparent',
               color: active ? pAccent : pMute,
               fontSize:9, fontWeight:700, fontFamily:'JetBrains Mono,monospace',
-              letterSpacing:'0.08em', textTransform:'uppercase', whiteSpace:'nowrap',
-              flexShrink:0,
+              letterSpacing:'0.06em', textTransform:'uppercase', whiteSpace:'nowrap', flexShrink:0,
             }}>
-              <span style={{ fontSize:16 }}>{tab.icon}</span>
+              <span style={{ fontSize:15 }}>{tab.icon}</span>
               {tab.label}
             </button>
           );
         })}
       </div>
 
-      {/* Search */}
-      {activeTab !== 'search' ? (
-        <div style={{ padding:'10px 14px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
-          <div style={{
-            display:'flex', alignItems:'center', gap:8, padding:'8px 12px',
-            background:'rgba(26,24,21,0.04)', borderRadius:8, fontSize:12, color:pMute,
-          }}>
-            <span>⌕</span>
-            <input
-              value={search} onChange={e => setSearch(e.target.value)}
-              placeholder={`Search ${activeTab}…`}
-              style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Inter Tight",sans-serif' }}
-            />
-            {search && (
-              <span onClick={() => setSearch('')} style={{ cursor:'pointer', fontSize:14, lineHeight:1 }}>×</span>
-            )}
-          </div>
+      {/* Search + view toggle */}
+      <div style={{ padding:'8px 12px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', background:'rgba(26,24,21,0.04)', borderRadius:8, fontSize:12, color:pMute, marginBottom:8 }}>
+          <span>⌕</span>
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${activeTab}…`}
+            style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Inter Tight",sans-serif' }} />
+          {search && <span onClick={() => setSearch('')} style={{ cursor:'pointer', fontSize:14, lineHeight:1 }}>×</span>}
         </div>
-      ) : (
-        <div style={{ padding:'10px 14px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
-          <div style={{
-            display:'flex', alignItems:'center', gap:8, padding:'8px 12px',
-            background:'rgba(26,24,21,0.04)', borderRadius:8, fontSize:12, color:pMute,
-          }}>
-            <span>⌕</span>
-            <input
-              value={search} onChange={e => setSearch(e.target.value)}
-              placeholder="Search all 1,240 items…"
-              style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Inter Tight",sans-serif' }}
-              autoFocus
-            />
-          </div>
+        <div style={{ display:'flex', gap:4 }}>
+          {[['grid','⊞ Grid'],['list','≡ List']].map(([v,l]) => (
+            <button key={v} onClick={() => setCatalogView(v)} style={{
+              flex:1, padding:'5px', border:`1px solid ${v===catalogView?pAccent:pLine}`,
+              borderRadius:6, fontSize:10, fontWeight:700, cursor:'pointer',
+              background: v===catalogView ? 'rgba(201,100,66,0.08)' : 'transparent',
+              color: v===catalogView ? pAccent : pMute,
+            }}>{l}</button>
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Sections + items */}
-      <div style={{ flex:1, overflowY:'auto', padding:'6px 0' }}>
-        {filtered.length === 0 && (
-          <div style={{ padding:'24px 20px', fontSize:12, color:pMute, textAlign:'center' }}>
-            No results for "{search}"
-          </div>
+      {/* Content */}
+      <div style={{ flex:1, overflowY:'auto', padding:'8px' }}>
+        {allItems.length === 0 && (
+          <div style={{ padding:'24px', fontSize:12, color:pMute, textAlign:'center' }}>No results for "{search}"</div>
         )}
-        {filtered.map(sec => (
-          <div key={sec.title} style={{ marginBottom:4 }}>
-            <div style={{
-              padding:'10px 20px 6px',
-              fontSize:10, fontWeight:700, letterSpacing:'0.18em',
-              textTransform:'uppercase', color:pMute,
-              fontFamily:'JetBrains Mono,monospace',
-            }}>
-              {sec.title}
-              <span style={{ marginLeft:8, fontSize:9, opacity:0.7 }}>{sec.code}</span>
-            </div>
-            {sec.items.map(item => {
+
+        {catalogView === 'grid' ? (
+          /* ── E-commerce grid ── */
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+            {allItems.map(({ item, idx }) => {
               const name = typeof item === 'string' ? item : item.name;
-              const variants = typeof item === 'object' && item.variants ? item.variants : [];
-              const price = typeof item === 'object' && item.price ? item.price : '';
+              const variants = typeof item === 'object' ? (item.variants || []) : [];
+              const price = typeof item === 'object' ? (item.price || '') : '';
+              const selV = getSelVariant(item);
               return (
-                <div key={name} style={{ padding:'8px 20px 10px', borderLeft:'2px solid transparent', transition:'background 0.1s', cursor:'default' }}
-                  onMouseEnter={e => { e.currentTarget.style.background='rgba(26,24,21,0.04)'; e.currentTarget.style.borderLeftColor=pAccent; }}
-                  onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderLeftColor='transparent'; }}
+                <div key={name} style={{
+                  background:pPaper, border:`1px solid ${pLine}`, borderRadius:10, padding:'10px 8px',
+                  display:'flex', flexDirection:'column', gap:6,
+                  transition:'box-shadow 0.15s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow=`0 4px 16px rgba(0,0,0,0.10)`; e.currentTarget.style.borderColor=pAccent; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow='none'; e.currentTarget.style.borderColor=pLine; }}
                 >
-                  <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                    <div style={{
-                      width:34, height:34, borderRadius:6, background:'#e8e2d5',
-                      border:`1px solid ${pLine}`, flexShrink:0,
-                      display:'flex', alignItems:'center', justifyContent:'center',
-                      fontSize:14, color:pMute,
-                    }}>▦</div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontWeight:500, fontSize:13, lineHeight:1.3 }}>{name}</div>
-                      {price && <div style={{ fontSize:10, color:pMute, fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>{price}</div>}
-                    </div>
+                  <div style={{ display:'flex', justifyContent:'center', padding:'6px 0', background:'rgba(26,24,21,0.02)', borderRadius:8 }}>
+                    <ProductIcon name={name} size={52} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize:11, fontWeight:600, lineHeight:1.3 }}>{name}</div>
+                    <StarRow seed={idx} />
+                    {price && <div style={{ fontSize:9, color:pMute, fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>{price}</div>}
                   </div>
                   {variants.length > 0 && (
-                    <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginTop:7, paddingLeft:44 }}>
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:3 }}>
                       {variants.map(v => (
-                        <span key={v} onClick={e => { e.stopPropagation(); }}
-                          style={{
-                            padding:'3px 8px', borderRadius:4, fontSize:10, fontWeight:600,
-                            fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
-                            border:`1px solid ${pLine}`, background:'rgba(26,24,21,0.04)',
-                            color:pMute, transition:'all 0.1s',
-                          }}
-                          onMouseEnter={e => { e.currentTarget.style.borderColor=pAccent; e.currentTarget.style.color=pAccent; e.currentTarget.style.background='rgba(201,100,66,0.06)'; }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor=pLine; e.currentTarget.style.color=pMute; e.currentTarget.style.background='rgba(26,24,21,0.04)'; }}
-                        >{v}</span>
+                        <span key={v} onClick={() => pickVariant(name, v)} style={{
+                          padding:'2px 6px', borderRadius:4, fontSize:9, fontWeight:600, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                          border:`1px solid ${v===selV ? pAccent : pLine}`,
+                          background: v===selV ? 'rgba(201,100,66,0.08)' : 'transparent',
+                          color: v===selV ? pAccent : pMute,
+                        }}>{v}</span>
                       ))}
-                      <span style={{
-                        padding:'3px 8px', borderRadius:4, fontSize:10, fontWeight:700,
-                        cursor:'pointer', border:`1px solid ${pLine}`,
-                        background:pAccent, color:'#fff',
-                      }}>+ Add</span>
                     </div>
                   )}
+                  <button onClick={() => onAdd && onAdd({ name, variant: selV, price })} style={{
+                    padding:'6px', borderRadius:6, fontSize:10, fontWeight:700, border:'none',
+                    background:pInk, color:pPaper, cursor:'pointer', marginTop:'auto',
+                  }}>+ Add to room</button>
                 </div>
               );
             })}
           </div>
-        ))}
+        ) : (
+          /* ── List view ── */
+          <div>
+            {filtered.map(sec => (
+              <div key={sec.title} style={{ marginBottom:4 }}>
+                <div style={{ padding:'10px 8px 6px', fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace' }}>
+                  {sec.title} <span style={{ marginLeft:6, fontSize:9, opacity:0.7 }}>{sec.code}</span>
+                </div>
+                {sec.items.map((item, idx) => {
+                  const name = typeof item === 'string' ? item : item.name;
+                  const variants = typeof item === 'object' ? (item.variants || []) : [];
+                  const price = typeof item === 'object' ? (item.price || '') : '';
+                  const selV = getSelVariant(item);
+                  return (
+                    <div key={name} style={{ padding:'8px 8px 10px', borderLeft:'2px solid transparent', borderRadius:6, transition:'background 0.1s' }}
+                      onMouseEnter={e => { e.currentTarget.style.background='rgba(26,24,21,0.04)'; e.currentTarget.style.borderLeftColor=pAccent; }}
+                      onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderLeftColor='transparent'; }}
+                    >
+                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <div style={{ width:36, height:36, borderRadius:6, background:'#ede8e0', border:`1px solid ${pLine}`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          <ProductIcon name={name} size={30} />
+                        </div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontWeight:500, fontSize:12, lineHeight:1.3 }}>{name}</div>
+                          {price && <div style={{ fontSize:9, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>{price}</div>}
+                        </div>
+                        <button onClick={() => onAdd && onAdd({ name, variant: selV, price })} style={{
+                          padding:'4px 8px', borderRadius:5, fontSize:10, fontWeight:700, border:'none', background:pInk, color:pPaper, cursor:'pointer', flexShrink:0,
+                        }}>+</button>
+                      </div>
+                      {variants.length > 0 && (
+                        <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:6, paddingLeft:44 }}>
+                          {variants.map(v => (
+                            <span key={v} onClick={() => pickVariant(name, v)} style={{
+                              padding:'2px 7px', borderRadius:4, fontSize:9, fontWeight:600, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                              border:`1px solid ${v===selV ? pAccent : pLine}`,
+                              background: v===selV ? 'rgba(201,100,66,0.08)' : 'transparent',
+                              color: v===selV ? pAccent : pMute,
+                            }}>{v}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        )}
 
-        {/* Finishes section (always shown at bottom of cabinets) */}
+        {/* Finishes swatch (cabinets, no search) */}
         {activeTab === 'cabinets' && !search && (
-          <div style={{ padding:'14px 20px', borderTop:`1px solid ${pLine}`, marginTop:8 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:10 }}>
-              Finishes
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:8 }}>
+          <div style={{ padding:'12px 8px', borderTop:`1px solid ${pLine}`, marginTop:8 }}>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>Finishes</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:6 }}>
               {[
                 { tone:['#d4ccbe','#b8a995'], label:'Bali oak' },
                 { tone:['#3a352e','#1a1815'], label:'Espresso' },
@@ -574,13 +680,9 @@ function CatalogPanel() {
                 { tone:['#b8b0a0','#a09880'], label:'Linen white' },
                 { tone:['#8c7660','#6e5c48'], label:'Smoked teak' },
               ].map(sw => (
-                <div key={sw.label}>
-                  <div style={{
-                    height:44, borderRadius:6, marginBottom:5, border:`1px solid ${pLine}`,
-                    backgroundImage:`linear-gradient(45deg,rgba(255,255,255,0.18) 25%,transparent 25%,transparent 50%,rgba(255,255,255,0.18) 50%,rgba(255,255,255,0.18) 75%,transparent 75%),linear-gradient(135deg,${sw.tone[0]},${sw.tone[1]})`,
-                    backgroundSize:'10px 10px,100% 100%', cursor:'pointer',
-                  }}/>
-                  <div style={{ fontSize:10, fontWeight:500, color:pInk }}>{sw.label}</div>
+                <div key={sw.label} style={{ cursor:'pointer' }}>
+                  <div style={{ height:36, borderRadius:6, marginBottom:4, border:`1px solid ${pLine}`, backgroundImage:`linear-gradient(45deg,rgba(255,255,255,0.18) 25%,transparent 25%,transparent 50%,rgba(255,255,255,0.18) 50%,rgba(255,255,255,0.18) 75%,transparent 75%),linear-gradient(135deg,${sw.tone[0]},${sw.tone[1]})`, backgroundSize:'8px 8px,100% 100%' }}/>
+                  <div style={{ fontSize:9, fontWeight:500, color:pInk }}>{sw.label}</div>
                 </div>
               ))}
             </div>
@@ -772,6 +874,19 @@ function PlannerFrontend({ accent = pAccent }) {
   const [submitted, setSubmitted] = useS(null);
   const [saveTs, setSaveTs]   = useS(null);
   const [editDim, setEditDim] = useS(false);
+  const [roomItems, setRoomItems] = useS([]);
+
+  const addToRoom = (item) => {
+    setRoomItems(prev => {
+      const key = `${item.name}||${item.variant}`;
+      const ex = prev.find(r => `${r.name}||${r.variant}` === key);
+      if (ex) return prev.map(r => `${r.name}||${r.variant}` === key ? { ...r, qty: r.qty + 1 } : r);
+      return [...prev, { ...item, qty: 1 }];
+    });
+  };
+  const removeFromRoom = (name, variant) => {
+    setRoomItems(prev => prev.filter(r => !(r.name === name && r.variant === variant)));
+  };
 
   useE(() => {
     const draft = KreoStore.getDraft();
@@ -798,7 +913,7 @@ function PlannerFrontend({ accent = pAccent }) {
       id: KreoStore.nextOrderId(), ts: Date.now(), status: 'new',
       ...customerData,
       room: { W:roomW, D:roomD, H:roomH, layout },
-      finish, hardware, bom, subtotal, markup, gst, total,
+      finish, hardware, roomItems, bom, subtotal, markup, gst, total,
     };
     KreoStore.addOrder(order);
     setSubmitted(order);
@@ -836,12 +951,17 @@ function PlannerFrontend({ accent = pAccent }) {
           <span style={{ fontSize:11, color:pMute, ...pStyles.mono }}>{saveLabel}</span>
           <button onClick={handleSave} style={{ ...pStyles.pillBtn, border:`1px solid ${pLine}`, cursor:'pointer', fontSize:12 }}>Save draft</button>
           <button onClick={() => setShowModal(true)} style={{ ...pStyles.primaryBtn, border:'none', cursor:'pointer', fontSize:12 }}>Request quote →</button>
+          <a href="backend.html" style={{
+            padding:'8px 14px', borderRadius:8, fontSize:12, fontWeight:600,
+            background:'rgba(26,24,21,0.06)', border:`1px solid ${pLine}`,
+            color:pMute, textDecoration:'none', display:'flex', alignItems:'center', gap:6,
+          }}>Studio <span style={{ opacity:0.5 }}>→</span></a>
         </div>
       </div>
 
       <div style={pStyles.body}>
         {/* LEFT — Catalog */}
-        <CatalogPanel />
+        <CatalogPanel onAdd={addToRoom} />
 
         {/* CENTER — Viewport */}
         <div style={{ flex:1, position:'relative', background:pBg, display:'flex', flexDirection:'column', minWidth:0 }}>
@@ -939,20 +1059,38 @@ function PlannerFrontend({ accent = pAccent }) {
           </div>
         </div>
 
-        {/* RIGHT — BOM + Actions */}
+        {/* RIGHT — Cart + BOM + Actions */}
         <div style={{ ...pStyles.panel, width:300, borderLeft:`1px solid ${pLine}`, borderRight:'none' }}>
-          <div style={{ padding:'20px 20px 14px', borderBottom:`1px solid ${pLine}` }}>
-            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>Selected item</div>
-            <div style={{ ...pStyles.fraunces, fontSize:20, marginTop:4 }}>Pantry pull-out</div>
-            <div style={{ fontSize:11, color:pMute, ...pStyles.mono, marginTop:2 }}>KBX-HC-PP · 600 × 2400 × 600 mm</div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginTop:14 }}>
-              {[['Width','600 mm'],['Height','2,400 mm'],['Finish', finish],['Hardware', hardware]].map(([k,v]) => (
-                <div key={k}>
-                  <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>{k}</div>
-                  <div style={{ fontSize:13, fontWeight:600, marginTop:2 }}>{v}</div>
-                </div>
-              ))}
+          {/* Room items (cart) */}
+          <div style={{ padding:'14px 18px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>
+                Room items
+              </div>
+              {roomItems.length > 0 && (
+                <span style={{ background:pAccent, color:'#fff', fontSize:9, fontWeight:700, padding:'1px 7px', borderRadius:999 }}>
+                  {roomItems.reduce((s,r) => s+r.qty, 0)}
+                </span>
+              )}
             </div>
+            {roomItems.length === 0 ? (
+              <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'14px 0' }}>
+                Add items from the catalog →
+              </div>
+            ) : (
+              <div style={{ maxHeight:160, overflowY:'auto' }}>
+                {roomItems.map(r => (
+                  <div key={`${r.name}||${r.variant}`} style={{ display:'flex', alignItems:'center', gap:8, padding:'5px 0', borderTop:`1px solid ${pLine}`, fontSize:11 }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontWeight:500, lineHeight:1.3 }}>{r.name}</div>
+                      {r.variant && <div style={{ fontSize:10, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>{r.variant}</div>}
+                    </div>
+                    <span style={{ fontSize:12, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>×{r.qty}</span>
+                    <span onClick={() => removeFromRoom(r.name, r.variant)} style={{ cursor:'pointer', color:pMute, fontSize:14, lineHeight:1 }}>×</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div style={{ flex:1, overflowY:'auto', padding:'14px 20px' }}>

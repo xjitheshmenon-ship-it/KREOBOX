@@ -467,7 +467,7 @@ function AdminModule() {
   const { useState: useS, useEffect: useE } = React;
   const [settings, setSettings] = useS(() => KreoStore.getSettings());
   const [saved, setSaved] = useS(false);
-  const [adminTab, setAdminTab] = useS('pricing');
+  const [adminTab, setAdminTab] = useS('dashboard');
 
   const update = (key, val) => setSettings(s => ({ ...s, [key]: val }));
   const handleSave = () => {
@@ -490,7 +490,7 @@ function AdminModule() {
     </div>
   );
 
-  const ADMIN_TABS = ['pricing','finishes','vendors','team','audit','logistics'];
+  const ADMIN_TABS = ['dashboard','pricing','finishes','vendors','team','audit','logistics'];
 
   return (
     <div style={fS.shell}>
@@ -516,6 +516,72 @@ function AdminModule() {
         </div>
 
         <div style={{ flex:1, overflow:'auto', padding:22, background:fBg }}>
+          {adminTab === 'dashboard' && (
+            <div>
+              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:fMute, fontWeight:700, marginBottom:6 }}>Kreobox ERP Platform</div>
+              <div style={{ ...fS.fraunces, fontSize:26, color:'#fff', marginBottom:4 }}>Back-office Dashboard</div>
+              <div style={{ fontSize:13, color:fMute, marginBottom:24 }}>Manage your entire kitchen manufacturing operation from one place.</div>
+
+              {/* KPI row from live data */}
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12, marginBottom:28 }}>
+                {(() => {
+                  const orders = KreoStore.getOrders();
+                  const jobs = KreoStore.getJobs();
+                  const revenue = orders.filter(o => o.status !== 'new').reduce((s,o) => s+(o.total||0), 0);
+                  return [
+                    { l:'Orders',     v:String(orders.length),    s:'total received',       c:fAccent },
+                    { l:'Revenue',    v:`₹${Math.round(revenue/100000)}L`, s:'pipeline + delivered', c:fOk },
+                    { l:'Active jobs',v:String(jobs.filter(j=>(j.currentStage||0)>0&&(j.currentStage||0)<7).length), s:'on factory floor', c:fInfo },
+                    { l:'Depots',     v:'73', s:'across 18 cities', c:'#fff' },
+                    { l:'Lead time',  v:`${KreoStore.getSettings().leadTimeDays}d`, s:'target avg', c:'#fff' },
+                  ].map((k,i) => (
+                    <div key={i} style={{ ...fS.card }}>
+                      <div style={{ ...fS.mono, fontSize:9, color:fMute, letterSpacing:'0.14em', textTransform:'uppercase' }}>{k.l}</div>
+                      <div style={{ ...fS.fraunces, fontSize:24, color:k.c, marginTop:4 }}>{k.v}</div>
+                      <div style={{ fontSize:10, color:fMute, marginTop:2 }}>{k.s}</div>
+                    </div>
+                  ));
+                })()}
+              </div>
+
+              {/* ERP module cards */}
+              <div style={{ fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase', color:fMute, fontWeight:700, marginBottom:12 }}>ERP Modules</div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
+                {[
+                  { id:'crm',      icon:'⊠', label:'CRM & Orders',   desc:'Customer orders, quote review, design approval workflow.', page:'backend.html', color:fAccent },
+                  { id:'finance',  icon:'₹', label:'Finance',         desc:'Revenue dashboard, order ledger, margin & GST tracking.', page:'backend.html#finance', color:fOk },
+                  { id:'factory',  icon:'⚙', label:'Manufacturing',   desc:'Shop floor, 8-stage production, cut list & CNC nesting.', page:'factory.html', color:'#7c5cff' },
+                  { id:'proc',     icon:'⊞', label:'Procurement',     desc:'Vendor management, PO tracking, material inventory.', page:'backend.html#procurement', color:fInfo },
+                  { id:'log',      icon:'⊡', label:'Logistics',       desc:'3 factories, 73 depots, Tier 1/2 city delivery network.', page:null, color:fWarn },
+                  { id:'hr',       icon:'⊟', label:'HR & Team',       desc:'Staff directory, roles, access levels, activity log.', page:'backend.html#hr', color:'#ff9060' },
+                  { id:'pricing',  icon:'✦', label:'Pricing & Rates', desc:'Cabinet rates, markup, GST, lead time, finish catalog.', page:null, color:'#c0b0f0' },
+                  { id:'audit',    icon:'≡', label:'Audit Trail',     desc:'Full order history, status changes, delivery tracking.', page:null, color:'#a0b0c0' },
+                  { id:'settings', icon:'◈', label:'Settings',        desc:'Studio profile, notifications, integrations, API keys.', page:null, color:fMute },
+                ].map(m => (
+                  <div key={m.id} style={{ ...fS.card, borderLeft:`3px solid ${m.color}`, cursor: m.page ? 'pointer' : 'default', transition:'background 0.15s' }}
+                    onClick={() => {
+                      if (m.page && m.page.startsWith('backend')) setAdminTab(m.id === 'crm' ? 'pricing' : 'pricing');
+                      if (m.id === 'log') setAdminTab('logistics');
+                      if (m.id === 'pricing') setAdminTab('pricing');
+                      if (m.id === 'audit') setAdminTab('audit');
+                      if (m.id === 'settings') setAdminTab('pricing');
+                      if (m.page && !m.page.includes('#')) window.open(m.page, '_blank');
+                    }}
+                    onMouseEnter={e => { if (m.page || m.id === 'log' || m.id === 'pricing' || m.id === 'audit') e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = fSub; }}
+                  >
+                    <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
+                      <span style={{ fontSize:20, color:m.color }}>{m.icon}</span>
+                      <span style={{ fontSize:14, color:'#fff', fontWeight:600 }}>{m.label}</span>
+                      {m.page && <span style={{ marginLeft:'auto', fontSize:10, color:fMute }}>→</span>}
+                    </div>
+                    <div style={{ fontSize:12, color:fMute, lineHeight:1.5 }}>{m.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {adminTab === 'pricing' && (
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, maxWidth:900 }}>
               <div style={fS.card}>

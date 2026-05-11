@@ -124,6 +124,13 @@ function BSidebar({ newCount = 0 }) {
       <div style={sb}>{dot('#aaa')} Margin</div>
       <div style={sb}>{dot('#aaa')} Library</div>
       <div style={{ flex:1 }}></div>
+      <a href="planner.html" style={{
+        display:'flex', alignItems:'center', gap:6, padding:'7px 10px', borderRadius:6,
+        background:'rgba(201,100,66,0.1)', border:`1px solid rgba(201,100,66,0.25)`,
+        textDecoration:'none', marginBottom:8,
+      }}>
+        <span style={{ fontSize:11, color:bAccent }}>← Planner</span>
+      </a>
       <div style={{ display:'flex', alignItems:'center', gap:8, padding:8, borderRadius:6, background:'rgba(255,255,255,0.04)' }}>
         <div style={{ width:26, height:26, borderRadius:'50%', background:`linear-gradient(135deg,${bAccent},#d97042)` }}></div>
         <div style={{ display:'flex', flexDirection:'column' }}>
@@ -319,6 +326,120 @@ const STATUS_COLORS = {
   delivered: { bg:'rgba(76,186,133,0.15)', fg:'#4cba85', label:'Delivered' },
 };
 
+/* ── ERP MODULE STRIP ─────────────────────────────────────────── */
+const ERP_MODULES = [
+  { id:'crm',           label:'CRM / Orders',    icon:'⊠', color:'#c96442' },
+  { id:'finance',       label:'Finance',          icon:'₹', color:'#4cba85' },
+  { id:'manufacturing', label:'Manufacturing',    icon:'⚙', color:'#7c5cff' },
+  { id:'procurement',   label:'Procurement',      icon:'⊞', color:'#5b8def' },
+  { id:'logistics',     label:'Logistics',        icon:'⊡', color:'#d9a049' },
+  { id:'hr',            label:'HR / Team',        icon:'⊟', color:'#ff9060' },
+];
+
+function ERPModuleStrip({ active, onChange, orders }) {
+  const fmtBadge = (id) => {
+    if (id === 'crm') return orders.filter(o => o.status === 'new').length || null;
+    return null;
+  };
+  return (
+    <div style={{ background:'#191613', borderBottom:`1px solid ${bLine}`, padding:'0 20px', display:'flex', gap:0, flexShrink:0 }}>
+      {ERP_MODULES.map(m => {
+        const isActive = m.id === active;
+        const badge = fmtBadge(m.id);
+        return (
+          <button key={m.id}
+            onClick={() => m.id === 'manufacturing' ? window.open('factory.html','_blank') : onChange(m.id)}
+            style={{
+              display:'flex', alignItems:'center', gap:6, padding:'10px 14px', border:'none',
+              background:'transparent', cursor:'pointer', position:'relative',
+              borderBottom: isActive ? `2px solid ${m.color}` : '2px solid transparent',
+              color: isActive ? '#fff' : 'rgba(255,255,255,0.45)',
+              fontSize:11, fontWeight: isActive ? 700 : 500,
+            }}>
+            <span style={{ fontSize:13, color: isActive ? m.color : 'inherit' }}>{m.icon}</span>
+            {m.label}
+            {badge && <span style={{ background:m.color, color:'#fff', fontSize:9, fontWeight:700, padding:'1px 5px', borderRadius:999, marginLeft:2 }}>{badge}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── FINANCE MODULE ───────────────────────────────────────────── */
+function FinanceModule({ orders }) {
+  const fmt = n => '₹ ' + Number(n).toLocaleString('en-IN');
+  const totalRevenue  = orders.filter(o => o.status !== 'new').reduce((s,o) => s + (o.total||0), 0);
+  const pipeline      = orders.filter(o => ['new','reviewing','quoted'].includes(o.status)).reduce((s,o) => s + (o.total||0), 0);
+  const avgOrder      = orders.length ? Math.round(orders.reduce((s,o) => s + (o.total||0), 0) / orders.length) : 0;
+  const delivered     = orders.filter(o => o.status === 'delivered').length;
+  const convRate      = orders.length ? Math.round((delivered / orders.length) * 100) : 0;
+  const byMonth = {};
+  orders.forEach(o => {
+    const m = new Date(o.ts).toLocaleString('en-IN', { month:'short', year:'2-digit' });
+    byMonth[m] = (byMonth[m] || 0) + (o.total || 0);
+  });
+  return (
+    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700, marginBottom:16 }}>Finance Dashboard</div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14, marginBottom:24 }}>
+        {[
+          { l:'Total revenue', v:fmt(totalRevenue), s:`${orders.filter(o=>o.status!=='new').length} orders`, c:'#4cba85' },
+          { l:'Pipeline',      v:fmt(pipeline),     s:`${orders.filter(o=>['new','reviewing','quoted'].includes(o.status)).length} active`, c:'#d9a049' },
+          { l:'Avg order',     v:fmt(avgOrder),     s:'per project', c:'#fff' },
+          { l:'Conversion',    v:`${convRate}%`,    s:`${delivered} delivered`, c:'#c96442' },
+        ].map((k,i) => (
+          <div key={i} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'14px 16px' }}>
+            <div style={{ fontSize:9, letterSpacing:'0.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700 }}>{k.l}</div>
+            <div style={{ fontFamily:'"Fraunces",serif', fontSize:26, color:k.c, marginTop:4 }}>{k.v}</div>
+            <div style={{ fontSize:10, color:'rgba(255,255,255,0.4)', marginTop:2 }}>{k.s}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr', gap:16 }}>
+        <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
+          <div style={{ fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700, marginBottom:14 }}>Order ledger</div>
+          {orders.length === 0 ? <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)' }}>No orders yet.</div> :
+          orders.map((o,i) => (
+            <div key={o.id} style={{ display:'grid', gridTemplateColumns:'130px 1fr auto auto', gap:10, padding:'8px 0', borderTop:i?`1px solid rgba(255,255,255,0.06)`:'none', alignItems:'center', fontSize:11 }}>
+              <span style={{ fontFamily:'JetBrains Mono,monospace', color:'#c96442', fontWeight:700 }}>{o.id}</span>
+              <span style={{ color:'#fff' }}>{o.customerName}</span>
+              <span style={{ fontFamily:'JetBrains Mono,monospace', color:'rgba(255,255,255,0.8)' }}>{fmt(o.total||0)}</span>
+              <span style={{ padding:'2px 8px', borderRadius:999, fontSize:9, fontWeight:700, textTransform:'uppercase',
+                background: o.status==='delivered'?'rgba(76,186,133,0.15)':'rgba(255,255,255,0.05)',
+                color: o.status==='delivered'?'#4cba85':'rgba(255,255,255,0.5)' }}>{o.status}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
+          <div style={{ fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700, marginBottom:14 }}>Revenue by status</div>
+          {[
+            { label:'Delivered', status:'delivered', color:'#4cba85' },
+            { label:'In-fab',    status:'in-fab',    color:'#7c5cff' },
+            { label:'Approved',  status:'approved',  color:'#5b8def' },
+            { label:'Reviewing', status:'reviewing', color:'#d9a049' },
+            { label:'New',       status:'new',       color:'#c96442' },
+          ].map(row => {
+            const val = orders.filter(o => o.status === row.status).reduce((s,o) => s+(o.total||0), 0);
+            const pct = totalRevenue+pipeline > 0 ? (val/(totalRevenue+pipeline))*100 : 0;
+            return (
+              <div key={row.label} style={{ marginBottom:10 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, marginBottom:3 }}>
+                  <span style={{ color:'rgba(255,255,255,0.7)' }}>{row.label}</span>
+                  <span style={{ fontFamily:'JetBrains Mono,monospace', color:'rgba(255,255,255,0.5)', fontSize:10 }}>{fmt(val)}</span>
+                </div>
+                <div style={{ height:4, background:'rgba(255,255,255,0.06)', borderRadius:2 }}>
+                  <div style={{ height:'100%', width:`${pct}%`, background:row.color, borderRadius:2, transition:'width 0.4s' }}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── BACKEND PLANNER (studio) ─────────────────────────────────── */
 function PlannerBackend() {
   const { useState: useS, useEffect: useE } = React;
@@ -326,6 +447,7 @@ function PlannerBackend() {
   const [selId, setSelId]     = useS(null);
   const [studioNote, setStudioNote] = useS('');
   const [quoteTotal, setQuoteTotal] = useS('');
+  const [erpModule, setErpModule] = useS('crm');
 
   const reload = () => setOrders(KreoStore.getOrders());
 
@@ -428,8 +550,89 @@ function PlannerBackend() {
           )}
         </div>
 
-        {/* Workspace 3 columns */}
-        <div style={{ flex:1, display:'grid', gridTemplateColumns:'280px 1fr 300px', minHeight:0 }}>
+        {/* ERP module strip */}
+        <ERPModuleStrip active={erpModule} onChange={setErpModule} orders={orders} />
+
+        {/* Finance module */}
+        {erpModule === 'finance' && <FinanceModule orders={orders} />}
+
+        {/* Procurement module */}
+        {erpModule === 'procurement' && (
+          <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700, marginBottom:16 }}>Procurement · Vendors</div>
+            <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
+              {[
+                { n:'Greenlam Industries', cat:'Laminates / Boards', sku:'MDF 18mm, HDF 6mm', status:'active' },
+                { n:'Hettich India', cat:'Hardware', sku:'Hinges, slides, handles', status:'active' },
+                { n:'Caesarstone', cat:'Quartz worktops', sku:'20mm, 30mm slabs', status:'active' },
+                { n:'Faber India', cat:'Appliances / Hoods', sku:'Built-in range', status:'active' },
+                { n:'Hafele India', cat:'Hardware / Fittings', sku:'Systems, locks', status:'inactive' },
+              ].map((v,i) => (
+                <div key={i} style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr 1.5fr auto', gap:12, padding:'12px 0', borderTop:i?`1px solid rgba(255,255,255,0.06)`:'none', alignItems:'center' }}>
+                  <div>
+                    <div style={{ fontSize:13, color:'#fff', fontWeight:600 }}>{v.n}</div>
+                    <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)' }}>{v.cat}</div>
+                  </div>
+                  <span style={{ fontSize:11, color:'rgba(255,255,255,0.55)', fontFamily:'JetBrains Mono,monospace' }}>{v.sku}</span>
+                  <span style={{ fontSize:10, color:'rgba(255,255,255,0.55)' }}>{v.sku}</span>
+                  <span style={{ padding:'3px 10px', borderRadius:999, fontSize:9, fontWeight:700, textTransform:'uppercase',
+                    background: v.status==='active'?'rgba(76,186,133,0.15)':'rgba(255,255,255,0.04)',
+                    color: v.status==='active'?'#4cba85':'rgba(255,255,255,0.4)' }}>{v.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Logistics module */}
+        {erpModule === 'logistics' && (
+          <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700, marginBottom:16 }}>Logistics · Factory & Depot Network</div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14, marginBottom:20 }}>
+              {[
+                { id:'FAC-MUM', name:'Mumbai', loc:'Bhiwandi, Maharashtra', cap:120, c:'#c96442' },
+                { id:'FAC-BLR', name:'Bengaluru', loc:'Peenya, Karnataka', cap:80, c:'#4cba85' },
+                { id:'FAC-DEL', name:'Delhi NCR', loc:'Manesar, Haryana', cap:100, c:'#5b8def' },
+              ].map(f => (
+                <div key={f.id} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderLeft:`3px solid ${f.c}`, borderRadius:8, padding:'14px' }}>
+                  <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', color:f.c, fontWeight:700, letterSpacing:'0.1em' }}>{f.id}</div>
+                  <div style={{ fontSize:15, color:'#fff', fontWeight:600, marginTop:4 }}>{f.name} Factory</div>
+                  <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)', marginTop:2 }}>{f.loc}</div>
+                  <div style={{ fontSize:13, color:f.c, fontWeight:700, marginTop:8 }}>{f.cap} jobs/mo</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize:11, color:'rgba(255,255,255,0.5)', marginBottom:12 }}>Tier 1 cities — 10km coverage · Tier 2 cities — 20km coverage · 18 cities · 73 depots total</div>
+          </div>
+        )}
+
+        {/* HR module */}
+        {erpModule === 'hr' && (
+          <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700, marginBottom:16 }}>HR · Team</div>
+            <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px' }}>
+              {[
+                { n:'Reema Iyer', role:'Owner · Admin', dept:'Studio', l:'now', c:'#c96442', init:'RI' },
+                { n:'Aditya Shenoy', role:'Designer', dept:'Studio', l:'12m ago', c:'#5b8def', init:'AS' },
+                { n:'Priya Nair', role:'PM · Site', dept:'Operations', l:'1h ago', c:'#4cba85', init:'PN' },
+                { n:'Suresh M.', role:'Factory ops', dept:'Manufacturing', l:'now', c:'#d9a049', init:'SM' },
+                { n:'Kiran D.', role:'Logistics', dept:'Supply chain', l:'2h ago', c:'#7c5cff', init:'KD' },
+              ].map((m,i) => (
+                <div key={i} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 0', borderTop:i?`1px solid rgba(255,255,255,0.06)`:'none' }}>
+                  <div style={{ width:36, height:36, borderRadius:'50%', background:m.c, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:'#fff', flexShrink:0 }}>{m.init}</div>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontSize:13, color:'#fff', fontWeight:600 }}>{m.n}</div>
+                    <div style={{ fontSize:11, color:'rgba(255,255,255,0.45)' }}>{m.role} · {m.dept}</div>
+                  </div>
+                  <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:'rgba(255,255,255,0.4)' }}>{m.l}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* CRM module (default) — Workspace 3 columns */}
+        {erpModule === 'crm' && <div style={{ flex:1, display:'grid', gridTemplateColumns:'280px 1fr 300px', minHeight:0 }}>
 
           {/* LEFT — order inbox */}
           <div style={{ background:'#191613', borderRight:`1px solid ${bLine}`, display:'flex', flexDirection:'column', overflow:'hidden' }}>
@@ -621,10 +824,10 @@ function PlannerBackend() {
               </>
             )}
           </div>
-        </div>
+        </div>}
       </div>
     </div>
   );
 }
 
-Object.assign(window, { PlannerBackend, KitchenPlanCAD, KreoStore });
+Object.assign(window, { PlannerBackend, KitchenPlanCAD, KreoStore, ERPModuleStrip, FinanceModule });
