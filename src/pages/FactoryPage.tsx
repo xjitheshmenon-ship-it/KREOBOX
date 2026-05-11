@@ -1,269 +1,329 @@
-import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import { useKreoboxStore } from '../store/kreoboxStore'
-import { inr, findShutter, findFrame, CATALOG } from '../data/catalog'
+import { inr } from '../data/catalog'
 import type { KBOrder, KBInventory } from '../types/kreobox'
-import StagePill from '../components/kreobox/StagePill'
-import Modal from '../components/kreobox/Modal'
 
-/* ── Dark theme palette (from precut-04 factory design) ── */
-const D = {
-  bg:       '#0e0d0b',
-  surface:  '#1a1612',
-  border:   'rgba(255,255,255,0.08)',
-  text:     '#e8e6e1',
-  muted:    'rgba(255,255,255,0.45)',
-  accent:   '#c96442',
-  good:     '#1f8a5b',
+/* ── Design tokens ── */
+const fBg      = '#1f1c19'
+const fSub     = '#27241f'
+const fSub2    = '#191613'
+const fInk     = '#0e0d0b'
+const fLine    = 'rgba(255,255,255,0.08)'
+const fMute    = 'rgba(255,255,255,0.55)'
+const fAccent  = '#c96442'
+const fOk      = '#4cba85'
+const fWarn    = '#d9a049'
+const fInfo    = '#5b8def'
+
+const uiFont   = '"Inter Tight", sans-serif'
+const monoFont = 'JetBrains Mono, monospace'
+const dispFont = '"Fraunces", serif'
+
+const sectionLabel: CSSProperties = {
+  fontSize: 9,
+  letterSpacing: '0.18em',
+  textTransform: 'uppercase',
+  color: 'rgba(255,255,255,0.45)',
+  fontWeight: 700,
+  fontFamily: uiFont,
 }
 
+const card: CSSProperties = {
+  background: fSub,
+  border: `1px solid ${fLine}`,
+  borderRadius: 8,
+  padding: '14px 16px',
+}
+
+/* ── Stage → WO status mapping ── */
+function stageStatus(stage: string, isCutting: boolean): { label: string; color: string } {
+  if (isCutting) return { label: 'cutting', color: fAccent }
+  switch (stage) {
+    case 'In Cut-list': return { label: 'queued',      color: fMute }
+    case 'Cut':         return { label: 'done',        color: fOk }
+    case 'Edge-banded': return { label: 'edgebanding', color: fInfo }
+    case 'Confirmed':   return { label: 'queued',      color: fMute }
+    default:            return { label: stage.toLowerCase(), color: fMute }
+  }
+}
+
+/* ── Machine mock progress for each order ── */
+function orderProgress(stage: string): number {
+  switch (stage) {
+    case 'Confirmed':   return 0
+    case 'In Cut-list': return 15
+    case 'Cut':         return 55
+    case 'Edge-banded': return 80
+    case 'Packed':      return 95
+    case 'Dispatched':  return 100
+    default:            return 0
+  }
+}
+
+/* keep inr available for value display if needed */
+void inr
+
 export default function FactoryPage() {
-  const orders = useKreoboxStore(s => s.orders)
-  const inventory = useKreoboxStore(s => s.inventory)
-  const setInventory = useKreoboxStore(s => s.setInventory)
+  const orders           = useKreoboxStore(s => s.orders)
+  const inventory        = useKreoboxStore(s => s.inventory)
   const updateOrderStage = useKreoboxStore(s => s.updateOrderStage)
-  const [tab, setTab] = useState<'queue' | 'dispatch' | 'inventory'>('queue')
-  const [openOrder, setOpenOrder] = useState<KBOrder | null>(null)
 
-  const queueOrders = orders.filter(o => ['Confirmed', 'In Cut-list', 'Cut', 'Edge-banded'].includes(o.stage))
-  const dispatchOrders = orders.filter(o => o.stage === 'Packed')
-  const lowStock = inventory.laminates.filter(l => l.sheets < l.reorderAt).length + inventory.hardware.filter(h => h.units < h.reorderAt).length
+  /* KPI computations */
+  const sheetsQueued   = orders.filter(o => ['Confirmed', 'In Cut-list'].includes(o.stage)).length
+  const sheetsCutToday = orders.filter(o => o.stage === 'Cut').length
+  const activeOrders   = orders.filter(o => !['Quoted'].includes(o.stage))
+  const onTimeCount    = Math.max(0, activeOrders.length - 1)
+  const onTimeWOs      = `${onTimeCount} / ${activeOrders.length}`
 
-  const tabs = [
-    { id: 'queue' as const, label: 'Production queue', count: queueOrders.length },
-    { id: 'dispatch' as const, label: 'Dispatch desk', count: dispatchOrders.length },
-    { id: 'inventory' as const, label: 'Inventory', count: inventory.laminates.length + inventory.hardware.length },
+  /* Work-order list — only factory-relevant stages */
+  const woOrders = orders.filter(o =>
+    ['Confirmed', 'In Cut-list', 'Cut', 'Edge-banded'].includes(o.stage)
+  )
+  const firstCuttingIdx = woOrders.findIndex(o => o.stage === 'In Cut-list')
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: fBg,
+      color: '#e8e6e1',
+      fontFamily: uiFont,
+      display: 'flex',
+      flexDirection: 'column',
+    }}>
+
+      {/* ── TopBar ── */}
+      <TopBar orders={orders} />
+
+      {/* ── KPI strip ── */}
+      <KpiStrip
+        sheetsQueued={sheetsQueued}
+        sheetsCutToday={sheetsCutToday}
+        onTimeWOs={onTimeWOs}
+      />
+
+      {/* ── 3-column workspace ── */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        gap: 0,
+        overflow: 'hidden',
+        minHeight: 0,
+      }}>
+
+        {/* Left 300px — Work orders */}
+        <div style={{
+          width: 300,
+          flexShrink: 0,
+          background: fSub2,
+          borderRight: `1px solid ${fLine}`,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}>
+          <WorkOrderList
+            orders={woOrders}
+            firstCuttingIdx={firstCuttingIdx}
+            updateOrderStage={updateOrderStage}
+          />
+        </div>
+
+        {/* Center flex — CutNest + Machine timeline */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          background: fBg,
+        }}>
+          <div style={{ flex: 1, padding: '20px 20px 0', overflowY: 'auto' }}>
+            <div style={{ ...sectionLabel, marginBottom: 10 }}>CNC Nesting View</div>
+            <CutNest />
+          </div>
+          <div style={{
+            padding: '16px 20px 20px',
+            borderTop: `1px solid ${fLine}`,
+            flexShrink: 0,
+          }}>
+            <div style={{ ...sectionLabel, marginBottom: 10 }}>Machine Timeline — Today</div>
+            <MachineTimeline />
+          </div>
+        </div>
+
+        {/* Right 280px — Operators + Material */}
+        <div style={{
+          width: 280,
+          flexShrink: 0,
+          background: fSub2,
+          borderLeft: `1px solid ${fLine}`,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}>
+          <OperatorsPanel orders={woOrders} firstCuttingIdx={firstCuttingIdx} />
+          <MaterialPanel inventory={inventory} />
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════
+   TOP BAR
+══════════════════════════════════════════════ */
+function TopBar({ orders }: { orders: KBOrder[] }) {
+  const activeWO = orders.find(o => o.stage === 'In Cut-list')
+
+  return (
+    <header style={{
+      height: 52,
+      background: fSub,
+      borderBottom: `1px solid ${fLine}`,
+      display: 'flex',
+      alignItems: 'center',
+      padding: '0 20px',
+      gap: 16,
+      flexShrink: 0,
+    }}>
+
+      {/* Title */}
+      <span style={{
+        fontFamily: uiFont,
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: '0.18em',
+        textTransform: 'uppercase',
+        color: '#e8e6e1',
+      }}>
+        Factory · Whitefield Works
+      </span>
+
+      {/* LIVE badge */}
+      <span style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 5,
+        background: 'rgba(76,186,133,0.12)',
+        border: `1px solid ${fOk}`,
+        borderRadius: 4,
+        padding: '2px 8px',
+        fontSize: 9,
+        fontWeight: 700,
+        letterSpacing: '0.14em',
+        color: fOk,
+        fontFamily: uiFont,
+        textTransform: 'uppercase',
+      }}>
+        <span style={{
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          background: fOk,
+        }} />
+        Live
+      </span>
+
+      {/* Shift info */}
+      <span style={{ fontSize: 11, color: fMute, fontFamily: uiFont }}>
+        Shift A · 08:00 – 20:00
+        {activeWO && (
+          <span style={{
+            marginLeft: 12,
+            color: fAccent,
+            fontFamily: monoFont,
+            fontSize: 10,
+          }}>
+            ▶ {activeWO.id} on CNC-01
+          </span>
+        )}
+      </span>
+
+      <div style={{ flex: 1 }} />
+
+      {/* Action buttons */}
+      <button style={{
+        padding: '6px 14px',
+        borderRadius: 6,
+        border: `1px solid ${fLine}`,
+        background: 'transparent',
+        color: fMute,
+        fontSize: 11,
+        fontWeight: 600,
+        cursor: 'pointer',
+        fontFamily: uiFont,
+      }}>
+        Print travelers
+      </button>
+
+      <button style={{
+        padding: '6px 14px',
+        borderRadius: 6,
+        border: 'none',
+        background: fAccent,
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: 700,
+        cursor: 'pointer',
+        fontFamily: uiFont,
+      }}>
+        + Release work order
+      </button>
+    </header>
+  )
+}
+
+/* ══════════════════════════════════════════════
+   KPI STRIP
+══════════════════════════════════════════════ */
+function KpiStrip({
+  sheetsQueued,
+  sheetsCutToday,
+  onTimeWOs,
+}: {
+  sheetsQueued: number
+  sheetsCutToday: number
+  onTimeWOs: string
+}) {
+  const kpis = [
+    { label: 'Sheets queued',    value: String(sheetsQueued),    sub: 'in cut-list',     color: fMute  },
+    { label: 'Sheets cut today', value: String(sheetsCutToday),  sub: 'since 08:00',     color: fOk   },
+    { label: 'Yield',            value: '93.6%',                 sub: 'target 92%',      color: fOk   },
+    { label: 'CNC utilization',  value: '78%',                   sub: 'CNC-01 + CNC-02', color: fInfo },
+    { label: 'On-time WOs',      value: onTimeWOs,               sub: 'within ETA',      color: fOk   },
   ]
 
   return (
-    <div style={{ minHeight: '100vh', background: D.bg, color: D.text, fontFamily: '"Inter Tight", -apple-system, sans-serif' }}>
-      {/* Top bar */}
-      <header style={{ height: 56, padding: '0 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${D.border}` }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <span style={{ fontFamily: 'Fraunces', fontSize: 15, fontWeight: 500, letterSpacing: '0.12em' }}>KREOBOX</span>
-          <span style={{ fontSize: 11, color: D.muted, borderLeft: `1px solid ${D.border}`, paddingLeft: 16, letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>
-            Factory · Mysuru floor
-          </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20, fontFamily: 'JetBrains Mono', fontSize: 11, color: D.muted }}>
-          <span><Dot color={D.good} /> {queueOrders.length} in production</span>
-          {lowStock > 0 && <span><Dot color={D.accent} /> {lowStock} low-stock SKUs</span>}
-        </div>
-      </header>
-
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '40px 40px 80px' }}>
-        {/* Header */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: D.accent, fontWeight: 700 }}>Module 2</div>
-          <h1 style={{ fontFamily: 'Fraunces', fontSize: 48, fontWeight: 300, letterSpacing: '-0.025em', margin: '8px 0 0', lineHeight: 0.95 }}>
-            Factory + Stock Depot
-          </h1>
-          <p style={{ fontSize: 13, marginTop: 10, color: D.muted }}>Production queue · Inventory · Dispatch.</p>
-        </div>
-
-        {/* KPI strip */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 28 }}>
-          {[
-            { label: 'In production', value: queueOrders.length, accent: true },
-            { label: 'Ready to dispatch', value: dispatchOrders.length },
-            { label: 'Dispatched', value: orders.filter(o => o.stage === 'Dispatched').length },
-            { label: 'Low-stock SKUs', value: lowStock, alert: lowStock > 0 },
-          ].map(k => (
-            <div key={k.label} style={{
-              borderRadius: 10, padding: '16px 18px',
-              background: k.accent ? D.accent : (k.alert && k.value > 0 ? 'rgba(201,100,66,0.10)' : D.surface),
-              border: `1px solid ${k.accent ? D.accent : D.border}`,
-            }}>
-              <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.6, fontWeight: 600 }}>{k.label}</div>
-              <div style={{ fontFamily: 'Fraunces', fontSize: 32, fontWeight: 300, marginTop: 8, letterSpacing: '-0.02em' }}>{k.value}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 6, marginBottom: 24, paddingBottom: 20, borderBottom: `1px solid ${D.border}` }}>
-          {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              style={{
-                padding: '8px 16px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
-                background: tab === t.id ? D.text : 'transparent',
-                color: tab === t.id ? D.bg : D.muted,
-                border: `1px solid ${tab === t.id ? D.text : D.border}`,
-                display: 'flex', alignItems: 'center', gap: 8,
-              }}>
-              {t.label}
-              <span style={{ fontFamily: 'JetBrains Mono', fontSize: 10, opacity: 0.7 }}>{t.count}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Tab content */}
-        {tab === 'queue' && <ProductionQueue orders={queueOrders} updateOrderStage={updateOrderStage} openOrder={openOrder} setOpenOrder={setOpenOrder} />}
-        {tab === 'dispatch' && <DispatchDesk orders={dispatchOrders} updateOrderStage={updateOrderStage} />}
-        {tab === 'inventory' && <InventoryView inventory={inventory} setInventory={setInventory} />}
-      </div>
-
-      {openOrder && <CutListModal order={openOrder} onClose={() => setOpenOrder(null)} />}
-    </div>
-  )
-}
-
-function Dot({ color }: { color: string }) {
-  return <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: color, marginRight: 6 }} />
-}
-
-function ProductionQueue({ orders, updateOrderStage, openOrder, setOpenOrder }: {
-  orders: KBOrder[]
-  updateOrderStage: (id: string, stage: any) => void
-  openOrder: KBOrder | null
-  setOpenOrder: (o: KBOrder | null) => void
-}) {
-  const stages = ['Confirmed', 'In Cut-list', 'Cut', 'Edge-banded', 'Packed']
-  const D2 = { bg: '#0e0d0b', surface: '#1a1612', border: 'rgba(255,255,255,0.08)', text: '#e8e6e1', muted: 'rgba(255,255,255,0.45)', accent: '#c96442' }
-  return (
-    <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 20 }}>
-        {stages.map(s => (
-          <div key={s} style={{ background: D2.surface, borderRadius: 10, padding: '12px 14px', textAlign: 'center', border: `1px solid ${D2.border}` }}>
-            <div style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: D2.muted, fontWeight: 600 }}>{s}</div>
-            <div style={{ fontFamily: 'JetBrains Mono', fontSize: 24, fontWeight: 500, marginTop: 6 }}>{orders.filter(o => o.stage === s).length}</div>
+    <div style={{
+      background: fSub2,
+      borderBottom: `1px solid ${fLine}`,
+      display: 'grid',
+      gridTemplateColumns: 'repeat(5, 1fr)',
+      flexShrink: 0,
+    }}>
+      {kpis.map((k, i) => (
+        <div key={k.label} style={{
+          padding: '14px 18px',
+          borderRight: i < 4 ? `1px solid ${fLine}` : 'none',
+        }}>
+          <div style={sectionLabel}>{k.label}</div>
+          <div style={{
+            fontFamily: dispFont,
+            fontSize: 28,
+            fontWeight: 300,
+            color: k.color,
+            marginTop: 4,
+            letterSpacing: '-0.02em',
+            lineHeight: 1.1,
+          }}>
+            {k.value}
           </div>
-        ))}
-      </div>
-      {orders.length === 0 ? (
-        <div style={{ background: D2.surface, borderRadius: 12, padding: '48px', textAlign: 'center', fontSize: 13, color: D2.muted, border: `1px solid ${D2.border}` }}>
-          No orders in queue. Confirmed orders from contractors appear here.
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {orders.map(o => (
-            <OrderCard key={o.id} order={o} onAction={next => updateOrderStage(o.id, next)} setOpenOrder={setOpenOrder} />
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-const STAGE_ORDER = ['Confirmed', 'In Cut-list', 'Cut', 'Edge-banded', 'Packed', 'Dispatched']
-
-function OrderCard({ order, onAction, setOpenOrder }: { order: KBOrder; onAction: (s: string) => void; setOpenOrder: (o: KBOrder) => void }) {
-  const ix = STAGE_ORDER.indexOf(order.stage)
-  const next = STAGE_ORDER[ix + 1]
-  const D2 = { surface: '#1a1612', border: 'rgba(255,255,255,0.08)', text: '#e8e6e1', muted: 'rgba(255,255,255,0.45)', accent: '#c96442' }
-  return (
-    <div style={{ background: D2.surface, borderRadius: 12, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 16, border: `1px solid ${D2.border}` }}>
-      <div style={{ flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: 'JetBrains Mono', fontSize: 12 }}>{order.id}</span>
-          <StagePill stage={order.stage} />
-          <span style={{ fontSize: 11, textTransform: 'capitalize', color: D2.muted }}>{order.type}</span>
-        </div>
-        <div style={{ fontSize: 14, fontWeight: 600, marginTop: 6 }}>{order.customer.name}</div>
-        <div style={{ fontSize: 11, color: D2.muted, marginTop: 2 }}>
-          {findShutter(order.config.shutter)?.label} · {order.config.frames?.length ?? 0} frames
-          {(order.config.walls?.length ?? 0) > 0 && ` + ${order.config.walls.length} wall units`}
-        </div>
-      </div>
-      <div style={{ textAlign: 'right' }}>
-        <div style={{ fontFamily: 'JetBrains Mono', fontSize: 13 }}>{inr(order.total)}</div>
-        <div style={{ fontSize: 10, color: D2.muted, marginTop: 2 }}>{order.createdAt}</div>
-      </div>
-      <button onClick={() => setOpenOrder(order)}
-        style={{ padding: '8px 14px', borderRadius: 8, border: `1px solid ${D2.border}`, background: 'transparent', color: D2.text, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
-        Cut-list
-      </button>
-      {next && (
-        <button onClick={() => onAction(next)}
-          style={{ padding: '8px 14px', borderRadius: 8, border: 'none', background: D2.accent, color: '#fff', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700 }}>
-          Mark {next} →
-        </button>
-      )}
-    </div>
-  )
-}
-
-function CutListModal({ order, onClose }: { order: KBOrder; onClose: () => void }) {
-  const cat = CATALOG[order.type]
-  const allFrames = [...(order.config.frames ?? []), ...(order.config.walls ?? [])]
-  const lines: Array<{ id: string; sku: string; part: string; w: number; h: number; qty: number; eb: string }> = []
-  let lix = 1
-  allFrames.forEach(fid => {
-    const f = findFrame(order.type, fid)
-    if (!f) return
-    lines.push(
-      { id: `${order.id}-${String(lix++).padStart(3, '0')}`, sku: fid, part: 'Side L', w: f.d - 18, h: f.h, qty: 1, eb: '1L' },
-      { id: `${order.id}-${String(lix++).padStart(3, '0')}`, sku: fid, part: 'Side R', w: f.d - 18, h: f.h, qty: 1, eb: '1L' },
-      { id: `${order.id}-${String(lix++).padStart(3, '0')}`, sku: fid, part: 'Top', w: f.w - 36, h: f.d - 18, qty: 1, eb: '1L' },
-      { id: `${order.id}-${String(lix++).padStart(3, '0')}`, sku: fid, part: 'Bottom', w: f.w - 36, h: f.d - 18, qty: 1, eb: '1L' },
-      { id: `${order.id}-${String(lix++).padStart(3, '0')}`, sku: fid, part: 'Back', w: f.w, h: f.h, qty: 1, eb: '0' },
-      { id: `${order.id}-${String(lix++).padStart(3, '0')}`, sku: fid, part: 'Shutter', w: f.w - 4, h: f.h - 4, qty: 1, eb: '4L' },
-    )
-  })
-  return (
-    <Modal onClose={onClose}>
-      <div style={{ padding: 28 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, paddingBottom: 16, borderBottom: '1px solid var(--kb-line)' }}>
-          <div>
-            <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--kb-ink-soft)', fontWeight: 600 }}>Job card</div>
-            <h2 style={{ fontFamily: 'Fraunces', fontSize: 26, fontWeight: 400, margin: '6px 0 0' }}>{order.id} · Cut-list</h2>
-            <div style={{ fontSize: 12, color: 'var(--kb-ink-soft)', marginTop: 4 }}>
-              {order.customer.name} · {findShutter(order.config.shutter)?.label} · {lines.length} pieces
-            </div>
-          </div>
-          <button onClick={onClose} style={{ fontSize: 20, background: 'none', border: 'none', cursor: 'pointer', color: 'var(--kb-ink-soft)', padding: 4 }}>×</button>
-        </div>
-        <table className="kb-crisp-table" style={{ width: '100%' }}>
-          <thead>
-            <tr><th>Barcode</th><th>SKU</th><th>Part</th><th>W (mm)</th><th>H (mm)</th><th>Qty</th><th>Edge band</th></tr>
-          </thead>
-          <tbody>
-            {lines.map(l => (
-              <tr key={l.id}>
-                <td style={{ fontFamily: 'JetBrains Mono', fontSize: 11 }}>{l.id}</td>
-                <td style={{ fontFamily: 'JetBrains Mono', fontSize: 11 }}>{l.sku}</td>
-                <td style={{ fontSize: 13 }}>{l.part}</td>
-                <td style={{ fontFamily: 'JetBrains Mono' }}>{l.w}</td>
-                <td style={{ fontFamily: 'JetBrains Mono' }}>{l.h}</td>
-                <td style={{ fontFamily: 'JetBrains Mono' }}>{l.qty}</td>
-                <td style={{ fontFamily: 'JetBrains Mono', fontSize: 11 }}>{l.eb}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 8, background: 'var(--kb-bg)', fontSize: 11, color: 'var(--kb-ink-soft)' }}>
-          Each row prints as a Zebra label (50×30mm) with QR code · scans into the install module.
-        </div>
-      </div>
-    </Modal>
-  )
-}
-
-function DispatchDesk({ orders, updateOrderStage }: { orders: KBOrder[]; updateOrderStage: (id: string, stage: any) => void }) {
-  const D2 = { surface: '#1a1612', border: 'rgba(255,255,255,0.08)', text: '#e8e6e1', muted: 'rgba(255,255,255,0.45)', good: '#1f8a5b' }
-  if (orders.length === 0) {
-    return <div style={{ background: D2.surface, borderRadius: 12, padding: '48px', textAlign: 'center', fontSize: 13, color: D2.muted, border: `1px solid ${D2.border}` }}>No orders ready for dispatch.</div>
-  }
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {orders.map(o => (
-        <div key={o.id} style={{ background: D2.surface, borderRadius: 12, padding: '18px 22px', border: `1px solid ${D2.border}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontFamily: 'JetBrains Mono', fontSize: 12 }}>{o.id}</span>
-                <StagePill stage={o.stage} />
-              </div>
-              <div style={{ fontSize: 15, fontWeight: 600, marginTop: 6 }}>{o.customer.name}</div>
-              <div style={{ fontSize: 12, color: D2.muted, marginTop: 2 }}>{o.customer.area}, {o.customer.city}</div>
-            </div>
-            <div style={{ textAlign: 'right', marginRight: 16 }}>
-              <div style={{ fontFamily: 'JetBrains Mono', fontSize: 14 }}>{inr(o.total - o.advance)} balance</div>
-              <div style={{ fontSize: 10, color: D2.muted, marginTop: 2 }}>collect on dispatch</div>
-            </div>
-            <button onClick={() => updateOrderStage(o.id, 'Dispatched')}
-              style={{ padding: '10px 18px', borderRadius: 10, border: 'none', background: D2.good, color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
-              Confirm dispatch →
-            </button>
+          <div style={{
+            fontSize: 10,
+            color: 'rgba(255,255,255,0.35)',
+            marginTop: 2,
+            fontFamily: uiFont,
+          }}>
+            {k.sub}
           </div>
         </div>
       ))}
@@ -271,95 +331,713 @@ function DispatchDesk({ orders, updateOrderStage }: { orders: KBOrder[]; updateO
   )
 }
 
-function InventoryView({ inventory, setInventory }: { inventory: KBInventory; setInventory: (fn: (prev: KBInventory) => KBInventory) => void }) {
-  const D2 = { surface: '#1a1612', border: 'rgba(255,255,255,0.08)', text: '#e8e6e1', muted: 'rgba(255,255,255,0.45)', accent: '#c96442', warn: '#b45309' }
-
-  const adjust = (kind: 'laminates' | 'hardware', id: string, delta: number) => {
-    setInventory(prev => ({
-      ...prev,
-      [kind]: prev[kind].map((x: any) => {
-        if (x.id !== id) return x
-        const key = kind === 'laminates' ? 'sheets' : 'units'
-        return { ...x, [key]: Math.max(0, x[key] + delta) }
-      }),
-    }))
-  }
-
-  const colStyle = { background: D2.surface, borderRadius: 12, overflow: 'hidden', border: `1px solid ${D2.border}` }
-  const headerStyle = { padding: '14px 18px', borderBottom: `1px solid ${D2.border}`, fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const }
+/* ══════════════════════════════════════════════
+   WORK ORDER LIST (left column)
+══════════════════════════════════════════════ */
+function WorkOrderList({
+  orders,
+  firstCuttingIdx,
+  updateOrderStage,
+}: {
+  orders: KBOrder[]
+  firstCuttingIdx: number
+  updateOrderStage: (id: string, stage: any) => void
+}) {
+  void updateOrderStage // available for future interactions
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-      <div style={colStyle}>
-        <div style={headerStyle}>Laminate sheets</div>
-        <table className="kb-crisp-table" style={{ width: '100%' }}>
-          <thead style={{ background: 'transparent' }}>
-            <tr>
-              <th style={{ background: 'transparent', color: D2.muted }}>Finish</th>
-              <th style={{ background: 'transparent', color: D2.muted }}>Sheets</th>
-              <th style={{ background: 'transparent' }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {inventory.laminates.map(l => {
-              const sh = findShutter(l.id)
-              const low = l.sheets < l.reorderAt
-              return (
-                <tr key={l.id} style={{ borderBottom: `1px solid ${D2.border}` }}>
-                  <td style={{ color: D2.text }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ width: 12, height: 12, borderRadius: 3, background: sh?.color, border: `1px solid ${sh?.border}`, flexShrink: 0 }} />
-                      {l.label}
-                    </div>
-                  </td>
-                  <td style={{ color: low ? D2.accent : D2.text }}>
-                    <span style={{ fontFamily: 'JetBrains Mono' }}>{l.sheets}</span>
-                    {low && <span style={{ marginLeft: 8, fontSize: 10, color: D2.warn }}>⚠ low</span>}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button onClick={() => adjust('laminates', l.id, -1)} style={{ width: 22, height: 22, borderRadius: 4, border: `1px solid ${D2.border}`, background: 'transparent', color: D2.text, cursor: 'pointer', fontSize: 14 }}>−</button>
-                      <button onClick={() => adjust('laminates', l.id, 1)} style={{ width: 22, height: 22, borderRadius: 4, border: `1px solid ${D2.border}`, background: 'transparent', color: D2.text, cursor: 'pointer', fontSize: 14 }}>+</button>
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{
+        padding: '14px 16px 10px',
+        borderBottom: `1px solid ${fLine}`,
+        flexShrink: 0,
+      }}>
+        <div style={sectionLabel}>Work Orders</div>
       </div>
 
-      <div style={colStyle}>
-        <div style={headerStyle}>Hardware kits</div>
-        <table className="kb-crisp-table" style={{ width: '100%' }}>
-          <thead>
-            <tr>
-              <th style={{ background: 'transparent', color: D2.muted }}>Item</th>
-              <th style={{ background: 'transparent', color: D2.muted }}>Units</th>
-              <th style={{ background: 'transparent' }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {inventory.hardware.map(h => {
-              const low = h.units < h.reorderAt
-              return (
-                <tr key={h.id} style={{ borderBottom: `1px solid ${D2.border}` }}>
-                  <td style={{ fontSize: 12, color: D2.text }}>{h.label}</td>
-                  <td style={{ color: low ? D2.accent : D2.text }}>
-                    <span style={{ fontFamily: 'JetBrains Mono' }}>{h.units}</span>
-                    {low && <span style={{ marginLeft: 8, fontSize: 10, color: D2.warn }}>⚠ low</span>}
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button onClick={() => adjust('hardware', h.id, -1)} style={{ width: 22, height: 22, borderRadius: 4, border: `1px solid ${D2.border}`, background: 'transparent', color: D2.text, cursor: 'pointer', fontSize: 14 }}>−</button>
-                      <button onClick={() => adjust('hardware', h.id, 1)} style={{ width: 22, height: 22, borderRadius: 4, border: `1px solid ${D2.border}`, background: 'transparent', color: D2.text, cursor: 'pointer', fontSize: 14 }}>+</button>
-                    </div>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '10px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+      }}>
+        {orders.length === 0 && (
+          <div style={{
+            fontSize: 12,
+            color: fMute,
+            textAlign: 'center',
+            paddingTop: 32,
+            fontFamily: uiFont,
+          }}>
+            No active work orders
+          </div>
+        )}
+
+        {orders.map((order, idx) => {
+          const isCutting = idx === firstCuttingIdx
+          const { label: statusLabel, color: statusColor } = stageStatus(order.stage, isCutting)
+          const progress = orderProgress(order.stage)
+          const machine  = isCutting ? 'CNC-01' : order.stage === 'Edge-banded' ? 'EB-01' : 'CNC-02'
+
+          return (
+            <div key={order.id} style={{
+              background: isCutting ? 'rgba(201,100,66,0.08)' : fSub,
+              border: isCutting ? `1px solid ${fAccent}` : `1px solid ${fLine}`,
+              borderRadius: 8,
+              padding: '12px 14px',
+            }}>
+
+              {/* Header row: WO ID + status pill */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 4,
+              }}>
+                <span style={{
+                  fontFamily: monoFont,
+                  fontSize: 11,
+                  color: fAccent,
+                  fontWeight: 700,
+                }}>
+                  {order.id}
+                </span>
+                <span style={{
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: statusColor,
+                  fontFamily: uiFont,
+                  padding: '2px 6px',
+                  borderRadius: 3,
+                  background: `${statusColor}18`,
+                  border: `1px solid ${statusColor}44`,
+                }}>
+                  {statusLabel}
+                </span>
+              </div>
+
+              {/* Project name */}
+              <div style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#e8e6e1',
+                marginBottom: 2,
+                fontFamily: uiFont,
+              }}>
+                {order.customer.name}
+              </div>
+
+              {/* Meta: type · machine · ETA */}
+              <div style={{
+                fontSize: 10,
+                color: fMute,
+                fontFamily: uiFont,
+                marginBottom: 8,
+              }}>
+                {order.type} · {machine} · ETA {order.createdAt}
+              </div>
+
+              {/* Progress bar */}
+              <div style={{
+                background: fLine,
+                borderRadius: 3,
+                height: 3,
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  width: `${progress}%`,
+                  height: '100%',
+                  background: isCutting ? fAccent : statusColor,
+                  borderRadius: 3,
+                  transition: 'width 0.4s ease',
+                }} />
+              </div>
+              <div style={{
+                fontSize: 9,
+                color: fMute,
+                marginTop: 4,
+                fontFamily: monoFont,
+              }}>
+                {progress}%
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════
+   CUTNEST SVG VIEWER (center)
+══════════════════════════════════════════════ */
+function CutNest() {
+  // Sheet 2440×1220 mm rendered at 600×300 viewport (scale ≈ 0.245)
+  const SW = 600
+  const SH = 300
+
+  type Piece = {
+    label: string
+    sub?: string
+    x: number   // % of SW
+    y: number   // % of SH
+    w: number   // % of SW
+    h: number   // % of SH
+    color: string
+    toolPath?: boolean
+  }
+
+  // Layout: doors left two columns, sides far right, shelves bottom-left
+  const pieces: Piece[] = [
+    { label: 'D-12',  sub: 'door · shaker',   x:  2, y:  2, w: 28, h: 62, color: fAccent, toolPath: true },
+    { label: 'D-13',  sub: 'door · shaker',   x: 32, y:  2, w: 28, h: 62, color: fAccent },
+    { label: 'S-04',  sub: 'pantry side',      x: 62, y:  2, w: 17, h: 92, color: fInfo },
+    { label: 'S-05',  sub: 'side panel',       x: 81, y:  2, w: 17, h: 92, color: fInfo },
+    { label: 'SH-01', sub: 'shelf',            x:  2, y: 67, w: 28, h: 20, color: fOk },
+    { label: 'SH-02', sub: 'shelf',            x: 32, y: 67, w: 28, h: 20, color: fOk },
+    { label: 'SH-03', sub: 'shelf',            x:  2, y: 89, w: 58, h:  8, color: fOk },
+  ]
+
+  // Offcut region: top-right area between the door/shelf columns and side panels
+  // Approx 62%..62% wide gap? Actually gap between col2 end (60%) and sides start (62%) is tiny.
+  // Place offcut below shelves on the right of bottom area
+  const offcutX   = 2
+  const offcutY   = 67
+  const offcutW   = 58
+  const offcutH   = 29
+  // We'll show offcut annotation in empty bottom-right area
+  const ocAnnotX  = 62
+  const ocAnnotY  = 67
+  const ocAnnotW  = 36
+  const ocAnnotH  = 30
+
+  const offcutPct = (100 - 93.6).toFixed(1)
+  void offcutX; void offcutY; void offcutW; void offcutH
+
+  return (
+    <div style={{
+      background: fSub,
+      border: `1px solid ${fLine}`,
+      borderRadius: 8,
+      overflow: 'hidden',
+    }}>
+
+      {/* Sheet label bar */}
+      <div style={{
+        padding: '8px 14px',
+        borderBottom: `1px solid ${fLine}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <span style={{ fontFamily: monoFont, fontSize: 10, color: fMute }}>
+          SHEET 2440 × 1220 · HDF 18mm
+        </span>
+        <div style={{ display: 'flex', gap: 14 }}>
+          {[
+            { color: fAccent, label: 'Door panels' },
+            { color: fInfo,   label: 'Sides' },
+            { color: fOk,     label: 'Shelves' },
+          ].map(l => (
+            <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <span style={{
+                width: 8,
+                height: 8,
+                borderRadius: 2,
+                background: l.color,
+                flexShrink: 0,
+              }} />
+              <span style={{ fontSize: 9, color: fMute, fontFamily: uiFont }}>{l.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* SVG canvas */}
+      <div style={{ padding: 12 }}>
+        <svg
+          viewBox={`0 0 ${SW} ${SH}`}
+          width="100%"
+          style={{ display: 'block', maxHeight: 240 }}
+        >
+          {/* Sheet background */}
+          <rect x={0} y={0} width={SW} height={SH} fill={fInk} rx={4} />
+          <rect x={0} y={0} width={SW} height={SH} fill="none" stroke={fLine} strokeWidth={1} rx={4} />
+
+          {/* Subtle grid */}
+          {[1, 2, 3, 4].map(i => (
+            <line
+              key={`v${i}`}
+              x1={SW * i / 5} y1={0} x2={SW * i / 5} y2={SH}
+              stroke={fLine} strokeWidth={0.5} strokeDasharray="3 4"
+            />
+          ))}
+          {[1, 2, 3].map(i => (
+            <line
+              key={`h${i}`}
+              x1={0} y1={SH * i / 4} x2={SW} y2={SH * i / 4}
+              stroke={fLine} strokeWidth={0.5} strokeDasharray="3 4"
+            />
+          ))}
+
+          {/* Pieces */}
+          {pieces.map(p => {
+            const px = (p.x / 100) * SW
+            const py = (p.y / 100) * SH
+            const pw = (p.w / 100) * SW
+            const ph = (p.h / 100) * SH
+            return (
+              <g key={p.label}>
+                <rect
+                  x={px + 1} y={py + 1}
+                  width={pw - 2} height={ph - 2}
+                  fill={`${p.color}22`}
+                  stroke={p.color}
+                  strokeWidth={1.5}
+                  rx={2}
+                />
+                {/* Tool path dashed overlay on active piece */}
+                {p.toolPath && (
+                  <rect
+                    x={px + 5} y={py + 5}
+                    width={pw - 10} height={ph - 10}
+                    fill="none"
+                    stroke={p.color}
+                    strokeWidth={1}
+                    strokeDasharray="4 3"
+                    opacity={0.6}
+                    rx={1}
+                  />
+                )}
+                <text
+                  x={px + pw / 2}
+                  y={ph > 30 ? py + ph / 2 - 6 : py + ph / 2}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill={p.color}
+                  fontSize={10}
+                  fontFamily={monoFont}
+                  fontWeight={700}
+                >
+                  {p.label}
+                </text>
+                {p.sub && ph > 28 && (
+                  <text
+                    x={px + pw / 2}
+                    y={py + ph / 2 + 9}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fill={`${p.color}99`}
+                    fontSize={7.5}
+                    fontFamily={uiFont}
+                  >
+                    {p.sub}
+                  </text>
+                )}
+              </g>
+            )
+          })}
+
+          {/* Offcut annotation — bottom-right empty area */}
+          <rect
+            x={(ocAnnotX / 100) * SW}
+            y={(ocAnnotY / 100) * SH}
+            width={(ocAnnotW / 100) * SW}
+            height={(ocAnnotH / 100) * SH}
+            fill="rgba(255,255,255,0.03)"
+            stroke="rgba(255,255,255,0.12)"
+            strokeWidth={1}
+            strokeDasharray="4 3"
+            rx={2}
+          />
+          <text
+            x={(ocAnnotX / 100) * SW + (ocAnnotW / 100) * SW / 2}
+            y={(ocAnnotY / 100) * SH + (ocAnnotH / 100) * SH / 2}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="rgba(255,255,255,0.3)"
+            fontSize={9}
+            fontFamily={monoFont}
+            fontWeight={600}
+          >
+            OFFCUT · {offcutPct}%
+          </text>
+
+          {/* Sheet dimension label */}
+          <text
+            x={SW / 2}
+            y={SH - 5}
+            textAnchor="middle"
+            dominantBaseline="auto"
+            fill="rgba(255,255,255,0.2)"
+            fontSize={8}
+            fontFamily={monoFont}
+          >
+            2440 mm
+          </text>
+          <text
+            x={5}
+            y={SH / 2}
+            textAnchor="middle"
+            dominantBaseline="middle"
+            fill="rgba(255,255,255,0.2)"
+            fontSize={8}
+            fontFamily={monoFont}
+            transform={`rotate(-90, 5, ${SH / 2})`}
+          >
+            1220 mm
+          </text>
+        </svg>
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════
+   MACHINE TIMELINE (bottom of center)
+══════════════════════════════════════════════ */
+function MachineTimeline() {
+  const hours  = [8, 10, 12, 14, 16, 18, 20]
+  const totalH = 12 // span: 08 → 20
+
+  type Seg = {
+    start: number
+    end: number
+    color: string
+    label: string
+    dashed?: boolean
+  }
+
+  const machines: { id: string; segs: Seg[] }[] = [
+    {
+      id: 'CNC-01',
+      segs: [
+        { start: 8,    end: 9.5,  color: fOk,                       label: 'WO-2341 done' },
+        { start: 9.5,  end: 12,   color: fAccent,                    label: 'WO-2342 cutting now' },
+        { start: 12,   end: 13.5, color: 'rgba(255,255,255,0.15)',   label: 'lunch break' },
+        { start: 13.5, end: 16,   color: fAccent, dashed: true,      label: 'WO-2343 queued' },
+        { start: 16,   end: 18,   color: 'rgba(255,255,255,0.15)',   label: 'idle' },
+      ],
+    },
+    {
+      id: 'CNC-02',
+      segs: [
+        { start: 8,    end: 10,   color: fOk,                       label: 'done' },
+        { start: 10,   end: 11.5, color: 'rgba(255,255,255,0.15)',   label: 'tool change' },
+        { start: 11.5, end: 15,   color: fAccent, dashed: true,     label: 'WO-2344 queued' },
+        { start: 15,   end: 18,   color: 'rgba(255,255,255,0.15)',   label: 'idle' },
+      ],
+    },
+    {
+      id: 'EB-01',
+      segs: [
+        { start: 8,    end: 11,   color: fOk,                       label: 'done' },
+        { start: 11,   end: 14,   color: fInfo,                      label: 'edgebanding' },
+        { start: 14,   end: 16.5, color: fInfo,   dashed: true,     label: 'queued edgebanding' },
+        { start: 16.5, end: 18,   color: 'rgba(255,255,255,0.15)',   label: 'idle' },
+      ],
+    },
+  ]
+
+  const barH = 22
+
+  return (
+    <div>
+      {/* Hour axis labels */}
+      <div style={{ display: 'flex', marginLeft: 64, marginBottom: 4 }}>
+        {hours.map(h => (
+          <div key={h} style={{
+            flex: 1,
+            fontSize: 9,
+            color: fMute,
+            fontFamily: monoFont,
+            textAlign: 'center',
+          }}>
+            {String(h).padStart(2, '0')}
+          </div>
+        ))}
+      </div>
+
+      {/* Machine rows */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {machines.map(m => (
+          <div key={m.id} style={{ display: 'flex', alignItems: 'center' }}>
+            {/* Machine ID label */}
+            <div style={{
+              width: 60,
+              fontSize: 10,
+              fontFamily: monoFont,
+              color: fMute,
+              flexShrink: 0,
+              textAlign: 'right',
+              paddingRight: 8,
+            }}>
+              {m.id}
+            </div>
+
+            {/* Timeline bar */}
+            <div style={{
+              flex: 1,
+              height: barH,
+              background: fInk,
+              borderRadius: 4,
+              overflow: 'hidden',
+              position: 'relative',
+              border: `1px solid ${fLine}`,
+            }}>
+              {m.segs.map((seg, i) => {
+                const left  = ((seg.start - 8) / totalH) * 100
+                const width = ((seg.end - seg.start) / totalH) * 100
+                return (
+                  <div
+                    key={i}
+                    title={seg.label}
+                    style={{
+                      position: 'absolute',
+                      left:   `${left}%`,
+                      width:  `${width}%`,
+                      top:    0,
+                      bottom: 0,
+                      background: seg.dashed
+                        ? `repeating-linear-gradient(90deg, ${seg.color} 0px, ${seg.color} 6px, transparent 6px, transparent 10px)`
+                        : seg.color,
+                      opacity: seg.dashed ? 0.65 : 1,
+                      borderRight: i < m.segs.length - 1 ? `1px solid ${fBg}` : undefined,
+                    }}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: 14, marginTop: 10, marginLeft: 64, flexWrap: 'wrap' }}>
+        {[
+          { color: fOk,                      label: 'Done' },
+          { color: fAccent,                  label: 'Cutting' },
+          { color: fInfo,                    label: 'Edgebanding' },
+          { color: 'rgba(255,255,255,0.15)', label: 'Idle' },
+        ].map(l => (
+          <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{
+              width: 10,
+              height: 10,
+              borderRadius: 2,
+              background: l.color,
+              flexShrink: 0,
+            }} />
+            <span style={{ fontSize: 9, color: fMute, fontFamily: uiFont }}>{l.label}</span>
+          </div>
+        ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span style={{
+            width: 10,
+            height: 10,
+            borderRadius: 2,
+            flexShrink: 0,
+            backgroundImage: `repeating-linear-gradient(90deg, ${fAccent} 0px, ${fAccent} 3px, transparent 3px, transparent 5px)`,
+          }} />
+          <span style={{ fontSize: 9, color: fMute, fontFamily: uiFont }}>Queued</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════
+   OPERATORS PANEL (right column, top)
+══════════════════════════════════════════════ */
+function OperatorsPanel({
+  orders,
+  firstCuttingIdx,
+}: {
+  orders: KBOrder[]
+  firstCuttingIdx: number
+}) {
+  const cuttingId = firstCuttingIdx >= 0 ? (orders[firstCuttingIdx]?.id ?? null) : null
+  const ebOrder   = orders.find(o => o.stage === 'Edge-banded')
+  const ebId      = ebOrder?.id ?? null
+
+  const operators = [
+    {
+      name:   'Suresh M.',
+      role:   'CNC-01 op',
+      status: cuttingId ? `cutting ${cuttingId}` : 'idle',
+      color:  cuttingId ? fAccent : fMute,
+    },
+    {
+      name:   'Vikram T.',
+      role:   'CNC-02 op',
+      status: 'idle · changing tool',
+      color:  fWarn,
+    },
+    {
+      name:   'Anil P.',
+      role:   'Edgebander',
+      status: ebId ? `EB on ${ebId}` : 'idle',
+      color:  ebId ? fInfo : fMute,
+    },
+    {
+      name:   'Lakshmi R.',
+      role:   'QC',
+      status: 'inspecting',
+      color:  fAccent,
+    },
+  ]
+
+  return (
+    <div style={{
+      borderBottom: `1px solid ${fLine}`,
+      padding: '14px 16px',
+      flexShrink: 0,
+    }}>
+      <div style={{ ...sectionLabel, marginBottom: 10 }}>Operators on Floor</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {operators.map(op => (
+          <div key={op.name} style={{
+            ...card,
+            padding: '10px 12px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 10,
+          }}>
+            {/* Avatar initial */}
+            <div style={{
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: `${op.color}22`,
+              border: `1.5px solid ${op.color}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              fontSize: 10,
+              fontWeight: 700,
+              color: op.color,
+              fontFamily: uiFont,
+            }}>
+              {op.name[0]}
+            </div>
+            <div>
+              <div style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: '#e8e6e1',
+                fontFamily: uiFont,
+              }}>
+                {op.name}
+              </div>
+              <div style={{ fontSize: 10, color: fMute, fontFamily: uiFont }}>{op.role}</div>
+              <div style={{ fontSize: 10, color: op.color, fontFamily: monoFont, marginTop: 2 }}>
+                {op.status}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════════════════════════════════════
+   MATERIAL ON HAND (right column, bottom)
+══════════════════════════════════════════════ */
+function MaterialPanel({ inventory }: { inventory: KBInventory }) {
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px' }}>
+      <div style={{ ...sectionLabel, marginBottom: 10 }}>Material on Hand</div>
+
+      {/* Laminate sheets */}
+      <div style={{
+        ...sectionLabel,
+        fontSize: 8,
+        marginBottom: 6,
+        color: 'rgba(255,255,255,0.3)',
+      }}>
+        Laminate sheets
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+        {inventory.laminates.map(l => {
+          const ok    = l.sheets > l.reorderAt
+          const color = ok ? fOk : l.sheets === 0 ? fAccent : fWarn
+          const pct   = Math.min(100, (l.sheets / Math.max(l.reorderAt * 2, 1)) * 100)
+          return (
+            <div key={l.id} style={{ ...card, padding: '9px 12px' }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 5,
+              }}>
+                <span style={{ fontSize: 11, color: '#e8e6e1', fontFamily: uiFont }}>
+                  {l.label}
+                </span>
+                <span style={{ fontFamily: monoFont, fontSize: 10, color }}>
+                  {l.sheets}
+                  <span style={{ color: fMute, fontWeight: 400 }}>/{l.reorderAt} min</span>
+                </span>
+              </div>
+              <div style={{ background: fLine, borderRadius: 2, height: 3, overflow: 'hidden' }}>
+                <div style={{
+                  width: `${pct}%`,
+                  height: '100%',
+                  background: color,
+                  borderRadius: 2,
+                }} />
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Hardware kits */}
+      <div style={{
+        ...sectionLabel,
+        fontSize: 8,
+        marginBottom: 6,
+        color: 'rgba(255,255,255,0.3)',
+      }}>
+        Hardware kits
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {inventory.hardware.map(h => {
+          const ok    = h.units > h.reorderAt
+          const color = ok ? fOk : h.units === 0 ? fAccent : fWarn
+          const pct   = Math.min(100, (h.units / Math.max(h.reorderAt * 2, 1)) * 100)
+          return (
+            <div key={h.id} style={{ ...card, padding: '9px 12px' }}>
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 5,
+              }}>
+                <span style={{ fontSize: 11, color: '#e8e6e1', fontFamily: uiFont }}>
+                  {h.label}
+                </span>
+                <span style={{ fontFamily: monoFont, fontSize: 10, color }}>
+                  {h.units}
+                  <span style={{ color: fMute, fontWeight: 400 }}>/{h.reorderAt} min</span>
+                </span>
+              </div>
+              <div style={{ background: fLine, borderRadius: 2, height: 3, overflow: 'hidden' }}>
+                <div style={{
+                  width: `${pct}%`,
+                  height: '100%',
+                  background: color,
+                  borderRadius: 2,
+                }} />
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
