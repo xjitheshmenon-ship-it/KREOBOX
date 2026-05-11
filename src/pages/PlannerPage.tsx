@@ -114,6 +114,61 @@ function getAutoHardware(entry: CatalogEntry): string {
   return 'Standard hardware'
 }
 
+// ── Design validation ─────────────────────────────────────────────
+interface DesignCheck { status: 'ok' | 'warn' | 'info'; message: string }
+
+function validateDesign(items: PlacedItem[], product: ProductMode): DesignCheck[] {
+  if (items.length === 0) return [{ status: 'warn', message: 'No items placed in the layout yet' }]
+  const checks: DesignCheck[] = []
+
+  if (product === 'kitchen') {
+    const hasSink = items.some(it => it.entry.hasSink)
+    const hasHob  = items.some(it => it.entry.hasHob)
+    const baseItems = items.filter(it => it.entry.category === 'base')
+    const hasUpper  = items.some(it => it.entry.category === 'upper')
+    checks.push(hasSink
+      ? { status: 'ok',   message: 'Sink unit placed' }
+      : { status: 'warn', message: 'No sink — add a sink base cabinet' })
+    checks.push(hasHob
+      ? { status: 'ok',   message: 'Hob / cooking unit placed' }
+      : { status: 'warn', message: 'No hob unit — a cooking zone is recommended' })
+    checks.push(hasUpper
+      ? { status: 'ok',   message: 'Wall cabinets placed' }
+      : { status: 'info', message: 'No wall cabinets — upper units add ~40% more storage' })
+    const counterW = baseItems.reduce((s, it) => s + it.width, 0)
+    if (counterW > 0) checks.push({ status: 'ok', message: `${(counterW / 1000).toFixed(1)}m of base counter confirmed` })
+    if (items.some(it => it.entry.isIsland)) checks.push({ status: 'info', message: 'Island included — ensure 900mm clearance on all sides' })
+  }
+
+  if (product === 'wardrobe') {
+    const hasHang   = items.some(it => it.entry.id.includes('hang'))
+    const hasDrawer = items.some(it => it.entry.category === 'storage')
+    checks.push(hasHang
+      ? { status: 'ok',   message: 'Hang space included' }
+      : { status: 'warn', message: 'No hanging space — add long or double hang module' })
+    checks.push(hasDrawer
+      ? { status: 'ok',   message: 'Drawer / basket storage included' }
+      : { status: 'info', message: 'No drawers or baskets — useful for folded items' })
+    if (!items.some(it => it.entry.id.includes('frame')))
+      checks.push({ status: 'info', message: 'No wardrobe frame — needed for door fitting' })
+  }
+
+  if (product === 'office') {
+    const hasDesk    = items.some(it => it.entry.category === 'desk')
+    const hasStorage = items.some(it => it.entry.category === 'storage')
+    const hasMtg     = items.some(it => it.entry.filterTag === 'Meeting')
+    checks.push(hasDesk
+      ? { status: 'ok',   message: 'Workstations placed' }
+      : { status: 'warn', message: 'No desks or workstations placed' })
+    checks.push(hasStorage
+      ? { status: 'ok',   message: 'Storage units included' }
+      : { status: 'info', message: 'No storage — consider a credenza or filing cabinet' })
+    if (hasMtg) checks.push({ status: 'ok', message: 'Meeting / conference table included' })
+  }
+
+  return checks
+}
+
 // ── Catalogs ──────────────────────────────────────────────────────
 const KITCHEN_CATALOG: CatalogEntry[] = [
   {
@@ -446,6 +501,16 @@ function lighten(hex: string, d: number) {
 
 function darken(hex: string, d: number) { return lighten(hex, -d) }
 
+function getFinishColor(finish: string): string {
+  const map: Record<string, string> = {
+    'Bali oak':  '#c8b080',
+    'Espresso':  '#3a2010',
+    'Bone matte':'#e0dcd4',
+    'Sand grey': '#989290',
+  }
+  return map[finish] ?? '#d4c9b0'
+}
+
 // ── Logo ──────────────────────────────────────────────────────────
 function KreoboxLogo({ size = 22 }: { size?: number }) {
   return (
@@ -753,46 +818,152 @@ function ElevationView({ product, items }: { product: ProductMode; items: Placed
   )
 }
 
-// ── 3D Isometric View ─────────────────────────────────────────────
-function IsoView3D({ product, items, selectedUid }: { product: ProductMode; items: PlacedItem[]; selectedUid: string | null }) {
+// ── Perspective 3D View ───────────────────────────────────────────
+type RFace = { pts: number[][]; fill: string; stroke: string; strokeW: number }
+
+function PerspView3D({ product, items, selectedUid }: { product: ProductMode; items: PlacedItem[]; selectedUid: string | null }) {
+  const [rotY, setRotY] = useState(-35)
+  const [rotX, setRotX] = useState(22)
+  const dragRef = useRef<{ sx: number; sy: number; ry0: number; rx0: number } | null>(null)
+
   const room = ROOMS[product]
-  const cx = SVG_W * 0.45, cy = SVG_H * 0.72
-  const sorted = [...items].sort((a, b) => (b.entry.isIsland ? -1 : 1) || (b.x + b.y) - (a.x + a.y))
-  const toPoints = (face: { x: number; y: number }[]) => face.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
-  const mkFace = (pts: Parameters<typeof iso>[]) => pts.map(([mx,my,mz]) => iso(mx,my,mz,cx,cy))
+  const { w: W, wallH, d: D } = room
+  const camDist = Math.sqrt(W * W + D * D) * 1.6
+  const fov = SVG_W * 0.40
+
+  const project = useCallback((wx: number, wy: number, wz: number) => {
+    const tx = wx - W / 2
+    const ty = wy - wallH * 0.3
+    const tz = wz - D / 2
+    const cosY = Math.cos(rotY * Math.PI / 180)
+    const sinY = Math.sin(rotY * Math.PI / 180)
+    const cosX = Math.cos(rotX * Math.PI / 180)
+    const sinX = Math.sin(rotX * Math.PI / 180)
+    const x1 = tx * cosY + tz * sinY
+    const z1 = -tx * sinY + tz * cosY
+    const y1 = ty
+    const x2 = x1
+    const y2 = y1 * cosX - z1 * sinX
+    const z2 = y1 * sinX + z1 * cosX
+    const z3 = z2 + camDist
+    if (z3 < 1) return { x: SVG_W / 2, y: SVG_H / 2, z: -1 }
+    return { x: SVG_W / 2 + x2 * fov / z3, y: SVG_H / 2 - y2 * fov / z3, z: z3 }
+  }, [rotY, rotX, W, wallH, D, camDist, fov])
+
+  const faces = useMemo<RFace[]>(() => {
+    const f: RFace[] = []
+    f.push({ pts: [[0,0,0],[W,0,0],[W,0,D],[0,0,D]],         fill: '#ddd8cc', stroke: '#c8c4b8', strokeW: 0.5 })
+    f.push({ pts: [[0,0,0],[W,0,0],[W,wallH,0],[0,wallH,0]], fill: '#ece8e0', stroke: '#d4cec8', strokeW: 0.5 })
+    f.push({ pts: [[0,0,0],[0,0,D],[0,wallH,D],[0,wallH,0]], fill: '#e8e4dc', stroke: '#d4cec8', strokeW: 0.5 })
+    items.forEach(item => {
+      const ix = item.x, iz = item.y
+      const iw = item.width, ih = item.entry.height, id = item.entry.depth
+      const fc = getFinishColor(item.finish)
+      const isSel = item.uid === selectedUid
+      const ss = isSel ? ACCENT : '#00000030'
+      const sw = isSel ? 1.5 : 0.5
+      f.push({ pts: [[ix,0,iz],[ix+iw,0,iz],[ix+iw,0,iz+id],[ix,0,iz+id]],             fill: darken(fc,50), stroke: '#00000020', strokeW: 0.3 })
+      f.push({ pts: [[ix+iw,0,iz],[ix,0,iz],[ix,ih,iz],[ix+iw,ih,iz]],                 fill: darken(fc,20), stroke: '#00000020', strokeW: 0.3 })
+      f.push({ pts: [[ix,0,iz+id],[ix,0,iz],[ix,ih,iz],[ix,ih,iz+id]],                 fill: darken(fc,28), stroke: ss, strokeW: sw })
+      f.push({ pts: [[ix+iw,0,iz],[ix+iw,0,iz+id],[ix+iw,ih,iz+id],[ix+iw,ih,iz]],   fill: darken(fc,28), stroke: ss, strokeW: sw })
+      f.push({ pts: [[ix,0,iz+id],[ix+iw,0,iz+id],[ix+iw,ih,iz+id],[ix,ih,iz+id]],   fill: fc,            stroke: ss, strokeW: sw })
+      f.push({ pts: [[ix,ih,iz],[ix+iw,ih,iz],[ix+iw,ih,iz+id],[ix,ih,iz+id]],        fill: lighten(fc,30),stroke: ss, strokeW: sw })
+      if (item.entry.category === 'base' && item.entry.filterTag !== 'Surfaces') {
+        const cx1 = Math.max(0, ix - 15), cx2 = Math.min(W, ix + iw + 15)
+        f.push({ pts: [[cx1,ih+30,iz],[cx2,ih+30,iz],[cx2,ih+30,iz+id],[cx1,ih+30,iz+id]], fill: '#dad6ce', stroke: '#c4c0b8', strokeW: 0.5 })
+      }
+    })
+    return f
+  }, [items, selectedUid, W, wallH, D])
+
+  const rendered = useMemo(() => {
+    return faces
+      .map(face => {
+        const projPts = face.pts.map(p => project(p[0], p[1], p[2]))
+        const depth = projPts.reduce((s, p) => s + p.z, 0) / projPts.length
+        const pts = projPts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+        return { ...face, depth, pts }
+      })
+      .sort((a, b) => b.depth - a.depth)
+  }, [faces, project])
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    dragRef.current = { sx: e.clientX, sy: e.clientY, ry0: rotY, rx0: rotX }
+  }
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!dragRef.current) return
+    setRotY(dragRef.current.ry0 + (e.clientX - dragRef.current.sx) * 0.4)
+    setRotX(Math.max(8, Math.min(65, dragRef.current.rx0 - (e.clientY - dragRef.current.sy) * 0.25)))
+  }
+  const onMouseUp = () => { dragRef.current = null }
+
+  return (
+    <svg
+      viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+      style={{ width: '100%', height: '100%', display: 'block', cursor: 'grab', userSelect: 'none' }}
+      onMouseDown={onMouseDown} onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
+    >
+      <rect width={SVG_W} height={SVG_H} fill={BG} />
+      {rendered.map((face, i) => face.depth > 0 &&
+        <polygon key={i} points={face.pts} fill={face.fill} stroke={face.stroke} strokeWidth={face.strokeW} />
+      )}
+      <text x={12} y={SVG_H - 12} fill={MUTE} fontSize="9" fontFamily="JetBrains Mono, monospace" style={{ pointerEvents: 'none' }}>
+        3D PERSPECTIVE · drag to rotate 360°
+      </text>
+    </svg>
+  )
+}
+
+// ── Mini read-only SVG snapshots (for BOM review) ────────────────
+function MiniPlanSvg({ product, items }: { product: ProductMode; items: PlacedItem[] }) {
+  const room = ROOMS[product]
+  const s = Math.min((SVG_W - 16) / room.w, (SVG_H - 16) / room.d)
+  const ox = 6, oy = 6
   return (
     <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ width: '100%', height: '100%', display: 'block' }}>
-      {/* Floor */}
-      <polygon fill="#e8e3d8" stroke="#c4bbb0" strokeWidth="1"
-        points={toPoints([iso(0,0,0,cx,cy),iso(room.w,0,0,cx,cy),iso(room.w,0,room.d,cx,cy),iso(0,0,room.d,cx,cy)])} />
-      {/* Back wall */}
-      <polygon fill="#f0ece4" stroke="#d0c8bc" strokeWidth="0.8"
-        points={toPoints([iso(0,0,0,cx,cy),iso(room.w,0,0,cx,cy),iso(room.w,room.wallH,0,cx,cy),iso(0,room.wallH,0,cx,cy)])} />
-      {/* Left wall */}
-      <polygon fill="#e4e0d8" stroke="#d0c8bc" strokeWidth="0.8"
-        points={toPoints([iso(0,0,0,cx,cy),iso(0,0,room.d,cx,cy),iso(0,room.wallH,room.d,cx,cy),iso(0,room.wallH,0,cx,cy)])} />
-      {sorted.map(item => {
-        const isSel = item.uid === selectedUid
-        const c = item.entry.color
-        const iw = item.width, ih = item.entry.height, id = item.entry.depth
-        const ix = item.x, iz = item.y
-        const topFace  = toPoints([iso(ix,ih,iz,cx,cy),iso(ix+iw,ih,iz,cx,cy),iso(ix+iw,ih,iz+id,cx,cy),iso(ix,ih,iz+id,cx,cy)])
-        const frontFace= toPoints([iso(ix,0,iz+id,cx,cy),iso(ix+iw,0,iz+id,cx,cy),iso(ix+iw,ih,iz+id,cx,cy),iso(ix,ih,iz+id,cx,cy)])
-        const rightFace= toPoints([iso(ix+iw,0,iz,cx,cy),iso(ix+iw,0,iz+id,cx,cy),iso(ix+iw,ih,iz+id,cx,cy),iso(ix+iw,ih,iz,cx,cy)])
-        const ss = isSel ? 1.5 : 0.5
-        return (
-          <g key={item.uid}>
-            <polygon points={topFace}   fill={lighten(c,40)} stroke={isSel?ACCENT:'#0002'} strokeWidth={ss} />
-            <polygon points={frontFace} fill={darken(c,10)}  stroke={isSel?ACCENT:'#0003'} strokeWidth={ss} />
-            <polygon points={rightFace} fill={darken(c,25)}  stroke={isSel?ACCENT:'#0004'} strokeWidth={ss} />
-            {item.entry.category === 'base' && (() => {
-              const ctTop = toPoints([iso(ix,ih+30,iz,cx,cy),iso(ix+iw,ih+30,iz,cx,cy),iso(ix+iw,ih+30,iz+id,cx,cy),iso(ix,ih+30,iz+id,cx,cy)])
-              return <polygon points={ctTop} fill="#c8c0a8" stroke="#0003" strokeWidth="0.5" />
-            })()}
-          </g>
-        )
+      <rect x={ox} y={oy} width={room.w*s} height={room.d*s} fill="rgba(232,226,213,0.25)" stroke={INK} strokeWidth="4" />
+      {items.map(it => (
+        <rect key={it.uid} x={ox+it.x*s} y={oy+it.y*s} width={it.width*s} height={it.entry.depth*s}
+          fill={it.entry.isIsland ? '#1a1815' : '#d4c9b0'} stroke="#a99a82" strokeWidth="1.5" rx={1} />
+      ))}
+    </svg>
+  )
+}
+
+function MiniElevSvg({ product, items }: { product: ProductMode; items: PlacedItem[] }) {
+  const room = ROOMS[product]
+  const wallH = room.wallH
+  const wallItems = items.filter(it => it.y < 700)
+  const s = Math.min((SVG_W - 16) / room.w, (SVG_H - 20) / wallH)
+  const ox = 6, baseY = SVG_H - 8
+  return (
+    <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ width: '100%', height: '100%', display: 'block' }}>
+      <line x1={ox} y1={baseY} x2={ox+room.w*s} y2={baseY} stroke={INK} strokeWidth="3" />
+      {wallItems.map(it => {
+        const ih = (it.entry.category === 'upper' ? 700 : it.entry.height) * s
+        return <rect key={it.uid} x={ox+it.x*s} y={baseY-ih} width={it.width*s} height={ih}
+          fill="#d4c9b0" stroke="#a99a82" strokeWidth="1.5" rx={1} />
       })}
-      <text x={14} y={24} fill={MUTE} fontSize="10" fontFamily="JetBrains Mono, monospace">3D ISOMETRIC</text>
+    </svg>
+  )
+}
+
+function MiniSideElevSvg({ product, items }: { product: ProductMode; items: PlacedItem[] }) {
+  const room = ROOMS[product]
+  const wallH = room.wallH
+  const sideItems = items.filter(it => it.x < 700)
+  const s = Math.min((SVG_W - 16) / room.d, (SVG_H - 20) / wallH)
+  const ox = 6, baseY = SVG_H - 8
+  return (
+    <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ width: '100%', height: '100%', display: 'block' }}>
+      <line x1={ox} y1={baseY} x2={ox+room.d*s} y2={baseY} stroke={INK} strokeWidth="3" />
+      {sideItems.map(it => {
+        const ih = (it.entry.category === 'upper' ? 700 : it.entry.height) * s
+        const iw = it.entry.depth * s
+        return <rect key={it.uid} x={ox+it.y*s} y={baseY-ih} width={iw} height={ih}
+          fill="#d4c9b0" stroke="#a99a82" strokeWidth="1.5" rx={1} />
+      })}
     </svg>
   )
 }
@@ -1402,7 +1573,7 @@ interface BOMModalProps {
 }
 
 function BOMModal({ items, product, onClose, onConfirm }: BOMModalProps) {
-  const [step, setStep] = useState<'bom' | 'form' | 'done'>('bom')
+  const [step, setStep] = useState<'review' | 'bom' | 'form' | 'done'>('review')
   const [form, setForm] = useState({ name: '', phone: '', city: 'Bengaluru', area: '' })
   const [submitting, setSubmitting] = useState(false)
 
@@ -1447,6 +1618,89 @@ function BOMModal({ items, product, onClose, onConfirm }: BOMModalProps) {
         display: 'flex', flexDirection: 'column',
         boxShadow: '0 40px 80px rgba(26,24,21,0.25)',
       }}>
+
+        {/* ── Step: Design review ── */}
+        {step === 'review' && (
+          <>
+            <div style={{ padding: '18px 24px 14px', borderBottom: `1px solid ${LINE}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <div>
+                <div style={{ fontFamily: '"Fraunces", serif', fontSize: 20, fontWeight: 600, color: INK }}>Design Review</div>
+                <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: MUTE, marginTop: 2, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  {items.length} items · {product}
+                </div>
+              </div>
+              <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: MUTE, padding: 4 }}>✕</button>
+            </div>
+
+            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 300px', overflow: 'hidden', minHeight: 0 }}>
+              {/* Left: 3D view + 3 mini 2D views */}
+              <div style={{ padding: '16px 16px 16px 20px', display: 'flex', flexDirection: 'column', gap: 10, overflow: 'hidden', borderRight: `1px solid ${LINE}` }}>
+                {/* 3D perspective view */}
+                <div style={{ flex: 1, border: `1px solid ${LINE}`, borderRadius: 8, overflow: 'hidden', background: BG, minHeight: 180 }}>
+                  <PerspView3D product={product} items={items} selectedUid={null} />
+                </div>
+                {/* 3 mini 2D views */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, height: 110, flexShrink: 0 }}>
+                  {[
+                    { label: 'TOP PLAN',   Comp: MiniPlanSvg },
+                    { label: 'FRONT ELEV', Comp: MiniElevSvg },
+                    { label: 'SIDE ELEV',  Comp: MiniSideElevSvg },
+                  ].map(({ label, Comp }) => (
+                    <div key={label} style={{ position: 'relative', border: `1px solid ${LINE}`, borderRadius: 6, overflow: 'hidden', background: BG }}>
+                      <Comp product={product} items={items} />
+                      <div style={{ position: 'absolute', bottom: 4, left: 6, fontSize: 7, fontFamily: 'JetBrains Mono, monospace', color: MUTE, letterSpacing: '0.08em' }}>{label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: design checks + cost summary */}
+              <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12, overflowY: 'auto' }}>
+                <div style={{ fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: MUTE, fontWeight: 700 }}>DESIGN VALIDATION</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {validateDesign(items, product).map((chk, i) => (
+                    <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                      <div style={{
+                        width: 20, height: 20, borderRadius: '50%', flexShrink: 0, marginTop: 1,
+                        background: chk.status === 'ok' ? '#1f8a5b' : chk.status === 'warn' ? ACCENT : '#5b8a8a',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 11, color: 'white', fontWeight: 700, lineHeight: 1,
+                      }}>
+                        {chk.status === 'ok' ? '✓' : chk.status === 'warn' ? '!' : 'i'}
+                      </div>
+                      <span style={{ fontSize: 12, color: INK, lineHeight: 1.45 }}>{chk.message}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ marginTop: 'auto', borderTop: `1px solid ${LINE}`, paddingTop: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', rowGap: 6, columnGap: 10, marginBottom: 10 }}>
+                    {[
+                      { label: 'Materials', value: subtotal },
+                      { label: 'Installation', value: install },
+                      { label: 'GST @ 18%', value: gst },
+                    ].map(r => (
+                      <div key={r.label} style={{ display: 'contents' }}>
+                        <span style={{ fontSize: 11, color: MUTE }}>{r.label}</span>
+                        <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: INK, textAlign: 'right' }}>{formatPrice(r.value)}</span>
+                      </div>
+                    ))}
+                    <div style={{ gridColumn: '1/-1', borderTop: `1px solid ${LINE}`, margin: '2px 0' }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>Total</span>
+                    <span style={{ fontFamily: '"Fraunces", serif', fontSize: 16, fontWeight: 600, color: INK, textAlign: 'right' }}>{formatPrice(total)}</span>
+                    <span style={{ fontSize: 10, color: MUTE }}>35% advance</span>
+                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 700, color: ACCENT, textAlign: 'right' }}>{formatPrice(advance)}</span>
+                  </div>
+                  <button onClick={() => setStep('bom')} style={{
+                    width: '100%', padding: '12px', borderRadius: 8, border: 'none',
+                    background: INK, color: PAPER, fontSize: 13, fontWeight: 700,
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}>View full BOM →</button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* ── Step: BOM detail ── */}
         {step === 'bom' && (
@@ -1524,8 +1778,8 @@ function BOMModal({ items, product, onClose, onConfirm }: BOMModalProps) {
             </div>
 
             <div style={{ padding: '16px 28px 20px', borderTop: `1px solid ${LINE}`, display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button onClick={onClose} style={{ padding: '11px 20px', borderRadius: 8, border: `1.5px solid ${LINE}`, background: 'transparent', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: INK }}>
-                Back to planner
+              <button onClick={() => setStep('review')} style={{ padding: '11px 20px', borderRadius: 8, border: `1.5px solid ${LINE}`, background: 'transparent', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', color: INK }}>
+                ← Review
               </button>
               <button onClick={() => setStep('form')} style={{ padding: '11px 24px', borderRadius: 8, border: 'none', background: INK, color: PAPER, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>
                 Confirm quote →
@@ -1692,7 +1946,6 @@ export default function PlannerPage() {
     setSelectedUid(uid)
     setDragOverPos(null)
     setDragEntry(null)
-    setMovingUidActive(null)
   }, [])
 
   const updateItem = useCallback((patch: Partial<PlacedItem>) => {
@@ -1792,7 +2045,7 @@ export default function PlannerPage() {
               />
             )}
             {view === 'Elevation' && <ElevationView product={product} items={placedItems} />}
-            {view === '3D view' && <IsoView3D product={product} items={placedItems} selectedUid={selectedUid} />}
+            {view === '3D view' && <PerspView3D product={product} items={placedItems} selectedUid={selectedUid} />}
             {placedItems.length === 0 && (
               <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
                 <div style={{ fontSize: 32, opacity: 0.15 }}>⬡</div>
