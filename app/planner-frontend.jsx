@@ -50,7 +50,7 @@ function KreoboxWordmark({ size = 18, color = pInk }) {
 }
 
 /* ── 2D top-down kitchen plan (blank canvas, drag-and-drop) ── */
-function KitchenPlan2D({ accent = pAccent, items = [], onDrop, onItemMove, onItemDelete }) {
+function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onDrop, onItemMove, onItemDelete }) {
   const { useState: useS, useRef } = React;
   const svgRef = useRef(null);
   const [drag, setDrag] = useS(null); // { id, startSX, startSY, origX, origY }
@@ -114,13 +114,41 @@ function KitchenPlan2D({ accent = pAccent, items = [], onDrop, onItemMove, onIte
         <rect x={PX} y={PY} width={PW} height={PH} fill="url(#grid-major)"/>
         <rect x={PX} y={PY} width={PW} height={PH} fill="rgba(232,226,213,0.18)"/>
 
-        {/* Room walls (L-shape default) */}
-        <path d={`M${PX} ${PY+PH} L${PX} ${PY} L${PX+PW} ${PY}`}
-          fill="none" stroke="#1a1815" strokeWidth="6" strokeLinejoin="round"/>
-        <path d={`M${PX+PW} ${PY} L${PX+PW} ${PY+PH*0.37}`}
-          fill="none" stroke="#1a1815" strokeWidth="6" strokeLinecap="round"/>
-        <path d={`M${PX} ${PY+PH} L${PX+120} ${PY+PH}`}
-          fill="none" stroke="#1a1815" strokeWidth="6" strokeLinecap="round"/>
+        {/* Room walls */}
+        {roomType === 'kitchen' && <>
+          <path d={`M${PX} ${PY+PH} L${PX} ${PY} L${PX+PW} ${PY}`}
+            fill="none" stroke="#1a1815" strokeWidth="6" strokeLinejoin="round"/>
+          <path d={`M${PX+PW} ${PY} L${PX+PW} ${PY+PH*0.37}`}
+            fill="none" stroke="#1a1815" strokeWidth="6" strokeLinecap="round"/>
+          <path d={`M${PX} ${PY+PH} L${PX+120} ${PY+PH}`}
+            fill="none" stroke="#1a1815" strokeWidth="6" strokeLinecap="round"/>
+        </>}
+        {roomType === 'wardrobe' && <>
+          {/* Full bedroom rectangle */}
+          <rect x={PX} y={PY} width={PW} height={PH} fill="none" stroke="#1a1815" strokeWidth="6" strokeLinejoin="round"/>
+          {/* Wardrobe wall zone on top (dashed) */}
+          <line x1={PX} y1={PY+PH*0.22} x2={PX+PW} y2={PY+PH*0.22} stroke={pMute} strokeWidth="1.5" strokeDasharray="6 4"/>
+          {/* Hanging rail symbols */}
+          {[0.1,0.35,0.6,0.85].map(rx => (
+            <circle key={rx} cx={PX+PW*rx} cy={PY+PH*0.11} r="5" fill="none" stroke={pMute} strokeWidth="1.5"/>
+          ))}
+          <text x={PX+PW/2} y={PY+PH*0.17} textAnchor="middle" fill={pMute} fontSize="8" fontFamily="JetBrains Mono,monospace">WARDROBE ZONE</text>
+          {/* Door swing on right wall */}
+          <path d={`M${PX+PW} ${PY+PH*0.65} Q${PX+PW-40} ${PY+PH*0.65} ${PX+PW-40} ${PY+PH*0.88}`}
+            fill="rgba(201,100,66,0.08)" stroke={pAccent} strokeWidth="1" strokeDasharray="4 3"/>
+        </>}
+        {roomType === 'office' && <>
+          {/* Full office rectangle */}
+          <rect x={PX} y={PY} width={PW} height={PH} fill="none" stroke="#1a1815" strokeWidth="6" strokeLinejoin="round"/>
+          {/* Desk zone indicator */}
+          <line x1={PX} y1={PY+PH*0.45} x2={PX+PW} y2={PY+PH*0.45} stroke={pMute} strokeWidth="1" strokeDasharray="8 4"/>
+          <text x={PX+PW/2} y={PY+PH*0.36} textAnchor="middle" fill={pMute} fontSize="8" fontFamily="JetBrains Mono,monospace">DESK ZONE</text>
+          <text x={PX+PW/2} y={PY+PH*0.72} textAnchor="middle" fill={pMute} fontSize="8" fontFamily="JetBrains Mono,monospace">MEETING / LOUNGE</text>
+          {/* Door opening */}
+          <line x1={PX} y1={PY+PH*0.78} x2={PX} y2={PY+PH} stroke="#fafaf7" strokeWidth="7"/>
+          <path d={`M${PX} ${PY+PH*0.78} Q${PX+44} ${PY+PH*0.78} ${PX+44} ${PY+PH}`}
+            fill="rgba(201,100,66,0.08)" stroke={pAccent} strokeWidth="1" strokeDasharray="4 3"/>
+        </>}
 
         {/* Dimension lines */}
         <g fill={dimColor} fontSize="9" fontFamily="JetBrains Mono,monospace">
@@ -137,8 +165,10 @@ function KitchenPlan2D({ accent = pAccent, items = [], onDrop, onItemMove, onIte
         {/* Empty state */}
         {items.length === 0 && (
           <g>
-            <text x={PX+PW/2} y={PY+PH/2-8} fill="rgba(26,24,21,0.14)" fontSize="12" fontFamily="JetBrains Mono,monospace" textAnchor="middle">Drag items from catalog to place</text>
-            <text x={PX+PW/2} y={PY+PH/2+10} fill="rgba(26,24,21,0.09)" fontSize="10" fontFamily="JetBrains Mono,monospace" textAnchor="middle">Scale 1:25 · drag to reposition</text>
+            <text x={PX+PW/2} y={PY+PH/2+16} fill="rgba(26,24,21,0.13)" fontSize="12" fontFamily="JetBrains Mono,monospace" textAnchor="middle">
+              {roomType === 'wardrobe' ? 'Drag wardrobes & fittings to place' : roomType === 'office' ? 'Drag desks & storage to place' : 'Drag items from catalog to place'}
+            </text>
+            <text x={PX+PW/2} y={PY+PH/2+32} fill="rgba(26,24,21,0.08)" fontSize="10" fontFamily="JetBrains Mono,monospace" textAnchor="middle">Scale 1:25 · drag to reposition</text>
           </g>
         )}
 
@@ -721,9 +751,9 @@ const WARDROBE_SECTIONS = [
 ];
 
 /* ── Catalog panel ─────────────────────────────────────────── */
-function CatalogPanel({ onAdd }) {
+function CatalogPanel({ onAdd, activeTab, onTabChange }) {
   const { useState: useS } = React;
-  const [activeTab, setActiveTab]           = useS('cabinets');
+  const setActiveTab = t => { onTabChange && onTabChange(t); };
   const [search, setSearch]                 = useS('');
   const [catalogView, setCatalogView]       = useS('grid');
   const [selectedVariants, setSelectedVariants] = useS({});
@@ -1175,8 +1205,18 @@ function PlannerFrontend({ accent = pAccent }) {
   const [submitted, setSubmitted] = useS(null);
   const [saveTs, setSaveTs]   = useS(null);
   const [editDim, setEditDim] = useS(false);
+  const [roomType, setRoomType] = useS('kitchen'); // 'kitchen' | 'wardrobe' | 'office'
+  const [catalogTab, setCatalogTab] = useS('cabinets');
   const [roomItems, setRoomItems] = useS([]);
   const [placedItems, setPlacedItems] = useS([]);
+
+  const handleRoomType = type => {
+    setRoomType(type);
+    setPlacedItems([]);
+    if (type === 'kitchen')  setCatalogTab('cabinets');
+    if (type === 'wardrobe') setCatalogTab('wardrobe');
+    if (type === 'office')   setCatalogTab('office');
+  };
 
   const handleDrop2D = (data) => {
     const id = `item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
@@ -1256,9 +1296,22 @@ function PlannerFrontend({ accent = pAccent }) {
           <KreoboxMark size={28} color={accent} />
           <KreoboxWordmark size={16} />
           <div style={{ width:1, height:22, background:pLine }}/>
-          <div style={{ fontSize:13 }}>
-            <span style={{ color:pMute }}>{layout} kitchen / </span>
-            <span style={{ fontWeight:600 }}>{finish}</span>
+          {/* Room type selector */}
+          <div style={{ display:'flex', gap:4 }}>
+            {[['kitchen','🍳 Kitchen'],['wardrobe','🚪 Wardrobe'],['office','💼 Office']].map(([t,l]) => (
+              <button key={t} onClick={() => handleRoomType(t)} style={{
+                padding:'5px 10px', borderRadius:6, fontSize:11, fontWeight:600, cursor:'pointer',
+                border:`1px solid ${t===roomType ? pAccent : pLine}`,
+                background: t===roomType ? 'rgba(201,100,66,0.08)' : 'transparent',
+                color: t===roomType ? pAccent : pMute,
+              }}>{l}</button>
+            ))}
+          </div>
+          <div style={{ width:1, height:22, background:pLine }}/>
+          <div style={{ fontSize:12, color:pMute }}>
+            {roomType === 'kitchen' && <span>{layout} / <strong>{finish}</strong></span>}
+            {roomType === 'wardrobe' && <span>Bedroom wardrobe plan</span>}
+            {roomType === 'office' && <span>Office / study plan</span>}
           </div>
         </div>
         <ViewToggle value={view} onChange={setView} />
@@ -1276,7 +1329,7 @@ function PlannerFrontend({ accent = pAccent }) {
 
       <div style={pStyles.body}>
         {/* LEFT — Catalog */}
-        <CatalogPanel onAdd={addToRoom} />
+        <CatalogPanel onAdd={addToRoom} activeTab={catalogTab} onTabChange={setCatalogTab} />
 
         {/* CENTER — Viewport */}
         <div style={{ flex:1, position:'relative', background:pBg, display:'flex', flexDirection:'column', minWidth:0 }}>
@@ -1356,7 +1409,7 @@ function PlannerFrontend({ accent = pAccent }) {
               borderRadius:12, border:`1px solid ${pLine}`,
               boxShadow:'0 30px 80px -30px rgba(0,0,0,0.18)', overflow:'hidden',
             }}>
-              {view === '2D plan'   && <KitchenPlan2D accent={accent} items={placedItems} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} />}
+              {view === '2D plan'   && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} />}
               {view === 'Elevation' && <KitchenElevation accent={accent} />}
               {view === '3D walk'   && <KitchenPlan3D accent={accent} />}
             </div>
