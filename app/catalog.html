@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>Kreobox · Shop &amp; Catalogue</title>
+<title>Kreobox · SKU Catalogue</title>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -108,17 +108,17 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop
     <a class="nav-link" href="#">About</a>
   </div>
   <div class="nav-spacer"></div>
-  <a class="nav-cta" href="mailto:hello@kreobox.in">Get a quote →</a>
+  <a class="nav-cta" href="planner.html">Get instant quote →</a>
 </nav>
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-eyebrow">Ready-to-order · Factory-made · India-wide delivery</div>
-  <h1 class="hero-title">Preset designs,<br/><em>ready to order.</em></h1>
-  <p class="hero-body">Choose from our range of kitchen, wardrobe and office designs — each with fixed dimensions, finishes and pricing. No design fee. No surprises.</p>
+  <div class="hero-eyebrow">100-SKU standard · Pre-cut panels · ₹8–12L sweet spot</div>
+  <h1 class="hero-title">India's modular standard,<br/><em>priced and ready.</em></h1>
+  <p class="hero-body">India's first standardised SKU system for modular interiors. Every module is pre-cut, laminated and edge-banded at the factory — ready for 48-hour installation by your carpenter network.</p>
   <div class="hero-actions">
-    <a class="btn-primary" href="#designs">Browse designs</a>
-    <a class="btn-outline" href="planner.html">Want custom? Use the planner</a>
+    <a class="btn-primary" href="#designs">Browse 100 SKUs</a>
+    <a class="btn-outline" href="planner.html">Build client BOQ →</a>
   </div>
 </div>
 
@@ -135,21 +135,21 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop
       <span class="room-card-label">Kitchen</span>
       <div class="room-card-title">Modular kitchens</div>
       <p class="room-card-desc">Base, wall &amp; high cabinets. L-shape, U-shape, island &amp; straight layouts. Quartz &amp; laminate worktops.</p>
-      <span class="room-card-cta">View kitchen designs →</span>
+      <span class="room-card-cta">View kitchen SKUs →</span>
     </div>
     <div class="room-card" id="room-wardrobe" onclick="selectRoom('wardrobe')">
       <div class="room-card-icon" style="background:rgba(91,141,239,0.10)">🚪</div>
       <span class="room-card-label">Wardrobe</span>
       <div class="room-card-title">Fitted wardrobes</div>
       <p class="room-card-desc">Hinged, sliding &amp; mirrored fronts. Walk-in systems from 2–6 m². Internal fittings, LED lighting.</p>
-      <span class="room-card-cta">View wardrobe designs →</span>
+      <span class="room-card-cta">View wardrobe SKUs →</span>
     </div>
     <div class="room-card" id="room-office" onclick="selectRoom('office')">
       <div class="room-card-icon" style="background:rgba(76,186,133,0.10)">💼</div>
       <span class="room-card-label">Office</span>
       <div class="room-card-title">Home &amp; studio office</div>
       <p class="room-card-desc">Solid wood desks — sit-stand, L-shape, wall-mounted &amp; floating. No particleboard, no plastic.</p>
-      <span class="room-card-cta">View office designs →</span>
+      <span class="room-card-cta">View office SKUs →</span>
     </div>
   </div>
 
@@ -179,7 +179,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop
   <div class="product-grid" id="product-grid"></div>
   <div style="margin-top:28px;padding:16px 20px;background:var(--paper);border:1px solid var(--line);border-radius:10px;font-size:13px;color:var(--mute);display:flex;align-items:center;gap:10px">
     <span style="font-size:18px">📐</span>
-    <span>Need a size or layout not listed? <a href="planner.html" style="color:var(--accent);font-weight:600;text-decoration:none">Use our free custom planner →</a></span>
+    <span>Need a non-standard size? <a href="planner.html" style="color:var(--accent);font-weight:600;text-decoration:none">Build a custom BOQ in 30 min →</a></span>
   </div>
 </div>
 
@@ -188,20 +188,20 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop
 <!-- HOW TO ORDER -->
 <div class="section">
   <div class="section-header">
-    <h2 class="section-title">How to order</h2>
+    <h2 class="section-title">How it works</h2>
   </div>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px">
     <div style="display:flex;flex-direction:column;gap:12px">
       <div style="width:44px;height:44px;border-radius:12px;background:rgba(201,100,66,0.10);display:flex;align-items:center;justify-content:center;font-size:20px">🛍️</div>
       <div style="font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);font-family:'JetBrains Mono',monospace">Step 1</div>
-      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:400">Pick a design</div>
-      <p style="font-size:13px;color:var(--mute);line-height:1.6">Choose your room type, layout and finish from our preset catalogue.</p>
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:400">Pick SKU modules</div>
+      <p style="font-size:13px;color:var(--mute);line-height:1.6">Select room type, layout and finish from the 100-SKU catalogue. Every module is a real BOQ line item.</p>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <div style="width:44px;height:44px;border-radius:12px;background:rgba(76,186,133,0.10);display:flex;align-items:center;justify-content:center;font-size:20px">📞</div>
+      <div style="width:44px;height:44px;border-radius:12px;background:rgba(76,186,133,0.10);display:flex;align-items:center;justify-content:center;font-size:20px">⚡</div>
       <div style="font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#2d8f60;font-family:'JetBrains Mono',monospace">Step 2</div>
-      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:400">Get a quote</div>
-      <p style="font-size:13px;color:var(--mute);line-height:1.6">Our studio team contacts you within 24 hrs, confirms measurements and provides a final quote.</p>
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:400">Instant quote</div>
+      <p style="font-size:13px;color:var(--mute);line-height:1.6">Price shown live — GST inclusive. Use the BOQ builder for a full room-specific breakdown with cut-list and hardware specs.</p>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px">
       <div style="width:44px;height:44px;border-radius:12px;background:rgba(91,141,239,0.10);display:flex;align-items:center;justify-content:center;font-size:20px">🏭</div>
@@ -212,18 +212,18 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop
     <div style="display:flex;flex-direction:column;gap:12px">
       <div style="width:44px;height:44px;border-radius:12px;background:rgba(217,160,73,0.10);display:flex;align-items:center;justify-content:center;font-size:20px">🪛</div>
       <div style="font-size:10px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:#a0700a;font-family:'JetBrains Mono',monospace">Step 4</div>
-      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:400">Delivered &amp; installed</div>
-      <p style="font-size:13px;color:var(--mute);line-height:1.6">Our installation team fits everything at your site. 21-day lead time for Tier 1 cities.</p>
+      <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:400">Installed in 48 hours</div>
+      <p style="font-size:13px;color:var(--mute);line-height:1.6">Pre-cut kit delivered to site. Your carpenter or our certified installer network fits everything in 48 hours. Kit dispatched from nearest depot within 48–72 hours of order confirmation.</p>
     </div>
   </div>
 </div>
 
 <!-- TRUST STRIP -->
 <div class="trust-strip">
-  <div class="trust-item"><div class="trust-val">21</div><div class="trust-label">Day lead time</div></div>
+  <div class="trust-item"><div class="trust-val">48–72</div><div class="trust-label">Hr order to door</div></div>
   <div class="trust-item"><div class="trust-val">3</div><div class="trust-label">Factories across India</div></div>
   <div class="trust-item"><div class="trust-val">18</div><div class="trust-label">Depot cities</div></div>
-  <div class="trust-item"><div class="trust-val">₹0</div><div class="trust-label">Design fee</div></div>
+  <div class="trust-item"><div class="trust-val">48 hr</div><div class="trust-label">Site install time</div></div>
   <div class="trust-item"><div class="trust-val">10y</div><div class="trust-label">Warranty on carcass</div></div>
 </div>
 
@@ -422,7 +422,7 @@ function renderDesigns() {
         </div>
         <div class="product-footer">
           <div class="product-price">${p.price} <span>incl. GST</span></div>
-          <a class="btn-quote" href="mailto:hello@kreobox.in?subject=Quote request: ${encodeURIComponent(p.name)}">Get quote</a>
+          <a class="btn-quote" href="planner.html">Build BOQ →</a>
         </div>
       </div>
     </div>

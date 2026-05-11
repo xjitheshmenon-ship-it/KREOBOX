@@ -61,18 +61,22 @@ function FLogo({ size = 20 }) {
   );
 }
 
-function FSidebar({ active = 'Factory' }) {
-  const items = {
-    Workspace: [
-      ['Pipeline', 14, null], ['Plans', 14, null], ['Drawings', null, null], ['Approvals', 5, fAccent],
-    ],
-    Operations: [
-      ['Vendors', null, null], ['POs', 3, null], ['Inventory', null, null], ['Factory', 12, fAccent], ['Logistics', null, null],
-    ],
-    Studio: [
-      ['Team', null, null], ['Margin', null, null], ['Library', null, null], ['Admin', null, null],
-    ],
+function FSidebar({ module = 'factory', active = 'Factory' }) {
+  const sections = {
+    factory: {
+      label: 'Factory Floor',
+      items: [
+        ['Vendors', null, null], ['POs', 3, null], ['Inventory', null, null], ['Fabrication', 12, fAccent],
+      ],
+    },
+    admin: {
+      label: 'Admin',
+      items: [
+        ['Team', null, null], ['Margin', null, null], ['Library', null, null],
+      ],
+    },
   };
+  const { label, items } = sections[module] || sections.factory;
   return (
     <div style={fS.sidebar}>
       <div style={fS.sbBrand}>
@@ -83,29 +87,25 @@ function FSidebar({ active = 'Factory' }) {
         <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700 }}>Studio</div>
         <div style={{ fontSize: 13, fontWeight: 600, color: '#fff', marginTop: 2 }}>Atelier Reema</div>
       </div>
-      {Object.entries(items).map(([sec, list]) => (
-        <React.Fragment key={sec}>
-          <div style={fS.sbSection}>{sec}</div>
-          {list.map(([label, badge, badgeColor]) => {
-            const isActive = label === active;
-            return (
-              <div key={label} style={{ ...fS.sbItem, ...(isActive ? fS.sbItemActive : {}) }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: isActive ? fAccent : '#aaa', flexShrink: 0 }}></span>
-                <span>{label}</span>
-                {badge != null && (
-                  <span style={{
-                    marginLeft: 'auto',
-                    background: badgeColor || 'transparent',
-                    color: badgeColor ? '#fff' : 'rgba(255,255,255,0.6)',
-                    ...fS.mono, fontSize: 9, padding: badgeColor ? '1px 6px' : '0',
-                    borderRadius: 999, fontWeight: 700,
-                  }}>{badge}</span>
-                )}
-              </div>
-            );
-          })}
-        </React.Fragment>
-      ))}
+      <div style={fS.sbSection}>{label}</div>
+      {items.map(([itemLabel, badge, badgeColor]) => {
+        const isActive = itemLabel === active;
+        return (
+          <div key={itemLabel} style={{ ...fS.sbItem, ...(isActive ? fS.sbItemActive : {}) }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: isActive ? fAccent : '#aaa', flexShrink: 0 }}></span>
+            <span>{itemLabel}</span>
+            {badge != null && (
+              <span style={{
+                marginLeft: 'auto',
+                background: badgeColor || 'transparent',
+                color: badgeColor ? '#fff' : 'rgba(255,255,255,0.6)',
+                ...fS.mono, fontSize: 9, padding: badgeColor ? '1px 6px' : '0',
+                borderRadius: 999, fontWeight: 700,
+              }}>{badge}</span>
+            )}
+          </div>
+        );
+      })}
       <div style={{ flex: 1 }}></div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8, borderRadius: 6, background: 'rgba(255,255,255,0.04)' }}>
         <div style={{ width: 26, height: 26, borderRadius: '50%', background: `linear-gradient(135deg, ${fAccent}, #d97042)` }}></div>
@@ -243,7 +243,7 @@ function FactoryModule() {
 
   return (
     <div style={fS.shell}>
-      <FSidebar active="Factory" />
+      <FSidebar module="factory" active="Fabrication" />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
 
         {/* Top */}
@@ -479,7 +479,7 @@ function AdminModule() {
 
   return (
     <div style={fS.shell}>
-      <FSidebar active="Admin" />
+      <FSidebar module="admin" active="Margin" />
       <div style={{ flex:1, display:'flex', flexDirection:'column', minWidth:0 }}>
 
         <div style={fS.topbar}>
