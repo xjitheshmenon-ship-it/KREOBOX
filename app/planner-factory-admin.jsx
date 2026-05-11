@@ -66,7 +66,7 @@ function FSidebar({ module = 'factory', active = 'Depot Stock', onSelect }) {
     factory: {
       label: 'Factory Floor',
       items: [
-        ['Vendors', null, null], ['POs', 3, null], ['Depot Stock', null, null],
+        ['Vendors', null, null], ['POs', 3, null], ['Depot Stock', null, null], ['Fabrication', 12, fAccent],
       ],
     },
     admin: {
