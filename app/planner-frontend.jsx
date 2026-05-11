@@ -326,12 +326,20 @@ function KitchenElevation({ accent = pAccent, items = [], roomW = 3800, roomH = 
   );
 }
 
-/* ── TRUE PERSPECTIVE 3D view ──────────────────────────────── */
-function KitchenPlan3D({ accent = pAccent }) {
+/* ── Item price estimator ──────────────────────────────────── */
+function estimateItemPrice(priceStr) {
+  if (!priceStr) return 0;
+  const m = priceStr.match(/₹\s*([\d.]+)\s*[–\-]\s*([\d.]+)\s*([kLM])?/i);
+  if (!m) return 0;
+  const mult = m[3] === 'L' ? 100000 : m[3] === 'M' ? 1000000 : 1000;
+  return Math.round((parseFloat(m[1]) + parseFloat(m[2])) / 2 * mult);
+}
+
+/* ── TRUE PERSPECTIVE 3D view — driven by placed items ──────── */
+function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: RD = 2840, roomH: RH = 2400 }) {
   const { useState: useS, useCallback: useCB, useMemo: useM, useRef } = React;
-  const RW = 3800, RD = 2840, RH = 2400;
   const SVG_W = 620, SVG_H = 440;
-  const m = Math.sqrt(RW * RW + RD * RD);
+  const denom = Math.sqrt(RW * RW + RD * RD);
   const p = SVG_W * 0.65;
   const [yaw, setYaw]     = useS(-35);
   const [pitch, setPitch] = useS(55);
@@ -342,45 +350,55 @@ function KitchenPlan3D({ accent = pAccent }) {
     const cy = Math.cos(yaw*Math.PI/180), sy = Math.sin(yaw*Math.PI/180);
     const cp = Math.cos(pitch*Math.PI/180), sp = Math.sin(pitch*Math.PI/180);
     const rx = tx*cy + tz*sy, rz = -tx*sy + tz*cy;
-    const ry = ty*cp - rz*sp, depth = ty*sp + rz*cp + m;
+    const ry = ty*cp - rz*sp, depth = ty*sp + rz*cp + denom;
     if (depth < 1) return { x: SVG_W/2, y: SVG_H/2, z: -1 };
     return { x: SVG_W/2 + rx*p/depth, y: SVG_H/2 - ry*p/depth, z: depth };
-  }, [yaw, pitch]);
+  }, [yaw, pitch, RW, RD, RH]);
 
   const polys = useM(() => {
     const ps = [];
     const face = (pts3, fill, stroke='#00000018', sw=0.5) => ps.push({ pts3, fill, stroke, sw });
+
+    // Room shell — floor + back wall + left wall
     face([[0,0,0],[RW,0,0],[RW,0,RD],[0,0,RD]], '#d8d3c8', '#c4bfb4');
     face([[0,0,0],[RW,0,0],[RW,RH,0],[0,RH,0]], '#edeae4', '#d8d3c8');
     face([[0,0,0],[0,0,RD],[0,RH,RD],[0,RH,0]], '#e8e4dc', '#d8d3c8');
-    const cf = '#d8d0c0', cfd = '#c8c0b0', cft = '#e4ddd0';
-    face([[0,720,0],[3200,720,0],[3200,720,600],[0,720,600]], cft,'#00000020',0.3);
-    face([[0,0,0],[3200,0,0],[3200,720,0],[0,720,0]], cfd,'#00000020',0.3);
-    face([[0,0,600],[3200,0,600],[3200,720,600],[0,720,600]], cf,'#00000030',0.5);
-    face([[3200,0,0],[3200,0,600],[3200,720,600],[3200,720,0]], cf,'#00000030',0.5);
-    face([[0,720,0],[600,720,0],[600,720,2200],[0,720,2200]], cft,'#00000020',0.3);
-    face([[0,0,0],[0,0,2200],[600,0,2200],[600,0,0]], cfd,'#00000020',0.3);
-    face([[0,0,2200],[0,720,2200],[600,720,2200],[600,0,2200]], cf,'#00000030',0.5);
-    face([[600,0,0],[600,0,2200],[600,720,2200],[600,720,0]], cf,'#00000020',0.3);
-    face([[0,728,0],[3200,728,0],[3200,728,640],[0,728,640]], '#c8c0b0','#b4ada0');
-    face([[0,728,0],[640,728,0],[640,728,2200],[0,728,2200]], '#c8c0b0','#b4ada0');
-    const wf = '#ccc6ba', wfd = '#bbb5a9';
-    face([[200,2100,0],[2900,2100,0],[2900,2100,350],[200,2100,350]], wf,'#00000018',0.3);
-    face([[200,1380,0],[2900,1380,0],[2900,2100,0],[200,2100,0]], wfd,'#00000018',0.3);
-    face([[200,1380,350],[200,2100,350],[2900,2100,350],[2900,1380,350]], wf,'#00000025',0.4);
-    const pf = '#cdb99a', pfl = '#bca88a', pfd = '#d4c4a8';
-    face([[3200,0,0],[3800,0,0],[3800,2400,0],[3200,2400,0]], pfl,'#00000020',0.3);
-    face([[3200,0,0],[3200,0,600],[3800,0,600],[3800,0,0]], pfd,'#00000020',0.3);
-    face([[3800,0,0],[3800,0,600],[3800,2400,600],[3800,2400,0]], pf,'#00000030',0.4);
-    face([[3200,0,600],[3800,0,600],[3800,2400,600],[3200,2400,600]], pf, accent+'22', 0.4);
-    face([[3200,2400,0],[3800,2400,0],[3800,2400,600],[3200,2400,600]], pfd,'#00000025',0.3);
-    face([[1200,900,1600],[2500,900,1600],[2500,900,2500],[1200,900,2500]], '#252018','#ffffff10',0.3);
-    face([[1200,0,1600],[2500,0,1600],[2500,900,1600],[1200,900,1600]], '#201d19','#ffffff08',0.3);
-    face([[1200,0,2500],[2500,0,2500],[2500,900,2500],[1200,900,2500]], '#1a1815','#ffffff08',0.3);
-    face([[1200,0,1600],[1200,0,2500],[1200,900,2500],[1200,900,1600]], '#1a1815','#ffffff08',0.3);
-    face([[2500,0,1600],[2500,0,2500],[2500,900,2500],[2500,900,1600]], '#1a1815','#ffffff08',0.3);
+
+    if (items.length === 0) {
+      // Placeholder ghost of a base cabinet run so the room doesn't look empty
+      const cf = 'rgba(200,192,176,0.35)';
+      face([[0,0,0],[2400,0,0],[2400,870,0],[0,870,0]], cf, '#00000010', 0.3);
+      face([[0,870,0],[2400,870,0],[2400,870,580],[0,870,580]], cf, '#00000010', 0.3);
+    }
+
+    // Each dropped item as a 3D box
+    items.forEach(item => {
+      const n = item.name.toLowerCase();
+      const isWall = (n.includes('wall') && n.includes('cabinet')) || n.includes('floating') || n.includes('wall shelf');
+      const isHigh = n.includes('high cabinet') || n.includes('pantry high') || n.includes('wardrobe') || n.includes('frame');
+      const bx = Math.max(0, item.x);
+      const bz = Math.max(0, item.y);
+      const bw = Math.max(150, item.w || 600);
+      const bd = Math.max(100, item.h || 580);
+      let by0, by1;
+      if (isHigh)      { by0 = 0; by1 = 2200; }
+      else if (isWall) { by0 = 1380; by1 = 2100; }
+      else             { by0 = 0; by1 = 870; }
+      const fc = item.color || '#c8c0b0';
+      // Front face (door side, toward room center)
+      face([[bx,by0,bz+bd],[bx+bw,by0,bz+bd],[bx+bw,by1,bz+bd],[bx,by1,bz+bd]], fc, '#00000022', 1.2);
+      // Back face (against wall)
+      face([[bx,by0,bz],[bx+bw,by0,bz],[bx+bw,by1,bz],[bx,by1,bz]], fc, '#00000015', 0.5);
+      // Top face
+      face([[bx,by1,bz],[bx+bw,by1,bz],[bx+bw,by1,bz+bd],[bx,by1,bz+bd]], fc, '#00000012', 0.4);
+      // Right side
+      face([[bx+bw,by0,bz],[bx+bw,by0,bz+bd],[bx+bw,by1,bz+bd],[bx+bw,by1,bz]], fc, '#00000030', 0.5);
+      // Left side
+      face([[bx,by0,bz],[bx,by0,bz+bd],[bx,by1,bz+bd],[bx,by1,bz]], fc, '#00000028', 0.5);
+    });
+
     return ps;
-  }, [yaw, pitch, accent]);
+  }, [yaw, pitch, accent, items, RW, RD, RH]);
 
   const projected = useM(() =>
     polys.map(poly => {
@@ -540,16 +558,21 @@ function getCabColor(name) {
   return '#c8c0b0';
 }
 
-/* ── Catalog tab config ────────────────────────────────────── */
-const CATALOG_TABS = [
-  { id:'cabinets',  label:'Kitchen',        icon:'▦' },
-  { id:'appliances',label:'Appliances',     icon:'⊡' },
-  { id:'dining',    label:'Dining',         icon:'⊞' },
-  { id:'extras',    label:'Extras',         icon:'⊟' },
-  { id:'office',    label:'Office',         icon:'⊟' },
-  { id:'wardrobe',  label:'Wardrobe',       icon:'⊠' },
-  { id:'search',    label:'Search',         icon:'⌕' },
-];
+/* ── Catalog tabs per room type ────────────────────────────── */
+const CATALOG_TABS_BY_ROOM = {
+  kitchen:  [
+    { id:'cabinets',   label:'Kitchen',     icon:'▦' },
+    { id:'appliances', label:'Appliances',  icon:'⊡' },
+    { id:'dining',     label:'Dining',      icon:'⊞' },
+    { id:'extras',     label:'Extras',      icon:'⊟' },
+  ],
+  wardrobe: [
+    { id:'wardrobe',   label:'Wardrobe',    icon:'⊠' },
+  ],
+  office:   [
+    { id:'office',     label:'Desks',       icon:'⊟' },
+  ],
+};
 
 /* ── Kitchen preset layouts ────────────────────────────────── */
 const KITCHEN_PRESETS = [
@@ -844,9 +867,12 @@ const ROOM_SIZES = {
 };
 
 /* ── Catalog panel ─────────────────────────────────────────── */
-function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, roomD }) {
+function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, roomD, roomType = 'kitchen' }) {
   const { useState: useS } = React;
   const setActiveTab = t => { onTabChange && onTabChange(t); };
+  const catalogTabs = CATALOG_TABS_BY_ROOM[roomType] || CATALOG_TABS_BY_ROOM.kitchen;
+  // Auto-correct activeTab if it doesn't belong to current room type
+  const validActiveTab = catalogTabs.find(t => t.id === activeTab) ? activeTab : catalogTabs[0]?.id;
   const [search, setSearch]                 = useS('');
   const [catalogView, setCatalogView]       = useS('grid');
   const [selectedVariants, setSelectedVariants] = useS({});
@@ -857,16 +883,17 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
   };
   const pickVariant = (name, v) => setSelectedVariants(s => ({ ...s, [name]: v }));
 
+  const tab = validActiveTab;
   let sections = [];
-  if (activeTab === 'cabinets')   sections = CABINET_SECTIONS;
-  if (activeTab === 'appliances') sections = APPLIANCE_SECTIONS;
-  if (activeTab === 'dining')     sections = DINING_SECTIONS;
-  if (activeTab === 'extras')     sections = EXTRAS_SECTIONS;
-  if (activeTab === 'office')     sections = DESK_SECTIONS;
-  if (activeTab === 'wardrobe')   sections = WARDROBE_SECTIONS;
+  if (tab === 'cabinets')   sections = CABINET_SECTIONS;
+  if (tab === 'appliances') sections = APPLIANCE_SECTIONS;
+  if (tab === 'dining')     sections = DINING_SECTIONS;
+  if (tab === 'extras')     sections = EXTRAS_SECTIONS;
+  if (tab === 'office')     sections = DESK_SECTIONS;
+  if (tab === 'wardrobe')   sections = WARDROBE_SECTIONS;
 
-  // Determine which room type's sizes to show based on activeTab
-  const sizeRoomType = activeTab === 'office' ? 'office' : activeTab === 'wardrobe' ? 'wardrobe' : 'kitchen';
+  // Determine which room type's sizes to show
+  const sizeRoomType = roomType;
   const roomSizes = ROOM_SIZES[sizeRoomType] || [];
   const currentSizeLabel = roomSizes.find(s => s.W === roomW && s.D === roomD)?.label || null;
 
@@ -884,14 +911,14 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
 
   return (
     <div style={{ ...pStyles.panel, width:300, flexShrink:0 }}>
-      {/* Tab bar */}
+      {/* Tab bar — only shows tabs relevant to current room type */}
       <div style={{ display:'flex', overflowX:'auto', borderBottom:`1px solid ${pLine}`, scrollbarWidth:'none', flexShrink:0 }}>
-        {CATALOG_TABS.map(tab => {
-          const active = tab.id === activeTab;
+        {catalogTabs.map(tab => {
+          const active = tab.id === validActiveTab;
           return (
             <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSearch(''); }} style={{
               display:'flex', flexDirection:'column', alignItems:'center', gap:4,
-              padding:'10px 10px', border:'none', background:'transparent', cursor:'pointer',
+              padding:'10px 16px', border:'none', background:'transparent', cursor:'pointer',
               borderBottom: active ? `2px solid ${pAccent}` : '2px solid transparent',
               color: active ? pAccent : pMute,
               fontSize:9, fontWeight:700, fontFamily:'JetBrains Mono,monospace',
@@ -908,7 +935,7 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
       <div style={{ padding:'8px 12px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', background:'rgba(26,24,21,0.04)', borderRadius:8, fontSize:12, color:pMute, marginBottom:8 }}>
           <span>⌕</span>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${activeTab}…`}
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${roomType}…`}
             style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Inter Tight",sans-serif' }} />
           {search && <span onClick={() => setSearch('')} style={{ cursor:'pointer', fontSize:14, lineHeight:1 }}>×</span>}
         </div>
@@ -1055,8 +1082,8 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
           </div>
         )}
 
-        {/* Finishes swatch (cabinets, no search) */}
-        {activeTab === 'cabinets' && !search && (
+        {/* Finishes swatch (kitchen cabinets only) */}
+        {tab === 'cabinets' && !search && (
           <div style={{ padding:'12px 8px', borderTop:`1px solid ${pLine}`, marginTop:8 }}>
             <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>Finishes</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:6 }}>
@@ -1264,8 +1291,18 @@ function PlannerFrontend({ accent = pAccent }) {
   const [editDim, setEditDim] = useS(false);
   const [roomType, setRoomType] = useS('kitchen'); // 'kitchen' | 'wardrobe' | 'office'
   const [catalogTab, setCatalogTab] = useS('cabinets');
-  const [roomItems, setRoomItems] = useS([]);
   const [placedItems, setPlacedItems] = useS([]);
+
+  // roomItems is always derived from placedItems — single source of truth
+  const roomItems = useM(() => {
+    const map = {};
+    placedItems.forEach(item => {
+      const key = `${item.name}||${item.variant}`;
+      if (!map[key]) map[key] = { name: item.name, variant: item.variant, price: item.price, qty: 0 };
+      map[key].qty++;
+    });
+    return Object.values(map);
+  }, [placedItems]);
 
   const handleRoomType = type => {
     setRoomType(type);
@@ -1277,9 +1314,7 @@ function PlannerFrontend({ accent = pAccent }) {
 
   const handleDrop2D = (data) => {
     const id = `item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
-    const color = getCabColor(data.name);
-    setPlacedItems(prev => [...prev, { ...data, id, color }]);
-    addToRoom({ name: data.name, variant: data.variant, price: data.price });
+    setPlacedItems(prev => [...prev, { ...data, id, color: getCabColor(data.name) }]);
   };
   const handleItemMove2D = (id, x, y) => {
     setPlacedItems(prev => prev.map(it => it.id === id ? { ...it, x, y } : it));
@@ -1288,16 +1323,19 @@ function PlannerFrontend({ accent = pAccent }) {
     setPlacedItems(prev => prev.filter(it => it.id !== id));
   };
 
-  const addToRoom = (item) => {
-    setRoomItems(prev => {
-      const key = `${item.name}||${item.variant}`;
-      const ex = prev.find(r => `${r.name}||${r.variant}` === key);
-      if (ex) return prev.map(r => `${r.name}||${r.variant}` === key ? { ...r, qty: r.qty + 1 } : r);
-      return [...prev, { ...item, qty: 1 }];
-    });
+  // "Add to room" button in catalog: places item at a staggered default position on canvas
+  const addToCanvas = (itemData) => {
+    const id = `item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    const { w, h } = getDefaultDims(itemData.name);
+    const offset = placedItems.length * 150;
+    const x = 200 + (offset % Math.max(1, roomW - 600));
+    const y = 200 + Math.floor(offset / Math.max(1, roomW - 600)) * 300;
+    setPlacedItems(prev => [...prev, { ...itemData, id, color: getCabColor(itemData.name), w, h, x, y }]);
   };
-  const removeFromRoom = (name, variant) => {
-    setRoomItems(prev => prev.filter(r => !(r.name === name && r.variant === variant)));
+
+  // Remove all instances of this item from canvas
+  const removeFromCanvas = (name, variant) => {
+    setPlacedItems(prev => prev.filter(it => !(it.name === name && it.variant === variant)));
   };
 
   useE(() => {
@@ -1310,10 +1348,22 @@ function PlannerFrontend({ accent = pAccent }) {
     }
   }, []);
 
-  const { bom, subtotal, markup, gst, total } = useM(
+  // Keep computeBOM for the formal quote modal
+  const { bom, subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal } = useM(
     () => computeBOM(roomW, roomD, layout, finish),
     [roomW, roomD, layout, finish]
   );
+
+  // Live estimate from actual placed items
+  const { subtotal, markup, gst, total } = useM(() => {
+    if (roomItems.length === 0) return { subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal };
+    const s = KreoStore.getSettings();
+    const sub = roomItems.reduce((acc, r) => acc + estimateItemPrice(r.price) * r.qty, 0);
+    if (sub === 0) return { subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal };
+    const m = Math.round(sub * s.markup / 100);
+    const g = Math.round((sub + m) * s.gst / 100);
+    return { subtotal: sub, markup: m, gst: g, total: sub + m + g };
+  }, [roomItems, bomSub, bomMarkup, bomGst, bomTotal]);
 
   const handleSave = () => {
     KreoStore.saveDraft({ room: { W:roomW, D:roomD, H:roomH, layout }, finish, hardware, ts: Date.now() });
@@ -1386,8 +1436,8 @@ function PlannerFrontend({ accent = pAccent }) {
 
       <div style={pStyles.body}>
         {/* LEFT — Catalog */}
-        <CatalogPanel onAdd={addToRoom} activeTab={catalogTab} onTabChange={setCatalogTab}
-          roomW={roomW} roomD={roomD}
+        <CatalogPanel onAdd={addToCanvas} activeTab={catalogTab} onTabChange={setCatalogTab}
+          roomType={roomType} roomW={roomW} roomD={roomD}
           onSizePreset={rs => { setRoomW(rs.W); setRoomD(rs.D); if (rs.layout) setLayout(rs.layout); setPlacedItems([]); }} />
 
         {/* CENTER — Viewport */}
@@ -1470,7 +1520,7 @@ function PlannerFrontend({ accent = pAccent }) {
             }}>
               {view === '2D plan'   && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} roomW={roomW} roomD={roomD} />}
               {view === 'Elevation' && <KitchenElevation accent={accent} items={placedItems} roomW={roomW} roomH={roomH} />}
-              {view === '3D walk'   && <KitchenPlan3D accent={accent} />}
+              {view === '3D walk'   && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH} />}
             </div>
           </div>
 
@@ -1513,7 +1563,7 @@ function PlannerFrontend({ accent = pAccent }) {
                       {r.variant && <div style={{ fontSize:10, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>{r.variant}</div>}
                     </div>
                     <span style={{ fontSize:12, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>×{r.qty}</span>
-                    <span onClick={() => removeFromRoom(r.name, r.variant)} style={{ cursor:'pointer', color:pMute, fontSize:14, lineHeight:1 }}>×</span>
+                    <span onClick={() => removeFromCanvas(r.name, r.variant)} style={{ cursor:'pointer', color:pMute, fontSize:14, lineHeight:1 }}>×</span>
                   </div>
                 ))}
               </div>
@@ -1522,22 +1572,32 @@ function PlannerFrontend({ accent = pAccent }) {
 
           <div style={{ flex:1, overflowY:'auto', padding:'14px 20px' }}>
             <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600, marginBottom:10 }}>Live cost estimate</div>
-            {bom.map((b,i) => (
-              <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderTop:i?`1px solid ${pLine}`:'none', fontSize:12 }}>
-                <div>
-                  <div style={{ fontWeight:500 }}>{b.category}</div>
-                  <div style={{ fontSize:10, color:pMute, ...pStyles.mono }}>×{b.qty} {b.unit}</div>
-                </div>
-                <span style={{ ...pStyles.mono, color:pMute, fontSize:11, alignSelf:'center' }}>{fmt(b.amount)}</span>
+            {roomItems.length === 0 ? (
+              <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'12px 0' }}>
+                Drag items to canvas to see cost
               </div>
-            ))}
-            <div style={{ marginTop:8, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
-              {[['Studio margin', markup],['GST (18%)', gst]].map(([l,v]) => (
-                <div key={l} style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
-                  <span>{l}</span><span style={pStyles.mono}>{fmt(v)}</span>
+            ) : roomItems.map((r, i) => {
+              const unitPrice = estimateItemPrice(r.price);
+              const amount = unitPrice * r.qty;
+              return (
+                <div key={`${r.name}||${r.variant}`} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderTop:i?`1px solid ${pLine}`:'none', fontSize:12 }}>
+                  <div>
+                    <div style={{ fontWeight:500 }}>{r.name}</div>
+                    <div style={{ fontSize:10, color:pMute, ...pStyles.mono }}>×{r.qty} · {r.variant}</div>
+                  </div>
+                  <span style={{ ...pStyles.mono, color:pMute, fontSize:11, alignSelf:'center' }}>{amount > 0 ? fmt(amount) : r.price}</span>
                 </div>
-              ))}
-            </div>
+              );
+            })}
+            {roomItems.length > 0 && (
+              <div style={{ marginTop:8, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
+                {[['Studio margin', markup],['GST (18%)', gst]].map(([l,v]) => (
+                  <div key={l} style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
+                    <span>{l}</span><span style={pStyles.mono}>{fmt(v)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div style={{ borderTop:`1px solid ${pLine}`, padding:'16px 20px', background:pPaper }}>
