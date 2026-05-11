@@ -586,7 +586,7 @@ function FactoryFloorModule({ orders, subSection = 'fabrication' }) {
     <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
       <div style={{ marginBottom:20, padding:'12px 14px', background:'rgba(124,92,255,0.07)', border:`1px solid rgba(124,92,255,0.2)`, borderRadius:8, fontSize:11, color:'rgba(255,255,255,0.6)', lineHeight:1.7 }}>
         <span style={{ color:'rgba(255,255,255,0.85)', fontWeight:600 }}>Pre-cut model · </span>
-        All panels are laminated, CNC-cut and PVC edge-banded at the factory in batch runs. Pre-cut module bundles (BC-600/800/900, WC-600/900, HC-600) are stocked at every city depot. When an order is confirmed the nearest depot ships the kit to the site. Lead time: 5–7 days.
+        All panels are laminated, CNC-cut and PVC edge-banded at the factory in batch runs. Pre-cut module bundles (BC-600/800/900, WC-600/900, HC-600) are stocked at every city depot. When an order is confirmed the nearest depot ships the kit to the site within 48–72 hours.
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:20 }}>
         {[
