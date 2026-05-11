@@ -61,12 +61,12 @@ function FLogo({ size = 20 }) {
   );
 }
 
-function FSidebar({ module = 'factory', active = 'Factory' }) {
+function FSidebar({ module = 'factory', active = 'Fabrication', onSelect }) {
   const sections = {
     factory: {
       label: 'Factory Floor',
       items: [
-        ['Vendors', null, null], ['POs', 3, null], ['Inventory', null, null], ['Fabrication', 12, fAccent],
+        ['Vendors', null, null], ['POs', 3, null], ['Depot Stock', null, null], ['Fabrication', 12, fAccent],
       ],
     },
     admin: {
@@ -91,7 +91,9 @@ function FSidebar({ module = 'factory', active = 'Factory' }) {
       {items.map(([itemLabel, badge, badgeColor]) => {
         const isActive = itemLabel === active;
         return (
-          <div key={itemLabel} style={{ ...fS.sbItem, ...(isActive ? fS.sbItemActive : {}) }}>
+          <div key={itemLabel}
+            onClick={() => onSelect && onSelect(itemLabel)}
+            style={{ ...fS.sbItem, ...(isActive ? fS.sbItemActive : {}), cursor: 'pointer' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: isActive ? fAccent : '#aaa', flexShrink: 0 }}></span>
             <span>{itemLabel}</span>
             {badge != null && (
@@ -166,7 +168,98 @@ function CutNest({ active = true }) {
   );
 }
 
-/* KreoStore is defined in planner-backend.jsx (loaded first) — shared via global scope */
+/* KreoStore, DEPOT_STOCK, PRECUT_TYPES defined in planner-backend.jsx — shared via global scope */
+
+function DepotStockView() {
+  const hdr = (t) => (
+    <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: fMute, fontWeight: 700, marginBottom: 14 }}>{t}</div>
+  );
+
+  const totalByType = {};
+  PRECUT_TYPES.forEach(t => { totalByType[t.id] = DEPOT_STOCK.reduce((s, d) => s + (d.modules[t.id] || 0), 0); });
+  const lowDepots = DEPOT_STOCK.filter(d => PRECUT_TYPES.some(t => (d.modules[t.id] || 0) < d.min));
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', background: fSub2, padding: 22 }}>
+      {hdr('Depot stock · pre-cut module inventory')}
+
+      {/* Summary KPIs */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 22 }}>
+        {[
+          { l: 'Depots tracked', v: String(DEPOT_STOCK.length), s: 'live cities', c: '#fff' },
+          { l: 'Low stock alerts', v: String(lowDepots.length), s: 'need replenish', c: lowDepots.length > 0 ? '#ff8080' : fOk },
+          { l: 'Total modules', v: String(Object.values(totalByType).reduce((s,n) => s+n, 0)), s: 'across all depots', c: fOk },
+        ].map((k, i) => (
+          <div key={i} style={{ ...fS.card, padding: '12px 14px' }}>
+            <div style={{ ...fS.mono, fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: fMute, fontWeight: 700 }}>{k.l}</div>
+            <div style={{ ...fS.fraunces, fontSize: 26, color: k.c, marginTop: 4 }}>{k.v}</div>
+            <div style={{ ...fS.mono, fontSize: 10, color: fMute, marginTop: 2 }}>{k.s}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Per-depot stock table */}
+      <div style={{ ...fS.card, overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+          <thead>
+            <tr style={{ borderBottom: `1px solid rgba(255,255,255,0.1)` }}>
+              {['Depot', 'City', ...PRECUT_TYPES.map(t => t.id), 'Status'].map(h => (
+                <th key={h} style={{ padding: '7px 10px', textAlign: 'left', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: fMute, fontWeight: 700, whiteSpace: 'nowrap' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {DEPOT_STOCK.map((d) => {
+              const anyLow = PRECUT_TYPES.some(t => (d.modules[t.id] || 0) < d.min);
+              return (
+                <tr key={d.depot} style={{ borderTop: `1px solid rgba(255,255,255,0.05)`, background: anyLow ? 'rgba(255,80,80,0.04)' : 'transparent' }}>
+                  <td style={{ padding: '10px', ...fS.mono, color: fMute, fontSize: 10 }}>{d.depot}</td>
+                  <td style={{ padding: '10px', color: '#fff', fontWeight: 600 }}>{d.city}</td>
+                  {PRECUT_TYPES.map(t => {
+                    const qty = d.modules[t.id] || 0;
+                    const low = qty < d.min;
+                    return (
+                      <td key={t.id} style={{ padding: '10px', ...fS.mono, fontWeight: 700, color: low ? '#ff8080' : qty >= d.min * 2 ? fOk : fWarn }}>
+                        {qty}{low && <span style={{ fontSize: 8, marginLeft: 2 }}>▼</span>}
+                      </td>
+                    );
+                  })}
+                  <td style={{ padding: '10px' }}>
+                    <span style={{ padding: '2px 8px', borderRadius: 999, fontSize: 9, fontWeight: 700, textTransform: 'uppercase',
+                      background: anyLow ? 'rgba(255,80,80,0.15)' : 'rgba(76,186,133,0.15)',
+                      color: anyLow ? '#ff8080' : fOk }}>
+                      {anyLow ? 'Replenish' : 'OK'}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr style={{ borderTop: `2px solid rgba(255,255,255,0.1)` }}>
+              <td colSpan={2} style={{ padding: '8px 10px', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: fMute, fontWeight: 700 }}>Total</td>
+              {PRECUT_TYPES.map(t => (
+                <td key={t.id} style={{ padding: '8px 10px', ...fS.mono, fontWeight: 700, color: '#fff' }}>{totalByType[t.id]}</td>
+              ))}
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {/* SKU legend */}
+      <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+        {PRECUT_TYPES.map(t => (
+          <div key={t.id} style={{ ...fS.card, padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ ...fS.mono, fontSize: 10, fontWeight: 700, color: fAccent }}>{t.id}</span>
+            <span style={{ fontSize: 11, color: '#fff' }}>{t.label}</span>
+            <span style={{ fontSize: 10, color: fMute }}>{t.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /* ── LOGISTICS DATA ───────────────────────────────────────────── */
 const FACTORIES = [
@@ -204,6 +297,7 @@ const STAGE_COLORS = ['rgba(255,255,255,0.5)','#d9a049','#c96442','#5b8def','#7c
 /* ── FACTORY MODULE ────────────────────────────────────────────── */
 function FactoryModule() {
   const { useState: useS, useEffect: useE } = React;
+  const [section, setSection] = useS('Fabrication');
   const [jobs, setJobs]     = useS(() => KreoStore.getJobs());
   const [selId, setSelId]   = useS(null);
   const [cutFilter, setCutFilter] = useS('');
@@ -241,9 +335,18 @@ function FactoryModule() {
     !cutFilter || p.name.toLowerCase().includes(cutFilter.toLowerCase()) || p.mat.toLowerCase().includes(cutFilter.toLowerCase())
   ) : [];
 
+  if (section === 'Depot Stock') {
+    return (
+      <div style={fS.shell}>
+        <FSidebar module="factory" active={section} onSelect={setSection} />
+        <DepotStockView />
+      </div>
+    );
+  }
+
   return (
     <div style={fS.shell}>
-      <FSidebar module="factory" active="Fabrication" />
+      <FSidebar module="factory" active={section} onSelect={setSection} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
 
         {/* Top */}
