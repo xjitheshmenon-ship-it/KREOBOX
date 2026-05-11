@@ -95,9 +95,11 @@ function KitchenPlan2D({ accent = pAccent, items = [], onDrop, onItemMove, onIte
 
   const dimColor = pMute;
   return (
-    <div style={{ width:'100%', height:'100%' }} onDrop={handleDrop} onDragOver={e => e.preventDefault()}>
+    <div style={{ width:'100%', height:'100%' }}>
       <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`}
         style={{ width:'100%', height:'100%', display:'block', cursor: drag ? 'grabbing' : 'default' }}
+        onDrop={handleDrop}
+        onDragOver={e => e.preventDefault()}
         onMouseMove={handleMouseMove}
         onMouseUp={() => setDrag(null)}
         onMouseLeave={() => setDrag(null)}
@@ -232,8 +234,8 @@ function KitchenPlan3D({ accent = pAccent }) {
   const SVG_W = 620, SVG_H = 440;
   const m = Math.sqrt(RW * RW + RD * RD);
   const p = SVG_W * 0.65;
-  const [yaw, setYaw]     = useS(-30);
-  const [pitch, setPitch] = useS(38);
+  const [yaw, setYaw]     = useS(-35);
+  const [pitch, setPitch] = useS(55);
   const drag = useRef(null);
 
   const project = useCB((wx, wy, wz) => {
@@ -294,7 +296,7 @@ function KitchenPlan3D({ accent = pAccent }) {
     <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`}
       style={{ width:'100%', height:'100%', display:'block', cursor:'grab', userSelect:'none' }}
       onMouseDown={e => { drag.current = { sx:e.clientX, sy:e.clientY, y0:yaw, p0:pitch }; }}
-      onMouseMove={e => { if(!drag.current) return; setYaw(drag.current.y0+(e.clientX-drag.current.sx)*0.4); setPitch(Math.max(8,Math.min(70,drag.current.p0-(e.clientY-drag.current.sy)*0.25))); }}
+      onMouseMove={e => { if(!drag.current) return; setYaw(drag.current.y0+(e.clientX-drag.current.sx)*0.4); setPitch(Math.max(15,Math.min(80,drag.current.p0-(e.clientY-drag.current.sy)*0.25))); }}
       onMouseUp={() => { drag.current=null; }} onMouseLeave={() => { drag.current=null; }}>
       <rect width={SVG_W} height={SVG_H} fill={pBg}/>
       {projected.map((poly,i) => poly.avgZ > 0 && (
