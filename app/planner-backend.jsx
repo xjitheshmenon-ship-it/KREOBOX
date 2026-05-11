@@ -120,15 +120,7 @@ function BSidebar({ newCount = 0, section = 'orders', onSection, activeModule = 
         <div style={act('approvals')} onClick={() => go('approvals')}>{dot('#7c5cff')} Approvals {badge(newCount, '#5b8def')}</div>
       </>}
 
-      {activeModule === 'factory' && <>
-        <div style={bStyles.sbSection}>Factory Floor</div>
-        <div style={act('vendors')}     onClick={() => go('vendors')}>{dot('#aaa')} Vendors</div>
-        <div style={act('pos')}         onClick={() => go('pos')}>{dot('#aaa')} POs</div>
-        <div style={act('inventory')}   onClick={() => go('inventory')}>{dot('#4cba85')} Inventory</div>
-        <div style={act('fabrication')} onClick={() => go('fabrication')}>{dot('#7c5cff')} Fabrication</div>
-      </>}
-
-      {activeModule === 'admin' && <>
+{activeModule === 'admin' && <>
         <div style={bStyles.sbSection}>Admin</div>
         <div style={act('team')}    onClick={() => go('team')}>{dot('#aaa')} Team</div>
         <div style={act('margin')}  onClick={() => go('margin')}>{dot('#4cba85')} Margin</div>
