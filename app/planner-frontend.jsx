@@ -523,13 +523,233 @@ function CatalogPanel() {
   );
 }
 
+/* ─── SHARED STORE (localStorage) ─────────────────────────── */
+const KreoStore = (() => {
+  const fire = () => window.dispatchEvent(new Event('kreobox-update'));
+  return {
+    getOrders() { try { return JSON.parse(localStorage.getItem('kreobox_orders') || '[]'); } catch { return []; } },
+    saveOrders(o) { localStorage.setItem('kreobox_orders', JSON.stringify(o)); fire(); },
+    addOrder(o) { const orders = this.getOrders(); orders.unshift(o); this.saveOrders(orders); },
+    updateOrder(id, patch) { this.saveOrders(this.getOrders().map(o => o.id === id ? { ...o, ...patch } : o)); },
+
+    getJobs() { try { return JSON.parse(localStorage.getItem('kreobox_jobs') || '[]'); } catch { return []; } },
+    saveJobs(j) { localStorage.setItem('kreobox_jobs', JSON.stringify(j)); fire(); },
+    addJob(j) { const jobs = this.getJobs(); jobs.unshift(j); this.saveJobs(jobs); },
+    updateJob(id, patch) { this.saveJobs(this.getJobs().map(j => j.id === id ? { ...j, ...patch } : j)); },
+
+    getSettings() {
+      const D = { cabinetRate: 22000, worktopRate: 35000, applianceFlat: 58400, hardwareRate: 8, markup: 18, gst: 18, leadTimeDays: 21, finishes: ['Bali Oak', 'Alpine White', 'Graphite Grey', 'Natural Walnut', 'Ivory Sand', 'Smoked Teak'] };
+      try { return { ...D, ...JSON.parse(localStorage.getItem('kreobox_settings') || '{}') }; } catch { return D; }
+    },
+    saveSettings(s) { localStorage.setItem('kreobox_settings', JSON.stringify(s)); fire(); },
+
+    getDraft() { try { return JSON.parse(localStorage.getItem('kreobox_draft') || 'null'); } catch { return null; } },
+    saveDraft(d) { localStorage.setItem('kreobox_draft', JSON.stringify(d)); },
+
+    nextOrderId() {
+      const d = new Date();
+      return `KBX-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(this.getOrders().length+1).padStart(3,'0')}`;
+    },
+    nextJobId() {
+      const d = new Date();
+      return `FAB-${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}-${String(this.getJobs().length+1).padStart(3,'0')}`;
+    },
+  };
+})();
+
+/* ─── BOM COMPUTATION ──────────────────────────────────────── */
+function computeBOM(roomW, roomD, layout, finish) {
+  const s = KreoStore.getSettings();
+  const W = roomW / 1000, D = roomD / 1000;
+  let wallRun = W + D;
+  if (layout === 'U-shape') wallRun = W + 2 * D;
+  if (layout === 'Straight') wallRun = W;
+  const baseCount = Math.max(2, Math.round(wallRun * 0.7 / 0.6));
+  const wallCount = Math.max(2, Math.round(wallRun * 0.7 / 0.6));
+  const highCount = layout === 'U-shape' ? 2 : 1;
+  const worktopM  = parseFloat((wallRun * 0.9).toFixed(1));
+  const baseCabs  = baseCount * Math.round(s.cabinetRate * 0.6);
+  const wallCabs  = wallCount * Math.round(s.cabinetRate * 0.6 * 0.8);
+  const highCabs  = highCount * Math.round(s.cabinetRate * 0.6 * 1.1);
+  const worktop   = Math.round(worktopM * s.worktopRate);
+  const appliances = s.applianceFlat;
+  const hardware  = Math.round((baseCabs + wallCabs + highCabs) * s.hardwareRate / 100);
+  const subtotal  = baseCabs + wallCabs + highCabs + worktop + appliances + hardware;
+  const markup    = Math.round(subtotal * s.markup / 100);
+  const gst       = Math.round((subtotal + markup) * s.gst / 100);
+  const total     = subtotal + markup + gst;
+  return {
+    bom: [
+      { category: 'Base cabinets',     qty: baseCount,  unit: 'units', unitPrice: Math.round(s.cabinetRate * 0.6),       amount: baseCabs },
+      { category: 'Wall cabinets',     qty: wallCount,  unit: 'units', unitPrice: Math.round(s.cabinetRate * 0.6 * 0.8), amount: wallCabs },
+      { category: 'High cabinets',     qty: highCount,  unit: 'units', unitPrice: Math.round(s.cabinetRate * 0.6 * 1.1), amount: highCabs },
+      { category: `${finish} worktop`, qty: worktopM,   unit: 'm',     unitPrice: s.worktopRate,                          amount: worktop },
+      { category: 'Appliances',        qty: 1,          unit: 'set',   unitPrice: appliances,                             amount: appliances },
+      { category: 'Hardware & lighting', qty: 1,        unit: 'set',   unitPrice: hardware,                               amount: hardware },
+    ],
+    subtotal, markup, gst, total,
+  };
+}
+
+/* ─── QUOTE MODAL ──────────────────────────────────────────── */
+function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, onSubmit, onClose }) {
+  const { useState: useS } = React;
+  const [name, setName]   = useS('');
+  const [phone, setPhone] = useS('');
+  const [notes, setNotes] = useS('');
+  const fmt = n => '₹ ' + n.toLocaleString('en-IN');
+  const ok  = name.trim().length > 0;
+  return (
+    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center' }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ background:pPaper, borderRadius:12, width:480, maxHeight:'88vh', overflow:'auto', boxShadow:'0 40px 120px rgba(0,0,0,0.35)' }}>
+        <div style={{ padding:'24px 28px 0' }}>
+          <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:4 }}>Request quote</div>
+          <div style={{ ...pStyles.fraunces, fontSize:24, marginBottom:4 }}>Your kitchen · {layout}</div>
+          <div style={{ fontSize:12, color:pMute }}>Room {room.W} × {room.D} × {room.H} mm · {finish}</div>
+        </div>
+        <div style={{ padding:'16px 28px', borderBottom:`1px solid ${pLine}` }}>
+          {bom.map((b,i) => (
+            <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderTop:i ? `1px solid ${pLine}` : 'none', fontSize:12 }}>
+              <span>{b.category} <span style={{ color:pMute, fontSize:10 }}>×{b.qty} {b.unit}</span></span>
+              <span style={{ ...pStyles.mono, color:pMute }}>{fmt(b.amount)}</span>
+            </div>
+          ))}
+          <div style={{ marginTop:6, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
+            {[['Studio margin', markup], ['GST (18%)', gst]].map(([l,v]) => (
+              <div key={l} style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
+                <span>{l}</span><span style={pStyles.mono}>{fmt(v)}</span>
+              </div>
+            ))}
+            <div style={{ display:'flex', justifyContent:'space-between', marginTop:6, paddingTop:6, borderTop:`2px solid ${pInk}`, fontSize:14, fontWeight:700 }}>
+              <span>Total estimate</span><span style={pStyles.mono}>{fmt(total)}</span>
+            </div>
+          </div>
+        </div>
+        <div style={{ padding:'20px 28px' }}>
+          {[
+            { label:'Your name *', val:name, set:setName, ph:'e.g. Priya Sharma', type:'text' },
+            { label:'Phone (optional)', val:phone, set:setPhone, ph:'+91 98765 43210', type:'tel' },
+          ].map(({ label, val, set, ph, type }) => (
+            <div key={label} style={{ marginBottom:12 }}>
+              <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:6 }}>{label}</div>
+              <input type={type} value={val} onChange={e => set(e.target.value)} placeholder={ph} style={{
+                display:'block', width:'100%', padding:'10px 12px', border:`1px solid ${pLine}`, borderRadius:6,
+                fontSize:13, fontFamily:'"Inter Tight",sans-serif', color:pInk, background:pBg, outline:'none', boxSizing:'border-box',
+              }} />
+            </div>
+          ))}
+          <div style={{ marginBottom:20 }}>
+            <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:6 }}>Notes</div>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Any special requirements…" style={{
+              display:'block', width:'100%', padding:'10px 12px', border:`1px solid ${pLine}`, borderRadius:6,
+              fontSize:13, fontFamily:'"Inter Tight",sans-serif', color:pInk, background:pBg, outline:'none', resize:'vertical', boxSizing:'border-box',
+            }} />
+          </div>
+          <div style={{ display:'flex', gap:10 }}>
+            <button disabled={!ok} onClick={() => ok && onSubmit({ customerName:name, customerPhone:phone, notes })} style={{
+              flex:1, ...pStyles.primaryBtn, padding:'13px', borderRadius:8, border:'none',
+              opacity:ok?1:0.4, cursor:ok?'pointer':'not-allowed', fontSize:13,
+            }}>Submit quote request →</button>
+            <button onClick={onClose} style={{ ...pStyles.pillBtn, padding:'13px 16px', borderRadius:8, cursor:'pointer', fontSize:13 }}>Cancel</button>
+          </div>
+          <div style={{ fontSize:11, color:pMute, marginTop:10, textAlign:'center' }}>Studio designer will contact you within 24 hours.</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── SUCCESS VIEW ─────────────────────────────────────────── */
+function SuccessView({ order, onReset }) {
+  const fmt = n => '₹ ' + n.toLocaleString('en-IN');
+  return (
+    <div style={{ ...pStyles.shell, alignItems:'center', justifyContent:'center' }}>
+      <div style={{ maxWidth:420, textAlign:'center', padding:'0 24px' }}>
+        <div style={{ width:64, height:64, borderRadius:'50%', background:'rgba(76,186,133,0.12)', border:'2px solid #4cba85', display:'flex', alignItems:'center', justifyContent:'center', fontSize:28, margin:'0 auto 24px' }}>✓</div>
+        <div style={{ ...pStyles.fraunces, fontSize:28, marginBottom:8 }}>Quote submitted</div>
+        <div style={{ ...pStyles.mono, fontSize:12, color:pAccent, marginBottom:16 }}>{order.id}</div>
+        <div style={{ fontSize:14, color:pMute, lineHeight:1.6, marginBottom:24 }}>
+          Your kitchen design has been sent to the studio. <strong>{order.customerName}</strong>, we'll be in touch within 24 hours.
+        </div>
+        <div style={{ background:pPaper, borderRadius:8, padding:'16px 20px', marginBottom:24, textAlign:'left' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
+            <span style={{ color:pMute }}>Estimate</span>
+            <span style={{ ...pStyles.mono, fontWeight:700 }}>{fmt(order.total)}</span>
+          </div>
+          <div style={{ display:'flex', justifyContent:'space-between', fontSize:12 }}>
+            <span style={{ color:pMute }}>Layout · Finish</span>
+            <span>{order.room.layout} · {order.finish}</span>
+          </div>
+        </div>
+        <button onClick={onReset} style={{ ...pStyles.pillBtn, padding:'11px 22px', borderRadius:8, border:`1px solid ${pLine}`, cursor:'pointer', fontSize:13 }}>Plan another kitchen</button>
+      </div>
+    </div>
+  );
+}
+
 /* ── FRONTEND PLANNER (client) ─────────────────────────────── */
 function PlannerFrontend({ accent = pAccent }) {
-  const { useState: useS } = React;
-  const [view, setView] = useS('2D plan');
+  const { useState: useS, useEffect: useE, useMemo: useM } = React;
+  const [view, setView]       = useS('2D plan');
+  const [roomW, setRoomW]     = useS(3800);
+  const [roomD, setRoomD]     = useS(2840);
+  const [roomH, setRoomH]     = useS(2400);
+  const [layout, setLayout]   = useS('L-shape');
+  const [finish, setFinish]   = useS('Bali Oak');
+  const [hardware, setHardware] = useS('Push-to-open');
+  const [showModal, setShowModal] = useS(false);
+  const [submitted, setSubmitted] = useS(null);
+  const [saveTs, setSaveTs]   = useS(null);
+  const [editDim, setEditDim] = useS(false);
+
+  useE(() => {
+    const draft = KreoStore.getDraft();
+    if (draft && draft.room) {
+      setRoomW(draft.room.W || 3800); setRoomD(draft.room.D || 2840); setRoomH(draft.room.H || 2400);
+      setLayout(draft.room.layout || 'L-shape');
+      if (draft.finish)   setFinish(draft.finish);
+      if (draft.hardware) setHardware(draft.hardware);
+    }
+  }, []);
+
+  const { bom, subtotal, markup, gst, total } = useM(
+    () => computeBOM(roomW, roomD, layout, finish),
+    [roomW, roomD, layout, finish]
+  );
+
+  const handleSave = () => {
+    KreoStore.saveDraft({ room: { W:roomW, D:roomD, H:roomH, layout }, finish, hardware, ts: Date.now() });
+    setSaveTs(new Date());
+  };
+
+  const handleSubmit = customerData => {
+    const order = {
+      id: KreoStore.nextOrderId(), ts: Date.now(), status: 'new',
+      ...customerData,
+      room: { W:roomW, D:roomD, H:roomH, layout },
+      finish, hardware, bom, subtotal, markup, gst, total,
+    };
+    KreoStore.addOrder(order);
+    setSubmitted(order);
+  };
+
+  const fmt = n => '₹ ' + n.toLocaleString('en-IN');
+  const saveLabel = saveTs
+    ? `Saved · ${saveTs.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' })}`
+    : 'Unsaved draft';
+  const settings = KreoStore.getSettings();
+
+  if (submitted) return <SuccessView order={submitted} onReset={() => setSubmitted(null)} />;
 
   return (
     <div style={pStyles.shell}>
+      {showModal && (
+        <QuoteModal bom={bom} subtotal={subtotal} markup={markup} gst={gst} total={total}
+          room={{ W:roomW, D:roomD, H:roomH }} layout={layout} finish={finish}
+          onSubmit={handleSubmit} onClose={() => setShowModal(false)} />
+      )}
+
       {/* Top bar */}
       <div style={pStyles.topbar}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
@@ -537,15 +757,15 @@ function PlannerFrontend({ accent = pAccent }) {
           <KreoboxWordmark size={16} />
           <div style={{ width:1, height:22, background:pLine }}/>
           <div style={{ fontSize:13 }}>
-            <span style={{ color:pMute }}>Whitefield · 3BHK / </span>
-            <span style={{ fontWeight:600 }}>Kitchen plan</span>
+            <span style={{ color:pMute }}>{layout} kitchen / </span>
+            <span style={{ fontWeight:600 }}>{finish}</span>
           </div>
         </div>
         <ViewToggle value={view} onChange={setView} />
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <span style={{ fontSize:11, color:pMute, ...pStyles.mono }}>Saved · 2 min ago</span>
-          <span style={pStyles.pillBtn}>Share</span>
-          <span style={pStyles.primaryBtn}>Send to Reema →</span>
+          <span style={{ fontSize:11, color:pMute, ...pStyles.mono }}>{saveLabel}</span>
+          <button onClick={handleSave} style={{ ...pStyles.pillBtn, border:`1px solid ${pLine}`, cursor:'pointer', fontSize:12 }}>Save draft</button>
+          <button onClick={() => setShowModal(true)} style={{ ...pStyles.primaryBtn, border:'none', cursor:'pointer', fontSize:12 }}>Request quote →</button>
         </div>
       </div>
 
@@ -555,16 +775,67 @@ function PlannerFrontend({ accent = pAccent }) {
 
         {/* CENTER — Viewport */}
         <div style={{ flex:1, position:'relative', background:pBg, display:'flex', flexDirection:'column', minWidth:0 }}>
+          {/* Info / dimensions chip */}
           <div style={{
-            position:'absolute', top:16, left:16, zIndex:2,
+            position:'absolute', top:16, left:16, zIndex:editDim?11:2,
             background:pPaper, border:`1px solid ${pLine}`, borderRadius:8,
             padding:'6px 10px', display:'flex', gap:8, alignItems:'center',
             fontSize:11, ...pStyles.mono, color:pMute,
           }}>
-            <span>L-shape · 3.8 × 2.84 m</span>
+            <span style={{ cursor:'pointer', color:pAccent, fontWeight:600 }} onClick={() => setEditDim(!editDim)}>
+              {layout} · {(roomW/1000).toFixed(2)} × {(roomD/1000).toFixed(2)} m ✎
+            </span>
             <span style={{ width:1, height:12, background:pLine }}/>
-            <span>{view === '3D walk' ? 'Perspective view' : view === 'Elevation' ? 'Front elevation' : 'Scale 1:25'}</span>
+            <span>{view === '3D walk' ? 'Perspective' : view === 'Elevation' ? 'Front elevation' : 'Scale 1:25'}</span>
           </div>
+
+          {/* Dimension editor popover */}
+          {editDim && (
+            <div style={{
+              position:'absolute', top:52, left:16, zIndex:10,
+              background:pPaper, border:`1px solid ${pLine}`, borderRadius:10, padding:'16px 18px',
+              boxShadow:'0 8px 32px rgba(0,0,0,0.14)', display:'flex', flexDirection:'column', gap:12, minWidth:280,
+            }}>
+              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:700 }}>Room dimensions (mm)</div>
+              {[['Width', roomW, setRoomW], ['Depth', roomD, setRoomD], ['Height', roomH, setRoomH]].map(([label, val, setter]) => (
+                <div key={label} style={{ display:'grid', gridTemplateColumns:'60px 1fr', gap:10, alignItems:'center' }}>
+                  <span style={{ fontSize:11, color:pMute }}>{label}</span>
+                  <input type="number" value={val} step={50} onChange={e => setter(Math.max(1200, Number(e.target.value)))} style={{
+                    padding:'7px 10px', border:`1px solid ${pLine}`, borderRadius:6, fontSize:12,
+                    fontFamily:'JetBrains Mono,monospace', color:pInk, background:pBg, outline:'none',
+                  }} />
+                </div>
+              ))}
+              <div>
+                <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:8 }}>Layout</div>
+                <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                  {['L-shape','U-shape','Straight','Island'].map(l => (
+                    <button key={l} onClick={() => setLayout(l)} style={{
+                      padding:'5px 10px', borderRadius:6, cursor:'pointer', fontWeight:600, fontSize:11,
+                      border:`1px solid ${l === layout ? pAccent : pLine}`,
+                      background: l === layout ? 'rgba(201,100,66,0.08)' : 'transparent',
+                      color: l === layout ? pAccent : pMute,
+                    }}>{l}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:8 }}>Finish</div>
+                <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                  {(settings.finishes || ['Bali Oak','Alpine White','Graphite Grey','Natural Walnut']).map(f => (
+                    <button key={f} onClick={() => setFinish(f)} style={{
+                      padding:'5px 10px', borderRadius:6, cursor:'pointer', fontWeight:600, fontSize:11,
+                      border:`1px solid ${f === finish ? pAccent : pLine}`,
+                      background: f === finish ? 'rgba(201,100,66,0.08)' : 'transparent',
+                      color: f === finish ? pAccent : pMute,
+                    }}>{f}</button>
+                  ))}
+                </div>
+              </div>
+              <button onClick={() => setEditDim(false)} style={{ ...pStyles.primaryBtn, padding:'9px', border:'none', borderRadius:8, cursor:'pointer', fontSize:12 }}>Apply ✓</button>
+            </div>
+          )}
+
           {view !== '3D walk' && (
             <div style={{ position:'absolute', top:16, right:16, zIndex:2, display:'flex', flexDirection:'column', gap:6 }}>
               {['＋','−','⌖','↺'].map(s => (
@@ -572,7 +843,7 @@ function PlannerFrontend({ accent = pAccent }) {
               ))}
             </div>
           )}
-          <div style={{ flex:1, padding:24, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ flex:1, padding:24, display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setEditDim(false)}>
             <div style={{
               width:'100%', maxWidth: view === '3D walk' ? 800 : 700,
               aspectRatio: view === '3D walk' ? '620 / 440' : '480 / 380',
@@ -598,53 +869,51 @@ function PlannerFrontend({ accent = pAccent }) {
           </div>
         </div>
 
-        {/* RIGHT — Selected / BOM */}
+        {/* RIGHT — BOM + Actions */}
         <div style={{ ...pStyles.panel, width:300, borderLeft:`1px solid ${pLine}`, borderRight:'none' }}>
           <div style={{ padding:'20px 20px 14px', borderBottom:`1px solid ${pLine}` }}>
-            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>Selected</div>
-            <div style={{ ...pStyles.fraunces, fontSize:22, marginTop:4, letterSpacing:'-0.01em' }}>Pantry pull-out</div>
-            <div style={{ fontSize:11, color:pMute, ...pStyles.mono, marginTop:4 }}>KBX-HC-PP · 600 × 2400 × 600 mm</div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginTop:16 }}>
-              {[['Width','600 mm'],['Height','2,400 mm'],['Finish','Bali oak'],['Hardware','Push-to-open']].map(([k,v]) => (
+            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>Selected item</div>
+            <div style={{ ...pStyles.fraunces, fontSize:20, marginTop:4 }}>Pantry pull-out</div>
+            <div style={{ fontSize:11, color:pMute, ...pStyles.mono, marginTop:2 }}>KBX-HC-PP · 600 × 2400 × 600 mm</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginTop:14 }}>
+              {[['Width','600 mm'],['Height','2,400 mm'],['Finish', finish],['Hardware', hardware]].map(([k,v]) => (
                 <div key={k}>
                   <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>{k}</div>
                   <div style={{ fontSize:13, fontWeight:600, marginTop:2 }}>{v}</div>
                 </div>
               ))}
             </div>
-            <div style={{ marginTop:16, padding:'10px 12px', background:'rgba(26,24,21,0.04)', borderRadius:8 }}>
-              <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>Provenance</div>
-              <div style={{ fontSize:12, marginTop:4, lineHeight:1.4 }}>Carcass HDF, FSC-certified. Laminate by Greenlam, Hosur. 7-year warranty.</div>
-            </div>
           </div>
+
           <div style={{ flex:1, overflowY:'auto', padding:'14px 20px' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>Live cost · 14 items</div>
-              <span style={{ fontSize:11, color:accent, fontWeight:600, cursor:'pointer' }}>Full BOM →</span>
-            </div>
-            {[
-              { n:'Base cabinets · 4',    a:'₹ 1,12,400' },
-              { n:'High cabinets · 2',    a:'₹ 1,02,800' },
-              { n:'Wall cabinets · 5',    a:'₹ 86,500'   },
-              { n:'Quartz worktop · 5.4 m',a:'₹ 1,89,000'},
-              { n:'Appliances',           a:'₹ 58,400'   },
-              { n:'Hardware & lighting',  a:'₹ 47,200'   },
-            ].map((b,i) => (
-              <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'9px 0', borderTop: i ? `1px solid ${pLine}` : 'none', fontSize:12 }}>
-                <span>{b.n}</span>
-                <span style={{ ...pStyles.mono, color:pMute }}>{b.a}</span>
+            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600, marginBottom:10 }}>Live cost estimate</div>
+            {bom.map((b,i) => (
+              <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderTop:i?`1px solid ${pLine}`:'none', fontSize:12 }}>
+                <div>
+                  <div style={{ fontWeight:500 }}>{b.category}</div>
+                  <div style={{ fontSize:10, color:pMute, ...pStyles.mono }}>×{b.qty} {b.unit}</div>
+                </div>
+                <span style={{ ...pStyles.mono, color:pMute, fontSize:11, alignSelf:'center' }}>{fmt(b.amount)}</span>
               </div>
             ))}
+            <div style={{ marginTop:8, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
+              {[['Studio margin', markup],['GST (18%)', gst]].map(([l,v]) => (
+                <div key={l} style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
+                  <span>{l}</span><span style={pStyles.mono}>{fmt(v)}</span>
+                </div>
+              ))}
+            </div>
           </div>
+
           <div style={{ borderTop:`1px solid ${pLine}`, padding:'16px 20px', background:pPaper }}>
             <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
               <span style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>Total estimate</span>
-              <span style={{ fontSize:11, color:pMute }}>incl. install</span>
+              <span style={{ fontSize:11, color:pMute }}>incl. GST</span>
             </div>
-            <div style={{ ...pStyles.fraunces, fontSize:32, marginTop:4 }}>₹ 5,96,300</div>
+            <div style={{ ...pStyles.fraunces, fontSize:30, marginTop:4 }}>{fmt(total)}</div>
             <div style={{ display:'flex', gap:8, marginTop:12 }}>
-              <span style={{ flex:1, ...pStyles.primaryBtn, textAlign:'center', padding:'11px', borderRadius:8 }}>Request quote</span>
-              <span style={{ ...pStyles.pillBtn, padding:'11px 14px' }}>Save</span>
+              <button onClick={() => setShowModal(true)} style={{ flex:1, ...pStyles.primaryBtn, textAlign:'center', padding:'11px', borderRadius:8, border:'none', cursor:'pointer', fontSize:12 }}>Request quote →</button>
+              <button onClick={handleSave} style={{ ...pStyles.pillBtn, padding:'11px 14px', borderRadius:8, cursor:'pointer', fontSize:12 }}>Save</button>
             </div>
           </div>
         </div>
@@ -653,4 +922,4 @@ function PlannerFrontend({ accent = pAccent }) {
   );
 }
 
-Object.assign(window, { PlannerFrontend, KitchenPlan2D, KitchenPlan3D, KitchenElevation, KreoboxMark, KreoboxWordmark });
+Object.assign(window, { PlannerFrontend, KitchenPlan2D, KitchenPlan3D, KitchenElevation, KreoboxMark, KreoboxWordmark, KreoStore, computeBOM });
