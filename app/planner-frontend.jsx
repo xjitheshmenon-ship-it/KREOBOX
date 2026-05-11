@@ -177,13 +177,13 @@ function KitchenPlan3D({ accent = pAccent }) {
   const RW = 3800, RD = 2840, RH = 2400;
   const SVG_W = 620, SVG_H = 440;
   const m = Math.sqrt(RW * RW + RD * RD);
-  const p = SVG_W * 0.25;
+  const p = SVG_W * 0.65;
   const [yaw, setYaw]     = useS(-30);
-  const [pitch, setPitch] = useS(30);
+  const [pitch, setPitch] = useS(18);
   const drag = useRef(null);
 
   const project = useCB((wx, wy, wz) => {
-    const tx = wx - RW/2, ty = wy - RH*0.3, tz = wz - RD/2;
+    const tx = wx - RW/2, ty = wy - RH*0.42, tz = wz - RD/2;
     const cy = Math.cos(yaw*Math.PI/180), sy = Math.sin(yaw*Math.PI/180);
     const cp = Math.cos(pitch*Math.PI/180), sp = Math.sin(pitch*Math.PI/180);
     const rx = tx*cy + tz*sy, rz = -tx*sy + tz*cy;
@@ -287,29 +287,42 @@ const CABINET_SECTIONS = [
     title: 'Base cabinets',
     code: 'KBX-BC',
     items: [
-      'For corner','For sink','For hob','For hob & oven','For dishwasher',
-      'With drawers','With door','With door & drawer','With pull-out',
-      'With wire basket','Open cabinets','Other','Filler pieces & cover panels',
+      { name:'For corner',           variants:['600×600mm','900×900mm'],         price:'₹18–24k' },
+      { name:'For sink',             variants:['800mm','1000mm'],                price:'₹12–16k' },
+      { name:'For hob',              variants:['600mm','900mm'],                 price:'₹9–14k'  },
+      { name:'With drawers',         variants:['400mm','600mm','800mm'],         price:'₹14–22k' },
+      { name:'With door',            variants:['300mm','600mm','900mm'],         price:'₹8–18k'  },
+      { name:'With door & drawer',   variants:['600mm','800mm'],                 price:'₹16–22k' },
+      { name:'Pull-out pantry',      variants:['300mm','600mm'],                 price:'₹22–32k' },
+      { name:'Wire basket unit',     variants:['400mm','600mm'],                 price:'₹6–10k'  },
+      { name:'Open base',            variants:['600mm','900mm'],                 price:'₹7–12k'  },
+      { name:'Filler & cover panel', variants:['50mm','100mm','200mm'],          price:'₹2–5k'   },
     ],
   },
   {
     title: 'Wall cabinets',
     code: 'KBX-WC',
     items: [
-      'With door','With glass doors','Horizontal cabinets','For corner',
-      'For extractor hood','For microwave oven','For dish drainer',
-      'Top cabinets','Open cabinets','Other','Filler pieces & cover panels',
+      { name:'With door',            variants:['400mm','600mm','800mm'],         price:'₹6–14k'  },
+      { name:'With glass doors',     variants:['400mm','600mm'],                 price:'₹8–16k'  },
+      { name:'Horizontal cabinet',   variants:['600mm','900mm','1200mm'],        price:'₹10–20k' },
+      { name:'For corner',           variants:['600×600mm'],                     price:'₹12–18k' },
+      { name:'For extractor hood',   variants:['600mm','900mm'],                 price:'₹8–14k'  },
+      { name:'For microwave',        variants:['600mm'],                         price:'₹10–16k' },
+      { name:'Open wall cabinet',    variants:['600mm','900mm'],                 price:'₹5–10k'  },
+      { name:'Filler & cover panel', variants:['50mm','100mm'],                  price:'₹1–4k'   },
     ],
   },
   {
     title: 'High cabinets',
     code: 'KBX-HC',
     items: [
-      'For fridge & freezer','For oven','For microwave oven','For combi oven',
-      'For oven & microwave oven','For oven & combi oven',
-      'For microwave / combi oven','For microwave / combi / steam oven',
-      'With door & drawer','With door','With cleaning interior',
-      'High cabinets with pullout','Filler pieces & cover panels',
+      { name:'For fridge & freezer', variants:['600mm','900mm'],                 price:'₹22–36k' },
+      { name:'For oven',             variants:['600mm'],                         price:'₹18–28k' },
+      { name:'For microwave & oven', variants:['600mm'],                         price:'₹24–34k' },
+      { name:'Pantry pull-out',      variants:['300mm','600mm'],                 price:'₹28–42k' },
+      { name:'With door & drawer',   variants:['600mm','900mm'],                 price:'₹20–30k' },
+      { name:'Filler & cover panel', variants:['50mm','100mm'],                  price:'₹3–6k'   },
     ],
   },
 ];
@@ -319,17 +332,23 @@ const APPLIANCE_SECTIONS = [
     title: 'Integrated in cabinet',
     code: 'KBX-AI',
     items: [
-      'Fridge & freezer','Hob','Oven','Hob & oven','Microwave oven',
-      'Combi oven','Oven & microwave oven','Oven & combi oven',
-      'Microwave / combi oven','Microwave / combi / steam oven',
-      'Choose your hood','Dishwasher',
+      { name:'Fridge & freezer',       variants:['250L','350L','450L'],          price:'₹35–75k' },
+      { name:'Induction hob',          variants:['2 zone','4 zone'],             price:'₹12–28k' },
+      { name:'Gas hob',                variants:['3 burner','4 burner'],         price:'₹8–20k'  },
+      { name:'Built-in oven',          variants:['60L','90L'],                   price:'₹22–55k' },
+      { name:'Microwave oven',         variants:['20L','28L','34L'],             price:'₹8–22k'  },
+      { name:'Steam / combi oven',     variants:['45L','60L'],                   price:'₹45–90k' },
+      { name:'Extractor hood',         variants:['60cm','90cm'],                 price:'₹12–45k' },
+      { name:'Dishwasher',             variants:['6 place','13 place'],          price:'₹22–55k' },
     ],
   },
   {
     title: 'Freestanding',
     code: 'KBX-AF',
     items: [
-      'Fridge & freezer','Hob','Choose your hood','Use your own',
+      { name:'Fridge / side-by-side',  variants:['500L','600L'],                 price:'₹45–90k' },
+      { name:'Gas range',              variants:['4 burner','5 burner'],         price:'₹25–55k' },
+      { name:'Island hood',            variants:['90cm','120cm'],                price:'₹30–65k' },
     ],
   },
 ];
@@ -338,12 +357,20 @@ const DINING_SECTIONS = [
   {
     title: 'Tables',
     code: 'KBX-DT',
-    items: ['Dining tables','Extendable tables','Bar tables','Corner benches'],
+    items: [
+      { name:'Dining table',           variants:['4 seat','6 seat','8 seat'],    price:'₹18–60k' },
+      { name:'Extendable table',       variants:['4→6 seat','6→8 seat'],         price:'₹25–75k' },
+      { name:'Breakfast bar',          variants:['2 seat','4 seat'],             price:'₹12–35k' },
+    ],
   },
   {
     title: 'Seating',
     code: 'KBX-DS',
-    items: ['Dining chairs','Bar stools','Benches','Chair pads'],
+    items: [
+      { name:'Dining chair',           variants:['Fabric','Leather','Cane'],     price:'₹4–18k'  },
+      { name:'Bar stool',              variants:['65cm','75cm'],                 price:'₹5–16k'  },
+      { name:'Bench',                  variants:['120cm','160cm','200cm'],       price:'₹8–22k'  },
+    ],
   },
 ];
 
@@ -352,19 +379,34 @@ const EXTRAS_SECTIONS = [
     title: 'Organisation',
     code: 'KBX-OR',
     items: [
-      'Drawer organisers','Pull-out shelves','Waste sorting',
-      'Spice racks','Knife blocks','Hooks & rails',
+      { name:'Drawer organiser',       variants:['400mm','600mm'],               price:'₹2–6k'   },
+      { name:'Pull-out shelf',         variants:['300mm','450mm','600mm'],       price:'₹3–8k'   },
+      { name:'Waste sorting unit',     variants:['20L','30L dual'],              price:'₹4–10k'  },
+      { name:'Spice rack pull-out',    variants:['150mm','200mm'],               price:'₹3–7k'   },
+      { name:'Knife block',            variants:['In-drawer','Wall-mount'],      price:'₹2–5k'   },
+      { name:'Rail system',            variants:['60cm','90cm','120cm'],         price:'₹2–6k'   },
     ],
   },
   {
     title: 'Lighting',
     code: 'KBX-LT',
-    items: ['Under-cabinet lighting','Ceiling spotlights','Pendant lights','LED strips'],
+    items: [
+      { name:'Under-cabinet LED',      variants:['500mm','1000mm','1500mm'],     price:'₹3–9k'   },
+      { name:'Ceiling spotlight',      variants:['3-light','5-light'],           price:'₹5–14k'  },
+      { name:'Pendant light',          variants:['Single','Twin','Triple'],      price:'₹6–20k'  },
+      { name:'LED strip',              variants:['1m','5m kit'],                 price:'₹1–4k'   },
+    ],
   },
   {
     title: 'Worktops & sinks',
     code: 'KBX-WS',
-    items: ['Quartz worktops','Laminate worktops','Stainless sinks','Composite sinks','Taps'],
+    items: [
+      { name:'Quartz worktop',         variants:['20mm','30mm thick'],           price:'₹850–1400/sqft' },
+      { name:'Laminate worktop',       variants:['25mm','38mm thick'],           price:'₹350–650/sqft'  },
+      { name:'Stainless sink',         variants:['Single bowl','Double bowl'],   price:'₹4–12k'  },
+      { name:'Composite sink',         variants:['Single','1.5 bowl'],           price:'₹6–18k'  },
+      { name:'Kitchen tap',            variants:['Single lever','Pull-out'],     price:'₹4–14k'  },
+    ],
   },
 ];
 
@@ -383,7 +425,10 @@ function CatalogPanel() {
   const filtered = sections.map(sec => ({
     ...sec,
     items: search
-      ? sec.items.filter(it => it.toLowerCase().includes(search.toLowerCase()))
+      ? sec.items.filter(it => {
+          const n = typeof it === 'string' ? it : it.name;
+          return n.toLowerCase().includes(search.toLowerCase());
+        })
       : sec.items,
   })).filter(sec => sec.items.length > 0);
 
@@ -466,28 +511,51 @@ function CatalogPanel() {
               {sec.title}
               <span style={{ marginLeft:8, fontSize:9, opacity:0.7 }}>{sec.code}</span>
             </div>
-            {sec.items.map(item => (
-              <div key={item} style={{
-                display:'flex', alignItems:'center', gap:10,
-                padding:'9px 20px', cursor:'grab', fontSize:13,
-                borderLeft:'2px solid transparent',
-                transition:'background 0.1s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background='rgba(26,24,21,0.04)'; e.currentTarget.style.borderLeftColor=pAccent; }}
-              onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderLeftColor='transparent'; }}
-              >
-                <div style={{
-                  width:36, height:36, borderRadius:6, background:'#e8e2d5',
-                  border:`1px solid ${pLine}`, flexShrink:0,
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  fontSize:8, fontFamily:'JetBrains Mono,monospace', color:pMute,
-                }}>▦</div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontWeight:500, lineHeight:1.3 }}>{item}</div>
+            {sec.items.map(item => {
+              const name = typeof item === 'string' ? item : item.name;
+              const variants = typeof item === 'object' && item.variants ? item.variants : [];
+              const price = typeof item === 'object' && item.price ? item.price : '';
+              return (
+                <div key={name} style={{ padding:'8px 20px 10px', borderLeft:'2px solid transparent', transition:'background 0.1s', cursor:'default' }}
+                  onMouseEnter={e => { e.currentTarget.style.background='rgba(26,24,21,0.04)'; e.currentTarget.style.borderLeftColor=pAccent; }}
+                  onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderLeftColor='transparent'; }}
+                >
+                  <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                    <div style={{
+                      width:34, height:34, borderRadius:6, background:'#e8e2d5',
+                      border:`1px solid ${pLine}`, flexShrink:0,
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      fontSize:14, color:pMute,
+                    }}>▦</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontWeight:500, fontSize:13, lineHeight:1.3 }}>{name}</div>
+                      {price && <div style={{ fontSize:10, color:pMute, fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>{price}</div>}
+                    </div>
+                  </div>
+                  {variants.length > 0 && (
+                    <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginTop:7, paddingLeft:44 }}>
+                      {variants.map(v => (
+                        <span key={v} onClick={e => { e.stopPropagation(); }}
+                          style={{
+                            padding:'3px 8px', borderRadius:4, fontSize:10, fontWeight:600,
+                            fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                            border:`1px solid ${pLine}`, background:'rgba(26,24,21,0.04)',
+                            color:pMute, transition:'all 0.1s',
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor=pAccent; e.currentTarget.style.color=pAccent; e.currentTarget.style.background='rgba(201,100,66,0.06)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor=pLine; e.currentTarget.style.color=pMute; e.currentTarget.style.background='rgba(26,24,21,0.04)'; }}
+                        >{v}</span>
+                      ))}
+                      <span style={{
+                        padding:'3px 8px', borderRadius:4, fontSize:10, fontWeight:700,
+                        cursor:'pointer', border:`1px solid ${pLine}`,
+                        background:pAccent, color:'#fff',
+                      }}>+ Add</span>
+                    </div>
+                  )}
                 </div>
-                <span style={{ fontSize:12, color:pMute, flexShrink:0 }}>+</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ))}
 
@@ -596,6 +664,7 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
   const { useState: useS } = React;
   const [name, setName]   = useS('');
   const [phone, setPhone] = useS('');
+  const [city, setCity]   = useS('');
   const [notes, setNotes] = useS('');
   const fmt = n => '₹ ' + n.toLocaleString('en-IN');
   const ok  = name.trim().length > 0;
@@ -630,6 +699,7 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
           {[
             { label:'Your name *', val:name, set:setName, ph:'e.g. Priya Sharma', type:'text' },
             { label:'Phone (optional)', val:phone, set:setPhone, ph:'+91 98765 43210', type:'tel' },
+            { label:'City (for delivery routing)', val:city, set:setCity, ph:'e.g. Mumbai', type:'text' },
           ].map(({ label, val, set, ph, type }) => (
             <div key={label} style={{ marginBottom:12 }}>
               <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:6 }}>{label}</div>
@@ -647,7 +717,7 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
             }} />
           </div>
           <div style={{ display:'flex', gap:10 }}>
-            <button disabled={!ok} onClick={() => ok && onSubmit({ customerName:name, customerPhone:phone, notes })} style={{
+            <button disabled={!ok} onClick={() => ok && onSubmit({ customerName:name, customerPhone:phone, customerCity:city, notes })} style={{
               flex:1, ...pStyles.primaryBtn, padding:'13px', borderRadius:8, border:'none',
               opacity:ok?1:0.4, cursor:ok?'pointer':'not-allowed', fontSize:13,
             }}>Submit quote request →</button>

@@ -345,14 +345,18 @@ function PlannerBackend() {
   const approveOrder = () => {
     if (!sel) return;
     const qt = Number(quoteTotal) || sel.total;
+    const city = sel.customerCity || 'Mumbai';
+    const factoryMap = { 'Mumbai':'FAC-MUM','Pune':'FAC-MUM','Ahmedabad':'FAC-MUM','Surat':'FAC-MUM','Nagpur':'FAC-MUM','Indore':'FAC-MUM','Goa':'FAC-MUM','Nashik':'FAC-MUM','Bengaluru':'FAC-BLR','Hyderabad':'FAC-BLR','Chennai':'FAC-BLR','Kochi':'FAC-BLR','Coimbatore':'FAC-BLR','Kolkata':'FAC-BLR','Visakhapatnam':'FAC-BLR','Mysuru':'FAC-BLR','Delhi':'FAC-DEL','Gurugram':'FAC-DEL','Noida':'FAC-DEL','Jaipur':'FAC-DEL','Chandigarh':'FAC-DEL','Lucknow':'FAC-DEL','Bhopal':'FAC-DEL','Manesar':'FAC-DEL' };
+    const factoryId = factoryMap[city] || 'FAC-MUM';
     const job = {
       id: KreoStore.nextJobId(), orderId: sel.id, ts: Date.now(),
       status: 'queued', priority: 'normal',
-      customerName: sel.customerName, finish: sel.finish,
+      customerName: sel.customerName, customerCity: city, finish: sel.finish,
       room: sel.room, bom: sel.bom,
       cutList: generateCutList(sel.room, sel.finish, sel.bom),
       stages: ['queued','material-check','cutting','banding','assembly','finishing','qc','done'],
       currentStage: 0, progress: 0,
+      factoryId, depotCity: city,
       dueDate: new Date(Date.now() + KreoStore.getSettings().leadTimeDays * 86400000).toISOString().slice(0,10),
       stageLog: [{ stage:'queued', ts: Date.now(), by:'Studio' }],
       studioNote: studioNote,
