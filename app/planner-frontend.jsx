@@ -1,6 +1,6 @@
 /* ============================================================
    PLANNER · FRONTEND (client-facing kitchen planner)
-   Tone: editorial, calm, paper. Premium curation.
+   Audience: interior contractors. Execution engine — every module = real SKU, BOQ auto-generated.
    ============================================================ */
 
 const pInk    = '#1a1815';
@@ -1024,7 +1024,7 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
                   <button onClick={() => onAdd && onAdd({ name, variant: selV, price })} style={{
                     padding:'6px', borderRadius:6, fontSize:10, fontWeight:700, border:'none',
                     background:pInk, color:pPaper, cursor:'pointer', marginTop:'auto',
-                  }}>+ Add to room</button>
+                  }}>+ Add to BOQ</button>
                 </div>
               );
             })}
@@ -1190,7 +1190,7 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background:pPaper, borderRadius:12, width:480, maxHeight:'88vh', overflow:'auto', boxShadow:'0 40px 120px rgba(0,0,0,0.35)' }}>
         <div style={{ padding:'24px 28px 0' }}>
-          <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:4 }}>Request quote</div>
+          <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:4 }}>Submit BOQ to Studio</div>
           <div style={{ ...pStyles.fraunces, fontSize:24, marginBottom:4 }}>Your kitchen · {layout}</div>
           <div style={{ fontSize:12, color:pMute }}>Room {room.W} × {room.D} × {room.H} mm · {finish}</div>
         </div>
@@ -1237,7 +1237,7 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
             <button disabled={!ok} onClick={() => ok && onSubmit({ customerName:name, customerPhone:phone, customerCity:city, notes })} style={{
               flex:1, ...pStyles.primaryBtn, padding:'13px', borderRadius:8, border:'none',
               opacity:ok?1:0.4, cursor:ok?'pointer':'not-allowed', fontSize:13,
-            }}>Submit quote request →</button>
+            }}>Send BOQ to DesignOS →</button>
             <button onClick={onClose} style={{ ...pStyles.pillBtn, padding:'13px 16px', borderRadius:8, cursor:'pointer', fontSize:13 }}>Cancel</button>
           </div>
           <div style={{ fontSize:11, color:pMute, marginTop:10, textAlign:'center' }}>Studio designer will contact you within 24 hours.</div>
@@ -1425,7 +1425,7 @@ function PlannerFrontend({ accent = pAccent }) {
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <span style={{ fontSize:11, color:pMute, ...pStyles.mono }}>{saveLabel}</span>
           <button onClick={handleSave} style={{ ...pStyles.pillBtn, border:`1px solid ${pLine}`, cursor:'pointer', fontSize:12 }}>Save draft</button>
-          <button onClick={() => setShowModal(true)} style={{ ...pStyles.primaryBtn, border:'none', cursor:'pointer', fontSize:12 }}>Request quote →</button>
+          <button onClick={() => setShowModal(true)} style={{ ...pStyles.primaryBtn, border:'none', cursor:'pointer', fontSize:12 }}>Send BOQ →</button>
           <a href="designos.html" style={{
             padding:'8px 14px', borderRadius:8, fontSize:12, fontWeight:600,
             background:'rgba(26,24,21,0.06)', border:`1px solid ${pLine}`,
@@ -1571,7 +1571,7 @@ function PlannerFrontend({ accent = pAccent }) {
           </div>
 
           <div style={{ flex:1, overflowY:'auto', padding:'14px 20px' }}>
-            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600, marginBottom:10 }}>Live cost estimate</div>
+            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600, marginBottom:10 }}>Live BOQ</div>
             {roomItems.length === 0 ? (
               <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'12px 0' }}>
                 Drag items to canvas to see cost
@@ -1607,7 +1607,7 @@ function PlannerFrontend({ accent = pAccent }) {
             </div>
             <div style={{ ...pStyles.fraunces, fontSize:30, marginTop:4 }}>{fmt(total)}</div>
             <div style={{ display:'flex', gap:8, marginTop:12 }}>
-              <button onClick={() => setShowModal(true)} style={{ flex:1, ...pStyles.primaryBtn, textAlign:'center', padding:'11px', borderRadius:8, border:'none', cursor:'pointer', fontSize:12 }}>Request quote →</button>
+              <button onClick={() => setShowModal(true)} style={{ flex:1, ...pStyles.primaryBtn, textAlign:'center', padding:'11px', borderRadius:8, border:'none', cursor:'pointer', fontSize:12 }}>Send BOQ →</button>
               <button onClick={handleSave} style={{ ...pStyles.pillBtn, padding:'11px 14px', borderRadius:8, cursor:'pointer', fontSize:12 }}>Save</button>
             </div>
           </div>
