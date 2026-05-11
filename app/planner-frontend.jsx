@@ -49,82 +49,136 @@ function KreoboxWordmark({ size = 18, color = pInk }) {
   );
 }
 
-/* ── 2D top-down kitchen plan ──────────────────────────────── */
-function KitchenPlan2D({ accent = pAccent }) {
-  const wallStroke = '#1a1815', cabFill = '#e8e2d5', cabStroke = '#a99a82', dimColor = pMute;
+/* ── 2D top-down kitchen plan (blank canvas, drag-and-drop) ── */
+function KitchenPlan2D({ accent = pAccent, items = [], onDrop, onItemMove, onItemDelete }) {
+  const { useState: useS, useRef } = React;
+  const svgRef = useRef(null);
+  const [drag, setDrag] = useS(null); // { id, startSX, startSY, origX, origY }
+
+  const SVG_W = 480, SVG_H = 380;
+  const PX = 48, PY = 44, PW = 390, PH = 292;
+  const ROOM_W = 3800, ROOM_D = 2840;
+  const r2s  = (rx, ry) => ({ x: PX + rx * PW / ROOM_W, y: PY + ry * PH / ROOM_D });
+  const r2sw = w => w * PW / ROOM_W;
+  const r2sh = h => h * PH / ROOM_D;
+  const svgXY = e => {
+    const r = svgRef.current.getBoundingClientRect();
+    return { sx: (e.clientX - r.left) * SVG_W / r.width, sy: (e.clientY - r.top) * SVG_H / r.height };
+  };
+
+  const handleDrop = e => {
+    e.preventDefault();
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      const r = svgRef.current.getBoundingClientRect();
+      const sx = (e.clientX - r.left) * SVG_W / r.width;
+      const sy = (e.clientY - r.top) * SVG_H / r.height;
+      const roomX = (sx - PX) * ROOM_W / PW;
+      const roomY = (sy - PY) * ROOM_D / PH;
+      onDrop && onDrop({ ...data, x: roomX, y: roomY });
+    } catch {}
+  };
+
+  const handleItemDown = (e, item) => {
+    e.stopPropagation();
+    const { sx, sy } = svgXY(e);
+    setDrag({ id: item.id, startSX: sx, startSY: sy, origX: item.x, origY: item.y });
+  };
+
+  const handleMouseMove = e => {
+    if (!drag) return;
+    const { sx, sy } = svgXY(e);
+    const dx = (sx - drag.startSX) * ROOM_W / PW;
+    const dy = (sy - drag.startSY) * ROOM_D / PH;
+    onItemMove && onItemMove(drag.id, drag.origX + dx, drag.origY + dy);
+  };
+
+  const dimColor = pMute;
   return (
-    <svg viewBox="0 0 480 380" style={{ width:'100%', height:'100%', display:'block' }}>
-      <defs>
-        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-          <path d="M20 0 L0 0 0 20" fill="none" stroke="rgba(26,24,21,0.06)" strokeWidth="1"/>
-        </pattern>
-        <pattern id="grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
-          <path d="M100 0 L0 0 0 100" fill="none" stroke="rgba(26,24,21,0.12)" strokeWidth="1"/>
-        </pattern>
-      </defs>
-      <rect x="40" y="40" width="400" height="300" fill="url(#grid)"/>
-      <rect x="40" y="40" width="400" height="300" fill="url(#grid-major)"/>
-      <path d="M40 340 L40 40 L440 40" fill="none" stroke={wallStroke} strokeWidth="6" strokeLinejoin="round"/>
-      <path d="M440 40 L440 140" fill="none" stroke={wallStroke} strokeWidth="6" strokeLinecap="round"/>
-      <path d="M40 340 L160 340" fill="none" stroke={wallStroke} strokeWidth="6" strokeLinecap="round"/>
-      <rect x="44" y="44" width="392" height="292" fill="rgba(232,226,213,0.25)"/>
-      <g>
-        <rect x="48" y="48" width="380" height="40" fill="rgba(201,100,66,0.05)" stroke={cabStroke} strokeWidth="1" strokeDasharray="3 3"/>
-        <text x="238" y="73" fill={dimColor} fontSize="10" fontFamily="JetBrains Mono,monospace" textAnchor="middle">WALL CABINETS — 3.8m</text>
-      </g>
-      <g>
-        <rect x="48" y="92" width="100" height="60" fill={cabFill} stroke={cabStroke} strokeWidth="2"/>
-        <line x1="98" y1="92" x2="98" y2="152" stroke={cabStroke} strokeWidth="1"/>
-        <text x="98" y="128" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.55">DRAWER · 1000</text>
-      </g>
-      <g>
-        <rect x="148" y="92" width="120" height="60" fill={cabFill} stroke={cabStroke} strokeWidth="2"/>
-        <rect x="160" y="100" width="96" height="44" fill="#d9d2c3" stroke={cabStroke} strokeWidth="1" rx="3"/>
-        <circle cx="208" cy="122" r="3" fill={cabStroke}/>
-        <text x="208" y="170" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.55">SINK · 1200</text>
-      </g>
-      <g>
-        <rect x="268" y="92" width="100" height="60" fill={cabFill} stroke={cabStroke} strokeWidth="2"/>
-        <rect x="278" y="100" width="80" height="44" fill="#1a1815" rx="2"/>
-        <circle cx="294" cy="115" r="5" fill="#3a352e"/>
-        <circle cx="320" cy="115" r="5" fill="#3a352e"/>
-        <circle cx="294" cy="135" r="5" fill="#3a352e"/>
-        <circle cx="320" cy="135" r="5" fill="#3a352e"/>
-        <text x="318" y="170" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.55">HOB · 900</text>
-      </g>
-      <g>
-        <rect x="368" y="92" width="60" height="60" fill={cabFill} stroke={accent} strokeWidth="3"/>
-        <line x1="368" y1="122" x2="428" y2="122" stroke={accent} strokeWidth="1"/>
-        <text x="398" y="128" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.7">TALL · 600</text>
-      </g>
-      <g>
-        <rect x="48" y="152" width="60" height="100" fill={cabFill} stroke={cabStroke} strokeWidth="2"/>
-        <text x="78" y="208" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.55">FRIDGE</text>
-        <rect x="48" y="252" width="60" height="80" fill={cabFill} stroke={cabStroke} strokeWidth="2"/>
-        <text x="78" y="298" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.55">DRAWER</text>
-      </g>
-      <g>
-        <rect x="180" y="220" width="220" height="80" fill="#0e0d0b" stroke="#0e0d0b" strokeWidth="2" rx="2"/>
-        <rect x="190" y="230" width="200" height="60" fill="#1f1c19" rx="1"/>
-        <text x="290" y="265" fill="rgba(255,255,255,0.5)" fontSize="10" fontFamily="JetBrains Mono,monospace" textAnchor="middle">ISLAND · 2.2m × 0.8m</text>
-        <text x="290" y="280" fill="rgba(255,255,255,0.35)" fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle">QUARTZ · BREAKFAST BAR</text>
-      </g>
-      <g fill={dimColor} fontSize="10" fontFamily="JetBrains Mono,monospace">
-        <line x1="48" y1="32" x2="428" y2="32" stroke={dimColor} strokeWidth="1"/>
-        <line x1="48" y1="28" x2="48" y2="36" stroke={dimColor} strokeWidth="1"/>
-        <line x1="428" y1="28" x2="428" y2="36" stroke={dimColor} strokeWidth="1"/>
-        <text x="238" y="24" textAnchor="middle">3,800 mm</text>
-        <line x1="32" y1="48" x2="32" y2="332" stroke={dimColor} strokeWidth="1"/>
-        <line x1="28" y1="48" x2="36" y2="48" stroke={dimColor} strokeWidth="1"/>
-        <line x1="28" y1="332" x2="36" y2="332" stroke={dimColor} strokeWidth="1"/>
-        <text x="20" y="190" textAnchor="middle" transform="rotate(-90,20,190)">2,840 mm</text>
-      </g>
-      <g>
-        <line x1="398" y1="92" x2="398" y2="62" stroke={accent} strokeWidth="1" strokeDasharray="3 2"/>
-        <rect x="346" y="42" width="100" height="20" fill={pPaper} stroke={accent} strokeWidth="1" rx="3"/>
-        <text x="396" y="55" fill={accent} fontSize="10" fontFamily="JetBrains Mono,monospace" textAnchor="middle" fontWeight="600">PANTRY 600 × 2400</text>
-      </g>
-    </svg>
+    <div style={{ width:'100%', height:'100%' }} onDrop={handleDrop} onDragOver={e => e.preventDefault()}>
+      <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+        style={{ width:'100%', height:'100%', display:'block', cursor: drag ? 'grabbing' : 'default' }}
+        onMouseMove={handleMouseMove}
+        onMouseUp={() => setDrag(null)}
+        onMouseLeave={() => setDrag(null)}
+      >
+        <defs>
+          <pattern id="grid"       width="20"  height="20"  patternUnits="userSpaceOnUse"><path d="M20 0 L0 0 0 20" fill="none" stroke="rgba(26,24,21,0.06)" strokeWidth="1"/></pattern>
+          <pattern id="grid-major" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M100 0 L0 0 0 100" fill="none" stroke="rgba(26,24,21,0.11)" strokeWidth="1"/></pattern>
+        </defs>
+
+        {/* Grid */}
+        <rect x={PX} y={PY} width={PW} height={PH} fill="url(#grid)"/>
+        <rect x={PX} y={PY} width={PW} height={PH} fill="url(#grid-major)"/>
+        <rect x={PX} y={PY} width={PW} height={PH} fill="rgba(232,226,213,0.18)"/>
+
+        {/* Room walls (L-shape default) */}
+        <path d={`M${PX} ${PY+PH} L${PX} ${PY} L${PX+PW} ${PY}`}
+          fill="none" stroke="#1a1815" strokeWidth="6" strokeLinejoin="round"/>
+        <path d={`M${PX+PW} ${PY} L${PX+PW} ${PY+PH*0.37}`}
+          fill="none" stroke="#1a1815" strokeWidth="6" strokeLinecap="round"/>
+        <path d={`M${PX} ${PY+PH} L${PX+120} ${PY+PH}`}
+          fill="none" stroke="#1a1815" strokeWidth="6" strokeLinecap="round"/>
+
+        {/* Dimension lines */}
+        <g fill={dimColor} fontSize="9" fontFamily="JetBrains Mono,monospace">
+          <line x1={PX} y1={PY-8} x2={PX+PW} y2={PY-8} stroke={dimColor} strokeWidth="1"/>
+          <line x1={PX} y1={PY-12} x2={PX} y2={PY-4} stroke={dimColor} strokeWidth="1"/>
+          <line x1={PX+PW} y1={PY-12} x2={PX+PW} y2={PY-4} stroke={dimColor} strokeWidth="1"/>
+          <text x={PX+PW/2} y={PY-14} textAnchor="middle">3,800 mm</text>
+          <line x1={PX-8} y1={PY} x2={PX-8} y2={PY+PH} stroke={dimColor} strokeWidth="1"/>
+          <line x1={PX-12} y1={PY} x2={PX-4} y2={PY} stroke={dimColor} strokeWidth="1"/>
+          <line x1={PX-12} y1={PY+PH} x2={PX-4} y2={PY+PH} stroke={dimColor} strokeWidth="1"/>
+          <text x={PX-20} y={PY+PH/2} textAnchor="middle" transform={`rotate(-90,${PX-20},${PY+PH/2})`}>2,840 mm</text>
+        </g>
+
+        {/* Empty state */}
+        {items.length === 0 && (
+          <g>
+            <text x={PX+PW/2} y={PY+PH/2-8} fill="rgba(26,24,21,0.14)" fontSize="12" fontFamily="JetBrains Mono,monospace" textAnchor="middle">Drag items from catalog to place</text>
+            <text x={PX+PW/2} y={PY+PH/2+10} fill="rgba(26,24,21,0.09)" fontSize="10" fontFamily="JetBrains Mono,monospace" textAnchor="middle">Scale 1:25 · drag to reposition</text>
+          </g>
+        )}
+
+        {/* Placed items */}
+        {items.map(item => {
+          const sp = r2s(item.x, item.y);
+          const sw = Math.max(8, r2sw(item.w));
+          const sh = Math.max(6, r2sh(item.h));
+          const isActive = drag?.id === item.id;
+          return (
+            <g key={item.id} onMouseDown={e => handleItemDown(e, item)}
+              style={{ cursor: isActive ? 'grabbing' : 'grab' }}>
+              <rect x={sp.x} y={sp.y} width={sw} height={sh}
+                fill={item.color} fillOpacity={0.88}
+                stroke={isActive ? accent : 'rgba(26,24,21,0.4)'}
+                strokeWidth={isActive ? 2 : 1} rx={1}/>
+              {sw > 18 && sh > 10 && (
+                <>
+                  <line x1={sp.x+sw*0.2} y1={sp.y+sh/2} x2={sp.x+sw*0.8} y2={sp.y+sh/2}
+                    stroke="rgba(255,255,255,0.35)" strokeWidth="0.8"/>
+                  <line x1={sp.x+sw/2} y1={sp.y+sh*0.2} x2={sp.x+sw/2} y2={sp.y+sh*0.8}
+                    stroke="rgba(255,255,255,0.35)" strokeWidth="0.8"/>
+                  <text x={sp.x+sw/2} y={sp.y+sh/2+3}
+                    fill="rgba(255,255,255,0.9)" fontSize={Math.min(8,sw*0.13)}
+                    fontFamily="JetBrains Mono,monospace" textAnchor="middle"
+                    style={{ pointerEvents:'none', userSelect:'none' }}>
+                    {item.name.split(' ').slice(0,2).join(' ')}
+                  </text>
+                </>
+              )}
+              {/* delete ×  */}
+              <text x={sp.x+sw-3} y={sp.y+7} fill={accent} fontSize={8} fontWeight="800"
+                style={{ cursor:'pointer' }}
+                onClick={e => { e.stopPropagation(); onItemDelete && onItemDelete(item.id); }}>×</text>
+            </g>
+          );
+        })}
+
+        {/* Scale label */}
+        <text x={PX+PW} y={PY+PH+14} fill={dimColor} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="end">Scale 1:25</text>
+      </svg>
+    </div>
   );
 }
 
@@ -179,7 +233,7 @@ function KitchenPlan3D({ accent = pAccent }) {
   const m = Math.sqrt(RW * RW + RD * RD);
   const p = SVG_W * 0.65;
   const [yaw, setYaw]     = useS(-30);
-  const [pitch, setPitch] = useS(18);
+  const [pitch, setPitch] = useS(38);
   const drag = useRef(null);
 
   const project = useCB((wx, wy, wz) => {
@@ -353,6 +407,36 @@ function StarRow({ seed = 0 }) {
       <span style={{ fontSize:10, color:'rgba(26,24,21,0.45)', marginLeft:3 }}>{value}</span>
     </span>
   );
+}
+
+/* ── Item placement helpers ────────────────────────────────── */
+function getDefaultDims(name) {
+  const n = name.toLowerCase();
+  if (n.includes('island'))                      return { w:1200, h:800 };
+  if (n.includes('fridge') || n.includes('freezer')) return { w:600, h:650 };
+  if (n.includes('dishwasher'))                  return { w:600, h:600 };
+  if (n.includes('corner'))                      return { w:900, h:900 };
+  if (n.includes('hob') || n.includes('sink'))   return { w:900, h:600 };
+  if (n.includes('hood') || n.includes('extractor')) return { w:900, h:300 };
+  if (n.includes('table'))                       return { w:1200, h:900 };
+  if (n.includes('bench'))                       return { w:1400, h:400 };
+  if (n.includes('stool') || n.includes('chair')) return { w:500, h:500 };
+  if (n.includes('worktop') || n.includes('quartz') || n.includes('laminate')) return { w:1800, h:600 };
+  return { w:600, h:600 };
+}
+
+function getCabColor(name) {
+  const n = name.toLowerCase();
+  if (n.includes('hob') || n.includes('oven') || n.includes('micro')) return '#2a2520';
+  if (n.includes('sink') || n.includes('tap'))   return '#8cb8d0';
+  if (n.includes('fridge') || n.includes('freezer')) return '#a8c8a0';
+  if (n.includes('dishwasher'))                  return '#8898b8';
+  if (n.includes('table') || n.includes('island'))   return '#3a352e';
+  if (n.includes('stool') || n.includes('chair') || n.includes('bench')) return '#c8a870';
+  if (n.includes('worktop') || n.includes('quartz')) return '#b8b0a0';
+  if (n.includes('hood') || n.includes('extractor')) return '#706860';
+  if (n.includes('light') || n.includes('led'))  return '#d8d040';
+  return '#c8c0b0';
 }
 
 /* ── Kitchen catalog data ──────────────────────────────────── */
@@ -580,11 +664,14 @@ function CatalogPanel({ onAdd }) {
               const variants = typeof item === 'object' ? (item.variants || []) : [];
               const price = typeof item === 'object' ? (item.price || '') : '';
               const selV = getSelVariant(item);
+              const dims = getDefaultDims(name);
               return (
-                <div key={name} style={{
+                <div key={name} draggable
+                  onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims }))}
+                  style={{
                   background:pPaper, border:`1px solid ${pLine}`, borderRadius:10, padding:'10px 8px',
                   display:'flex', flexDirection:'column', gap:6,
-                  transition:'box-shadow 0.15s',
+                  transition:'box-shadow 0.15s', cursor:'grab',
                 }}
                   onMouseEnter={e => { e.currentTarget.style.boxShadow=`0 4px 16px rgba(0,0,0,0.10)`; e.currentTarget.style.borderColor=pAccent; }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow='none'; e.currentTarget.style.borderColor=pLine; }}
@@ -630,8 +717,11 @@ function CatalogPanel({ onAdd }) {
                   const variants = typeof item === 'object' ? (item.variants || []) : [];
                   const price = typeof item === 'object' ? (item.price || '') : '';
                   const selV = getSelVariant(item);
+                  const dims2 = getDefaultDims(name);
                   return (
-                    <div key={name} style={{ padding:'8px 8px 10px', borderLeft:'2px solid transparent', borderRadius:6, transition:'background 0.1s' }}
+                    <div key={name} draggable
+                      onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims2 }))}
+                      style={{ padding:'8px 8px 10px', borderLeft:'2px solid transparent', borderRadius:6, transition:'background 0.1s', cursor:'grab' }}
                       onMouseEnter={e => { e.currentTarget.style.background='rgba(26,24,21,0.04)'; e.currentTarget.style.borderLeftColor=pAccent; }}
                       onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderLeftColor='transparent'; }}
                     >
@@ -875,6 +965,20 @@ function PlannerFrontend({ accent = pAccent }) {
   const [saveTs, setSaveTs]   = useS(null);
   const [editDim, setEditDim] = useS(false);
   const [roomItems, setRoomItems] = useS([]);
+  const [placedItems, setPlacedItems] = useS([]);
+
+  const handleDrop2D = (data) => {
+    const id = `item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    const color = getCabColor(data.name);
+    setPlacedItems(prev => [...prev, { ...data, id, color }]);
+    addToRoom({ name: data.name, variant: data.variant, price: data.price });
+  };
+  const handleItemMove2D = (id, x, y) => {
+    setPlacedItems(prev => prev.map(it => it.id === id ? { ...it, x, y } : it));
+  };
+  const handleItemDelete2D = (id) => {
+    setPlacedItems(prev => prev.filter(it => it.id !== id));
+  };
 
   const addToRoom = (item) => {
     setRoomItems(prev => {
@@ -1041,7 +1145,7 @@ function PlannerFrontend({ accent = pAccent }) {
               borderRadius:12, border:`1px solid ${pLine}`,
               boxShadow:'0 30px 80px -30px rgba(0,0,0,0.18)', overflow:'hidden',
             }}>
-              {view === '2D plan'   && <KitchenPlan2D accent={accent} />}
+              {view === '2D plan'   && <KitchenPlan2D accent={accent} items={placedItems} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} />}
               {view === 'Elevation' && <KitchenElevation accent={accent} />}
               {view === '3D walk'   && <KitchenPlan3D accent={accent} />}
             </div>
