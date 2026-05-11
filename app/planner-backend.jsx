@@ -136,13 +136,6 @@ function BSidebar({ newCount = 0, section = 'orders', onSection, activeModule = 
       </>}
 
       <div style={{ flex:1 }}></div>
-      <a href="planner.html" style={{
-        display:'flex', alignItems:'center', gap:6, padding:'7px 10px', borderRadius:6,
-        background:'rgba(201,100,66,0.1)', border:`1px solid rgba(201,100,66,0.25)`,
-        textDecoration:'none', marginBottom:8,
-      }}>
-        <span style={{ fontSize:11, color:bAccent }}>← Planner</span>
-      </a>
       <div style={{ display:'flex', alignItems:'center', gap:8, padding:8, borderRadius:6, background:'rgba(255,255,255,0.04)' }}>
         <div style={{ width:26, height:26, borderRadius:'50%', background:`linear-gradient(135deg,${bAccent},#d97042)` }}></div>
         <div style={{ display:'flex', flexDirection:'column' }}>
@@ -783,7 +776,6 @@ function PlannerBackend() {
   const [section, setSection] = useS('orders');
   const [studioNote, setStudioNote] = useS('');
   const [quoteTotal, setQuoteTotal] = useS('');
-  const [erpModule, setErpModule] = useS('crm');
 
   const reload = () => setOrders(KreoStore.getOrders());
 
@@ -838,17 +830,9 @@ function PlannerBackend() {
   const WORKFLOW_STEPS = ['Concept','Layout','Materials','Cost','Sign-off','Fab'];
   const statusStep = { new:0, reviewing:1, quoted:2, approved:3, 'in-fab':4, delivered:5 };
 
-  // Sync section → erpModule
-  const SECTION_MODULE = {
-    pipeline:'studio', orders:'studio', drawings:'studio', approvals:'studio',
-    vendors:'factory', pos:'factory', inventory:'factory', fabrication:'factory',
-    team:'admin', margin:'admin', library:'admin',
-  };
-  const handleSection = s => { setSection(s); setErpModule(SECTION_MODULE[s] || 'studio'); };
-
   return (
     <div style={bStyles.shell}>
-      <BSidebar newCount={newCount} section={section} onSection={handleSection} activeModule={erpModule} />
+      <BSidebar newCount={newCount} section={section} onSection={setSection} activeModule="studio" />
 
       <div style={bStyles.main}>
         {/* Top context bar */}
@@ -880,7 +864,7 @@ function PlannerBackend() {
             </>
           ) : (
             <div style={{ ...bStyles.mono, fontSize:11, color:bMute }}>
-              {erpModule === 'factory' ? 'FACTORY FLOOR' : erpModule === 'admin' ? 'ADMIN' : 'STUDIO'} · {orders.length} orders · {newCount} new
+              STUDIO · {orders.length} orders · {newCount} new
             </div>
           )}
           <div style={{ flex:1 }}></div>
@@ -894,20 +878,11 @@ function PlannerBackend() {
           )}
         </div>
 
-        {/* ERP module strip */}
-        <ERPModuleStrip active={erpModule} onChange={(m, defaultSection) => { setErpModule(m); setSection(defaultSection || m); }} orders={orders} />
-
-        {/* Factory Floor module */}
-        {erpModule === 'factory' && <FactoryFloorModule orders={orders} subSection={section} />}
-
-        {/* Admin module */}
-        {erpModule === 'admin' && <AdminModule orders={orders} subSection={section} />}
-
         {/* Studio — Pipeline kanban */}
-        {erpModule === 'studio' && section === 'pipeline' && <PipelineView orders={orders} onSelect={id => { setSelId(id); setSection('orders'); }} />}
+        {section === 'pipeline' && <PipelineView orders={orders} onSelect={id => { setSelId(id); setSection('orders'); }} />}
 
         {/* Studio — Orders (3-column CRM view) */}
-        {erpModule === 'studio' && section !== 'pipeline' && <div style={{ flex:1, display:'grid', gridTemplateColumns:'280px 1fr 300px', minHeight:0 }}>
+        {section !== 'pipeline' && <div style={{ flex:1, display:'grid', gridTemplateColumns:'280px 1fr 300px', minHeight:0 }}>
 
           {/* LEFT — order inbox */}
           <div style={{ background:'#191613', borderRight:`1px solid ${bLine}`, display:'flex', flexDirection:'column', overflow:'hidden' }}>
