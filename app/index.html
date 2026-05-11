@@ -2,42 +2,196 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Kreobox · Panel furniture, planned to the mm.</title>
+<title>Kreobox</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..500;1,9..144,400..500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg:#f0eee9; --paper:#fafaf7; --ink:#1a1815; --line:rgba(26,24,21,0.10); --accent:#c96442; }
-  html,body { margin:0; background:var(--bg); color:var(--ink); }
-  body { font-family:"Inter Tight",-apple-system,BlinkMacSystemFont,sans-serif; }
-  * { box-sizing:border-box; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:     #f0eee9;
+    --paper:  #fafaf7;
+    --ink:    #1a1815;
+    --mute:   rgba(26,24,21,0.5);
+    --line:   rgba(26,24,21,0.09);
+    --accent: #c96442;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Inter Tight", -apple-system, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+  }
+
+  /* ── logo ── */
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .wordmark {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .tagline {
+    font-size: 13px;
+    color: var(--mute);
+    letter-spacing: 0.04em;
+    margin-bottom: 48px;
+    text-align: center;
+  }
+
+  /* ── cards grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 28px 28px 24px;
+    text-decoration: none;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: box-shadow 0.18s, border-color 0.18s, transform 0.14s;
+    cursor: pointer;
+  }
+  .card:hover {
+    box-shadow: 0 12px 40px rgba(0,0,0,0.11);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+  .card-icon.warm  { background: rgba(201,100,66,0.10); }
+  .card-icon.dark  { background: rgba(26,24,21,0.07); }
+  .card-icon.green { background: rgba(76,160,100,0.10); }
+
+  .card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--mute);
+    font-family: "JetBrains Mono", monospace;
+  }
+  .card-title {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 22px;
+    font-weight: 400;
+    line-height: 1.2;
+  }
+  .card-desc {
+    font-size: 13px;
+    color: var(--mute);
+    line-height: 1.6;
+    flex: 1;
+  }
+  .card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-top: 4px;
+  }
+
+  .card.primary {
+    background: linear-gradient(135deg, #fdfcf8 0%, rgba(201,100,66,0.04) 100%);
+    border-color: rgba(201,100,66,0.25);
+  }
+
+  /* ── footer ── */
+  .footer {
+    margin-top: 52px;
+    font-size: 11px;
+    color: rgba(26,24,21,0.3);
+    font-family: "JetBrains Mono", monospace;
+    letter-spacing: 0.06em;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
-<div id="root"></div>
 
-<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
-<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <div class="logo">
+    <!-- Kreobox mark: open box with tilted lid -->
+    <svg width="30" height="30" viewBox="0 0 100 100">
+      <path fill-rule="evenodd" clip-rule="evenodd"
+        d="M10 32 H90 V90 Q90 97 83 97 H17 Q10 97 10 90 Z M24 46 H76 V82 H24 Z"
+        fill="#c96442"/>
+      <rect x="11" y="10" width="80" height="17" rx="3"
+        transform="rotate(-7 51 18)" fill="#c96442" fill-opacity="0.72"/>
+    </svg>
+    <span class="wordmark">Kreobox</span>
+  </div>
 
-<script src="image-slot.js"></script>
-<script type="text/babel" src="landing-shared.jsx"></script>
-<script type="text/babel" src="landing-catalog.jsx"></script>
-<script type="text/babel" src="landing-workshop.jsx"></script>
-<script type="text/babel" src="landing-showroom.jsx"></script>
+  <p class="tagline">Panel furniture, planned to the millimetre.</p>
 
-<script type="text/babel" data-presets="env,react">
-const { useState } = React;
+  <div class="grid">
 
-function App() {
-  const [imagery, setImagery] = useState('blueprint');
-  const [showPricing, setShowPricing] = useState(true);
+    <a class="card primary" href="planner.html">
+      <div class="card-icon warm">🪵</div>
+      <span class="card-label">Customer · Plan</span>
+      <div class="card-title">Kitchen Planner</div>
+      <p class="card-desc">Design your kitchen in 2D and 3D. Drag in cabinets, appliances and dining pieces. Get a live cost estimate and submit a quote.</p>
+      <span class="card-cta">Open planner →</span>
+    </a>
 
-  return <LandingCatalog tablet={false} imagery={imagery} showPricing={showPricing} />;
-}
+    <a class="card" href="designos.html">
+      <div class="card-icon dark">📐</div>
+      <span class="card-label">Studio · ERP</span>
+      <div class="card-title">Design Studio</div>
+      <p class="card-desc">Order management, CRM, finance, procurement and logistics in one view. Studio tab, Factory Floor tab, and Admin panel.</p>
+      <span class="card-cta">Open studio →</span>
+    </a>
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-</script>
+    <a class="card" href="designos.html#factory">
+      <div class="card-icon green">🏭</div>
+      <span class="card-label">Operations · Factory</span>
+      <div class="card-title">Factory & Depot</div>
+      <p class="card-desc">Live production jobs across Mumbai, Bangalore and Delhi factories. Depot network across Tier 1 &amp; Tier 2 cities with radius coverage.</p>
+      <span class="card-cta">Open factory →</span>
+    </a>
+
+  </div>
+
+  <p class="footer">KREOBOX · Panel furniture ERP · v0.11</p>
+
 </body>
 </html>
