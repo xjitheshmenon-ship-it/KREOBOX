@@ -94,7 +94,7 @@ function BLogo({ size = 20, accent = bAccent }) {
   );
 }
 
-function BSidebar({ newCount = 0, section = 'orders', onSection }) {
+function BSidebar({ newCount = 0, section = 'orders', onSection, activeModule = 'studio' }) {
   const go = s => onSection && onSection(s);
   const sb  = bStyles.sbItem;
   const act = s => section === s ? { ...sb, ...bStyles.sbItemActive } : sb;
@@ -111,25 +111,29 @@ function BSidebar({ newCount = 0, section = 'orders', onSection }) {
         <div style={{ fontSize:13, fontWeight:600, color:'#fff', marginTop:2 }}>Atelier Reema</div>
       </div>
 
-      {/* ── Studio (was Workspace) ── */}
-      <div style={bStyles.sbSection}>Studio</div>
-      <div style={act('pipeline')}  onClick={() => go('pipeline')}>{dot('#d9a049')} Pipeline</div>
-      <div style={act('orders')}    onClick={() => go('orders')}>{dot(bAccent)} Orders {badge(newCount)}</div>
-      <div style={act('drawings')}  onClick={() => go('drawings')}>{dot('#5b8def')} Drawings</div>
-      <div style={act('approvals')} onClick={() => go('approvals')}>{dot('#7c5cff')} Approvals {badge(newCount, '#5b8def')}</div>
+      {/* ── Show only the section matching the active top tab ── */}
+      {activeModule === 'studio' && <>
+        <div style={bStyles.sbSection}>Studio</div>
+        <div style={act('pipeline')}  onClick={() => go('pipeline')}>{dot('#d9a049')} Pipeline</div>
+        <div style={act('orders')}    onClick={() => go('orders')}>{dot(bAccent)} Orders {badge(newCount)}</div>
+        <div style={act('drawings')}  onClick={() => go('drawings')}>{dot('#5b8def')} Drawings</div>
+        <div style={act('approvals')} onClick={() => go('approvals')}>{dot('#7c5cff')} Approvals {badge(newCount, '#5b8def')}</div>
+      </>}
 
-      {/* ── Factory Floor (was Operations) ── */}
-      <div style={bStyles.sbSection}>Factory Floor</div>
-      <div style={act('vendors')}      onClick={() => go('vendors')}>{dot('#aaa')} Vendors</div>
-      <div style={act('pos')}          onClick={() => go('pos')}>{dot('#aaa')} POs</div>
-      <div style={act('inventory')}    onClick={() => go('inventory')}>{dot('#4cba85')} Inventory</div>
-      <div style={act('fabrication')}  onClick={() => go('fabrication')}>{dot('#7c5cff')} Fabrication</div>
+      {activeModule === 'factory' && <>
+        <div style={bStyles.sbSection}>Factory Floor</div>
+        <div style={act('vendors')}     onClick={() => go('vendors')}>{dot('#aaa')} Vendors</div>
+        <div style={act('pos')}         onClick={() => go('pos')}>{dot('#aaa')} POs</div>
+        <div style={act('inventory')}   onClick={() => go('inventory')}>{dot('#4cba85')} Inventory</div>
+        <div style={act('fabrication')} onClick={() => go('fabrication')}>{dot('#7c5cff')} Fabrication</div>
+      </>}
 
-      {/* ── Admin (was Studio) ── */}
-      <div style={bStyles.sbSection}>Admin</div>
-      <div style={act('team')}    onClick={() => go('team')}>{dot('#aaa')} Team</div>
-      <div style={act('margin')}  onClick={() => go('margin')}>{dot('#4cba85')} Margin</div>
-      <div style={act('library')} onClick={() => go('library')}>{dot('#aaa')} Library</div>
+      {activeModule === 'admin' && <>
+        <div style={bStyles.sbSection}>Admin</div>
+        <div style={act('team')}    onClick={() => go('team')}>{dot('#aaa')} Team</div>
+        <div style={act('margin')}  onClick={() => go('margin')}>{dot('#4cba85')} Margin</div>
+        <div style={act('library')} onClick={() => go('library')}>{dot('#aaa')} Library</div>
+      </>}
 
       <div style={{ flex:1 }}></div>
       <a href="planner.html" style={{
@@ -844,7 +848,7 @@ function PlannerBackend() {
 
   return (
     <div style={bStyles.shell}>
-      <BSidebar newCount={newCount} section={section} onSection={handleSection} />
+      <BSidebar newCount={newCount} section={section} onSection={handleSection} activeModule={erpModule} />
 
       <div style={bStyles.main}>
         {/* Top context bar */}
