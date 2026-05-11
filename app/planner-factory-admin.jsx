@@ -166,22 +166,7 @@ function CutNest({ active = true }) {
   );
 }
 
-/* ── KREO STORE ───────────────────────────────────────────────── */
-const KreoStore = (() => {
-  const fire = () => window.dispatchEvent(new Event('kreobox-update'));
-  return {
-    getOrders() { try { return JSON.parse(localStorage.getItem('kreobox_orders') || '[]'); } catch { return []; } },
-    updateOrder(id, patch) { const orders = this.getOrders().map(o => o.id === id ? { ...o, ...patch } : o); localStorage.setItem('kreobox_orders', JSON.stringify(orders)); fire(); },
-    getJobs() { try { return JSON.parse(localStorage.getItem('kreobox_jobs') || '[]'); } catch { return []; } },
-    saveJobs(j) { localStorage.setItem('kreobox_jobs', JSON.stringify(j)); fire(); },
-    updateJob(id, patch) { this.saveJobs(this.getJobs().map(j => j.id === id ? { ...j, ...patch } : j)); },
-    getSettings() {
-      const D = { cabinetRate:22000, worktopRate:35000, applianceFlat:58400, hardwareRate:8, markup:18, gst:18, leadTimeDays:21, finishes:['Bali Oak','Alpine White','Graphite Grey','Natural Walnut','Ivory Sand','Smoked Teak'] };
-      try { return { ...D, ...JSON.parse(localStorage.getItem('kreobox_settings') || '{}') }; } catch { return D; }
-    },
-    saveSettings(s) { localStorage.setItem('kreobox_settings', JSON.stringify(s)); fire(); },
-  };
-})();
+/* KreoStore is defined in planner-backend.jsx (loaded first) — shared via global scope */
 
 /* ── LOGISTICS DATA ───────────────────────────────────────────── */
 const FACTORIES = [
