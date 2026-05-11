@@ -1264,7 +1264,7 @@ function PlannerFrontend({ accent = pAccent }) {
           <span style={{ fontSize:11, color:pMute, ...pStyles.mono }}>{saveLabel}</span>
           <button onClick={handleSave} style={{ ...pStyles.pillBtn, border:`1px solid ${pLine}`, cursor:'pointer', fontSize:12 }}>Save draft</button>
           <button onClick={() => setShowModal(true)} style={{ ...pStyles.primaryBtn, border:'none', cursor:'pointer', fontSize:12 }}>Request quote →</button>
-          <a href="backend.html" style={{
+          <a href="designos.html" style={{
             padding:'8px 14px', borderRadius:8, fontSize:12, fontWeight:600,
             background:'rgba(26,24,21,0.06)', border:`1px solid ${pLine}`,
             color:pMute, textDecoration:'none', display:'flex', alignItems:'center', gap:6,
