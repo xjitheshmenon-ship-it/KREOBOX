@@ -49,82 +49,136 @@ function KreoboxWordmark({ size = 18, color = pInk }) {
   );
 }
 
-/* ── 2D top-down kitchen plan ──────────────────────────────── */
-function KitchenPlan2D({ accent = pAccent }) {
-  const wallStroke = '#1a1815', cabFill = '#e8e2d5', cabStroke = '#a99a82', dimColor = pMute;
+/* ── 2D top-down kitchen plan (blank canvas, drag-and-drop) ── */
+function KitchenPlan2D({ accent = pAccent, items = [], onDrop, onItemMove, onItemDelete }) {
+  const { useState: useS, useRef } = React;
+  const svgRef = useRef(null);
+  const [drag, setDrag] = useS(null); // { id, startSX, startSY, origX, origY }
+
+  const SVG_W = 480, SVG_H = 380;
+  const PX = 48, PY = 44, PW = 390, PH = 292;
+  const ROOM_W = 3800, ROOM_D = 2840;
+  const r2s  = (rx, ry) => ({ x: PX + rx * PW / ROOM_W, y: PY + ry * PH / ROOM_D });
+  const r2sw = w => w * PW / ROOM_W;
+  const r2sh = h => h * PH / ROOM_D;
+  const svgXY = e => {
+    const r = svgRef.current.getBoundingClientRect();
+    return { sx: (e.clientX - r.left) * SVG_W / r.width, sy: (e.clientY - r.top) * SVG_H / r.height };
+  };
+
+  const handleDrop = e => {
+    e.preventDefault();
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      const r = svgRef.current.getBoundingClientRect();
+      const sx = (e.clientX - r.left) * SVG_W / r.width;
+      const sy = (e.clientY - r.top) * SVG_H / r.height;
+      const roomX = (sx - PX) * ROOM_W / PW;
+      const roomY = (sy - PY) * ROOM_D / PH;
+      onDrop && onDrop({ ...data, x: roomX, y: roomY });
+    } catch {}
+  };
+
+  const handleItemDown = (e, item) => {
+    e.stopPropagation();
+    const { sx, sy } = svgXY(e);
+    setDrag({ id: item.id, startSX: sx, startSY: sy, origX: item.x, origY: item.y });
+  };
+
+  const handleMouseMove = e => {
+    if (!drag) return;
+    const { sx, sy } = svgXY(e);
+    const dx = (sx - drag.startSX) * ROOM_W / PW;
+    const dy = (sy - drag.startSY) * ROOM_D / PH;
+    onItemMove && onItemMove(drag.id, drag.origX + dx, drag.origY + dy);
+  };
+
+  const dimColor = pMute;
   return (
-    <svg viewBox="0 0 480 380" style={{ width:'100%', height:'100%', display:'block' }}>
-      <defs>
-        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-          <path d="M20 0 L0 0 0 20" fill="none" stroke="rgba(26,24,21,0.06)" strokeWidth="1"/>
-        </pattern>
-        <pattern id="grid-major" width="100" height="100" patternUnits="userSpaceOnUse">
-          <path d="M100 0 L0 0 0 100" fill="none" stroke="rgba(26,24,21,0.12)" strokeWidth="1"/>
-        </pattern>
-      </defs>
-      <rect x="40" y="40" width="400" height="300" fill="url(#grid)"/>
-      <rect x="40" y="40" width="400" height="300" fill="url(#grid-major)"/>
-      <path d="M40 340 L40 40 L440 40" fill="none" stroke={wallStroke} strokeWidth="6" strokeLinejoin="round"/>
-      <path d="M440 40 L440 140" fill="none" stroke={wallStroke} strokeWidth="6" strokeLinecap="round"/>
-      <path d="M40 340 L160 340" fill="none" stroke={wallStroke} strokeWidth="6" strokeLinecap="round"/>
-      <rect x="44" y="44" width="392" height="292" fill="rgba(232,226,213,0.25)"/>
-      <g>
-        <rect x="48" y="48" width="380" height="40" fill="rgba(201,100,66,0.05)" stroke={cabStroke} strokeWidth="1" strokeDasharray="3 3"/>
-        <text x="238" y="73" fill={dimColor} fontSize="10" fontFamily="JetBrains Mono,monospace" textAnchor="middle">WALL CABINETS — 3.8m</text>
-      </g>
-      <g>
-        <rect x="48" y="92" width="100" height="60" fill={cabFill} stroke={cabStroke} strokeWidth="2"/>
-        <line x1="98" y1="92" x2="98" y2="152" stroke={cabStroke} strokeWidth="1"/>
-        <text x="98" y="128" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.55">DRAWER · 1000</text>
-      </g>
-      <g>
-        <rect x="148" y="92" width="120" height="60" fill={cabFill} stroke={cabStroke} strokeWidth="2"/>
-        <rect x="160" y="100" width="96" height="44" fill="#d9d2c3" stroke={cabStroke} strokeWidth="1" rx="3"/>
-        <circle cx="208" cy="122" r="3" fill={cabStroke}/>
-        <text x="208" y="170" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.55">SINK · 1200</text>
-      </g>
-      <g>
-        <rect x="268" y="92" width="100" height="60" fill={cabFill} stroke={cabStroke} strokeWidth="2"/>
-        <rect x="278" y="100" width="80" height="44" fill="#1a1815" rx="2"/>
-        <circle cx="294" cy="115" r="5" fill="#3a352e"/>
-        <circle cx="320" cy="115" r="5" fill="#3a352e"/>
-        <circle cx="294" cy="135" r="5" fill="#3a352e"/>
-        <circle cx="320" cy="135" r="5" fill="#3a352e"/>
-        <text x="318" y="170" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.55">HOB · 900</text>
-      </g>
-      <g>
-        <rect x="368" y="92" width="60" height="60" fill={cabFill} stroke={accent} strokeWidth="3"/>
-        <line x1="368" y1="122" x2="428" y2="122" stroke={accent} strokeWidth="1"/>
-        <text x="398" y="128" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.7">TALL · 600</text>
-      </g>
-      <g>
-        <rect x="48" y="152" width="60" height="100" fill={cabFill} stroke={cabStroke} strokeWidth="2"/>
-        <text x="78" y="208" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.55">FRIDGE</text>
-        <rect x="48" y="252" width="60" height="80" fill={cabFill} stroke={cabStroke} strokeWidth="2"/>
-        <text x="78" y="298" fill={pInk} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle" opacity="0.55">DRAWER</text>
-      </g>
-      <g>
-        <rect x="180" y="220" width="220" height="80" fill="#0e0d0b" stroke="#0e0d0b" strokeWidth="2" rx="2"/>
-        <rect x="190" y="230" width="200" height="60" fill="#1f1c19" rx="1"/>
-        <text x="290" y="265" fill="rgba(255,255,255,0.5)" fontSize="10" fontFamily="JetBrains Mono,monospace" textAnchor="middle">ISLAND · 2.2m × 0.8m</text>
-        <text x="290" y="280" fill="rgba(255,255,255,0.35)" fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="middle">QUARTZ · BREAKFAST BAR</text>
-      </g>
-      <g fill={dimColor} fontSize="10" fontFamily="JetBrains Mono,monospace">
-        <line x1="48" y1="32" x2="428" y2="32" stroke={dimColor} strokeWidth="1"/>
-        <line x1="48" y1="28" x2="48" y2="36" stroke={dimColor} strokeWidth="1"/>
-        <line x1="428" y1="28" x2="428" y2="36" stroke={dimColor} strokeWidth="1"/>
-        <text x="238" y="24" textAnchor="middle">3,800 mm</text>
-        <line x1="32" y1="48" x2="32" y2="332" stroke={dimColor} strokeWidth="1"/>
-        <line x1="28" y1="48" x2="36" y2="48" stroke={dimColor} strokeWidth="1"/>
-        <line x1="28" y1="332" x2="36" y2="332" stroke={dimColor} strokeWidth="1"/>
-        <text x="20" y="190" textAnchor="middle" transform="rotate(-90,20,190)">2,840 mm</text>
-      </g>
-      <g>
-        <line x1="398" y1="92" x2="398" y2="62" stroke={accent} strokeWidth="1" strokeDasharray="3 2"/>
-        <rect x="346" y="42" width="100" height="20" fill={pPaper} stroke={accent} strokeWidth="1" rx="3"/>
-        <text x="396" y="55" fill={accent} fontSize="10" fontFamily="JetBrains Mono,monospace" textAnchor="middle" fontWeight="600">PANTRY 600 × 2400</text>
-      </g>
-    </svg>
+    <div style={{ width:'100%', height:'100%' }} onDrop={handleDrop} onDragOver={e => e.preventDefault()}>
+      <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+        style={{ width:'100%', height:'100%', display:'block', cursor: drag ? 'grabbing' : 'default' }}
+        onMouseMove={handleMouseMove}
+        onMouseUp={() => setDrag(null)}
+        onMouseLeave={() => setDrag(null)}
+      >
+        <defs>
+          <pattern id="grid"       width="20"  height="20"  patternUnits="userSpaceOnUse"><path d="M20 0 L0 0 0 20" fill="none" stroke="rgba(26,24,21,0.06)" strokeWidth="1"/></pattern>
+          <pattern id="grid-major" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M100 0 L0 0 0 100" fill="none" stroke="rgba(26,24,21,0.11)" strokeWidth="1"/></pattern>
+        </defs>
+
+        {/* Grid */}
+        <rect x={PX} y={PY} width={PW} height={PH} fill="url(#grid)"/>
+        <rect x={PX} y={PY} width={PW} height={PH} fill="url(#grid-major)"/>
+        <rect x={PX} y={PY} width={PW} height={PH} fill="rgba(232,226,213,0.18)"/>
+
+        {/* Room walls (L-shape default) */}
+        <path d={`M${PX} ${PY+PH} L${PX} ${PY} L${PX+PW} ${PY}`}
+          fill="none" stroke="#1a1815" strokeWidth="6" strokeLinejoin="round"/>
+        <path d={`M${PX+PW} ${PY} L${PX+PW} ${PY+PH*0.37}`}
+          fill="none" stroke="#1a1815" strokeWidth="6" strokeLinecap="round"/>
+        <path d={`M${PX} ${PY+PH} L${PX+120} ${PY+PH}`}
+          fill="none" stroke="#1a1815" strokeWidth="6" strokeLinecap="round"/>
+
+        {/* Dimension lines */}
+        <g fill={dimColor} fontSize="9" fontFamily="JetBrains Mono,monospace">
+          <line x1={PX} y1={PY-8} x2={PX+PW} y2={PY-8} stroke={dimColor} strokeWidth="1"/>
+          <line x1={PX} y1={PY-12} x2={PX} y2={PY-4} stroke={dimColor} strokeWidth="1"/>
+          <line x1={PX+PW} y1={PY-12} x2={PX+PW} y2={PY-4} stroke={dimColor} strokeWidth="1"/>
+          <text x={PX+PW/2} y={PY-14} textAnchor="middle">3,800 mm</text>
+          <line x1={PX-8} y1={PY} x2={PX-8} y2={PY+PH} stroke={dimColor} strokeWidth="1"/>
+          <line x1={PX-12} y1={PY} x2={PX-4} y2={PY} stroke={dimColor} strokeWidth="1"/>
+          <line x1={PX-12} y1={PY+PH} x2={PX-4} y2={PY+PH} stroke={dimColor} strokeWidth="1"/>
+          <text x={PX-20} y={PY+PH/2} textAnchor="middle" transform={`rotate(-90,${PX-20},${PY+PH/2})`}>2,840 mm</text>
+        </g>
+
+        {/* Empty state */}
+        {items.length === 0 && (
+          <g>
+            <text x={PX+PW/2} y={PY+PH/2-8} fill="rgba(26,24,21,0.14)" fontSize="12" fontFamily="JetBrains Mono,monospace" textAnchor="middle">Drag items from catalog to place</text>
+            <text x={PX+PW/2} y={PY+PH/2+10} fill="rgba(26,24,21,0.09)" fontSize="10" fontFamily="JetBrains Mono,monospace" textAnchor="middle">Scale 1:25 · drag to reposition</text>
+          </g>
+        )}
+
+        {/* Placed items */}
+        {items.map(item => {
+          const sp = r2s(item.x, item.y);
+          const sw = Math.max(8, r2sw(item.w));
+          const sh = Math.max(6, r2sh(item.h));
+          const isActive = drag?.id === item.id;
+          return (
+            <g key={item.id} onMouseDown={e => handleItemDown(e, item)}
+              style={{ cursor: isActive ? 'grabbing' : 'grab' }}>
+              <rect x={sp.x} y={sp.y} width={sw} height={sh}
+                fill={item.color} fillOpacity={0.88}
+                stroke={isActive ? accent : 'rgba(26,24,21,0.4)'}
+                strokeWidth={isActive ? 2 : 1} rx={1}/>
+              {sw > 18 && sh > 10 && (
+                <>
+                  <line x1={sp.x+sw*0.2} y1={sp.y+sh/2} x2={sp.x+sw*0.8} y2={sp.y+sh/2}
+                    stroke="rgba(255,255,255,0.35)" strokeWidth="0.8"/>
+                  <line x1={sp.x+sw/2} y1={sp.y+sh*0.2} x2={sp.x+sw/2} y2={sp.y+sh*0.8}
+                    stroke="rgba(255,255,255,0.35)" strokeWidth="0.8"/>
+                  <text x={sp.x+sw/2} y={sp.y+sh/2+3}
+                    fill="rgba(255,255,255,0.9)" fontSize={Math.min(8,sw*0.13)}
+                    fontFamily="JetBrains Mono,monospace" textAnchor="middle"
+                    style={{ pointerEvents:'none', userSelect:'none' }}>
+                    {item.name.split(' ').slice(0,2).join(' ')}
+                  </text>
+                </>
+              )}
+              {/* delete ×  */}
+              <text x={sp.x+sw-3} y={sp.y+7} fill={accent} fontSize={8} fontWeight="800"
+                style={{ cursor:'pointer' }}
+                onClick={e => { e.stopPropagation(); onItemDelete && onItemDelete(item.id); }}>×</text>
+            </g>
+          );
+        })}
+
+        {/* Scale label */}
+        <text x={PX+PW} y={PY+PH+14} fill={dimColor} fontSize="9" fontFamily="JetBrains Mono,monospace" textAnchor="end">Scale 1:25</text>
+      </svg>
+    </div>
   );
 }
 
@@ -179,7 +233,7 @@ function KitchenPlan3D({ accent = pAccent }) {
   const m = Math.sqrt(RW * RW + RD * RD);
   const p = SVG_W * 0.65;
   const [yaw, setYaw]     = useS(-30);
-  const [pitch, setPitch] = useS(18);
+  const [pitch, setPitch] = useS(38);
   const drag = useRef(null);
 
   const project = useCB((wx, wy, wz) => {
@@ -355,56 +409,111 @@ function StarRow({ seed = 0 }) {
   );
 }
 
-/* ── Kitchen catalog data ──────────────────────────────────── */
+/* ── Item placement helpers ────────────────────────────────── */
+function getDefaultDims(name) {
+  const n = name.toLowerCase();
+  if (n.includes('island'))                      return { w:1200, h:800 };
+  if (n.includes('fridge') || n.includes('freezer')) return { w:600, h:650 };
+  if (n.includes('dishwasher'))                  return { w:600, h:600 };
+  if (n.includes('corner'))                      return { w:900, h:900 };
+  if (n.includes('hob') || n.includes('sink'))   return { w:900, h:600 };
+  if (n.includes('hood') || n.includes('extractor')) return { w:900, h:300 };
+  if (n.includes('table'))                       return { w:1200, h:900 };
+  if (n.includes('bench'))                       return { w:1400, h:400 };
+  if (n.includes('stool') || n.includes('chair')) return { w:500, h:500 };
+  if (n.includes('worktop') || n.includes('quartz') || n.includes('laminate')) return { w:1800, h:600 };
+  return { w:600, h:600 };
+}
+
+function getCabColor(name) {
+  const n = name.toLowerCase();
+  if (n.includes('hob') || n.includes('oven') || n.includes('micro')) return '#2a2520';
+  if (n.includes('sink') || n.includes('tap'))   return '#8cb8d0';
+  if (n.includes('fridge') || n.includes('freezer')) return '#a8c8a0';
+  if (n.includes('dishwasher'))                  return '#8898b8';
+  if (n.includes('table') || n.includes('island'))   return '#3a352e';
+  if (n.includes('stool') || n.includes('chair') || n.includes('bench')) return '#c8a870';
+  if (n.includes('worktop') || n.includes('quartz')) return '#b8b0a0';
+  if (n.includes('hood') || n.includes('extractor')) return '#706860';
+  if (n.includes('light') || n.includes('led'))  return '#d8d040';
+  return '#c8c0b0';
+}
+
+/* ── Catalog tab config ────────────────────────────────────── */
 const CATALOG_TABS = [
-  { id:'cabinets',  label:'Cabinets',       icon:'▦' },
+  { id:'cabinets',  label:'Kitchen',        icon:'▦' },
   { id:'appliances',label:'Appliances',     icon:'⊡' },
   { id:'dining',    label:'Dining',         icon:'⊞' },
-  { id:'extras',    label:'Kitchen extras', icon:'⊟' },
+  { id:'extras',    label:'Extras',         icon:'⊟' },
+  { id:'office',    label:'Office',         icon:'⊟' },
+  { id:'wardrobe',  label:'Wardrobe',       icon:'⊠' },
   { id:'search',    label:'Search',         icon:'⌕' },
+];
+
+/* ── Kitchen preset layouts ────────────────────────────────── */
+const KITCHEN_PRESETS = [
+  { name:'Straight 3 m kitchen',        variants:['Small (2.4m)','Standard (3m)','Large (3.6m)'], price:'₹2.8–4.5L',  desc:'Single wall · ideal for compact apartments' },
+  { name:'L-shape kitchen',             variants:['3.8×2.8m','4.2×3m','5×3.5m'],                 price:'₹4–7.5L',    desc:'Two walls · most popular layout, good work triangle' },
+  { name:'U-shape kitchen',             variants:['3×4m','4×4m','4×5m'],                          price:'₹6–11L',     desc:'Three walls · maximum storage and counter space' },
+  { name:'Island kitchen',              variants:['4×4m + 1.2m island','5×4m + 1.5m island'],     price:'₹8–16L',     desc:'Open plan · island adds seating and prep space' },
+  { name:'Galley / parallel kitchen',   variants:['2.4m+2.4m','3m+3m'],                           price:'₹5–9L',      desc:'Two parallel walls · efficient for high-traffic cooking' },
+  { name:'Peninsula kitchen',           variants:['4×3m + peninsula'],                             price:'₹6.5–12L',   desc:'L-shape with attached peninsula · semi-open concept' },
 ];
 
 const CABINET_SECTIONS = [
   {
-    title: 'Base cabinets',
+    title: 'Base cabinets · METOD frame',
     code: 'KBX-BC',
     items: [
-      { name:'For corner',           variants:['600×600mm','900×900mm'],         price:'₹18–24k' },
-      { name:'For sink',             variants:['800mm','1000mm'],                price:'₹12–16k' },
-      { name:'For hob',              variants:['600mm','900mm'],                 price:'₹9–14k'  },
-      { name:'With drawers',         variants:['400mm','600mm','800mm'],         price:'₹14–22k' },
-      { name:'With door',            variants:['300mm','600mm','900mm'],         price:'₹8–18k'  },
-      { name:'With door & drawer',   variants:['600mm','800mm'],                 price:'₹16–22k' },
-      { name:'Pull-out pantry',      variants:['300mm','600mm'],                 price:'₹22–32k' },
-      { name:'Wire basket unit',     variants:['400mm','600mm'],                 price:'₹6–10k'  },
-      { name:'Open base',            variants:['600mm','900mm'],                 price:'₹7–12k'  },
-      { name:'Filler & cover panel', variants:['50mm','100mm','200mm'],          price:'₹2–5k'   },
+      { name:'Base corner cabinet',       variants:['600×600mm','900×900mm'],         price:'₹18–26k' },
+      { name:'Base cabinet for sink',     variants:['600mm','800mm','1000mm'],        price:'₹12–18k' },
+      { name:'Base cabinet for hob',      variants:['600mm','900mm'],                 price:'₹9–15k'  },
+      { name:'Base cabinet with drawers', variants:['400mm','600mm','800mm'],         price:'₹15–24k' },
+      { name:'Base cabinet with door',    variants:['300mm','400mm','600mm','900mm'], price:'₹8–20k'  },
+      { name:'Base cabinet door+drawer',  variants:['600mm','800mm'],                 price:'₹16–24k' },
+      { name:'Pull-out pantry unit',      variants:['300mm','600mm'],                 price:'₹24–36k' },
+      { name:'Wire basket pull-out',      variants:['400mm','600mm'],                 price:'₹6–12k'  },
+      { name:'Open base unit',            variants:['600mm','900mm'],                 price:'₹7–14k'  },
+      { name:'Filler & end panel',        variants:['50mm','100mm','200mm'],          price:'₹2–6k'   },
     ],
   },
   {
-    title: 'Wall cabinets',
+    title: 'Wall cabinets · METOD frame',
     code: 'KBX-WC',
     items: [
-      { name:'With door',            variants:['400mm','600mm','800mm'],         price:'₹6–14k'  },
-      { name:'With glass doors',     variants:['400mm','600mm'],                 price:'₹8–16k'  },
-      { name:'Horizontal cabinet',   variants:['600mm','900mm','1200mm'],        price:'₹10–20k' },
-      { name:'For corner',           variants:['600×600mm'],                     price:'₹12–18k' },
-      { name:'For extractor hood',   variants:['600mm','900mm'],                 price:'₹8–14k'  },
-      { name:'For microwave',        variants:['600mm'],                         price:'₹10–16k' },
-      { name:'Open wall cabinet',    variants:['600mm','900mm'],                 price:'₹5–10k'  },
-      { name:'Filler & cover panel', variants:['50mm','100mm'],                  price:'₹1–4k'   },
+      { name:'Wall cabinet with door',    variants:['300mm','400mm','600mm','800mm'], price:'₹6–15k'  },
+      { name:'Wall cabinet glass doors',  variants:['400mm','600mm'],                 price:'₹9–18k'  },
+      { name:'Horizontal wall cabinet',   variants:['600mm','900mm','1200mm'],        price:'₹10–22k' },
+      { name:'Corner wall cabinet',       variants:['600×600mm'],                     price:'₹12–20k' },
+      { name:'Cabinet for extractor',     variants:['600mm','900mm'],                 price:'₹8–16k'  },
+      { name:'Cabinet for microwave',     variants:['600mm'],                         price:'₹10–18k' },
+      { name:'Open wall shelf unit',      variants:['600mm','900mm','1200mm'],        price:'₹5–12k'  },
+      { name:'Filler & end panel',        variants:['50mm','100mm'],                  price:'₹1–5k'   },
     ],
   },
   {
-    title: 'High cabinets',
+    title: 'High cabinets · METOD frame',
     code: 'KBX-HC',
     items: [
-      { name:'For fridge & freezer', variants:['600mm','900mm'],                 price:'₹22–36k' },
-      { name:'For oven',             variants:['600mm'],                         price:'₹18–28k' },
-      { name:'For microwave & oven', variants:['600mm'],                         price:'₹24–34k' },
-      { name:'Pantry pull-out',      variants:['300mm','600mm'],                 price:'₹28–42k' },
-      { name:'With door & drawer',   variants:['600mm','900mm'],                 price:'₹20–30k' },
-      { name:'Filler & cover panel', variants:['50mm','100mm'],                  price:'₹3–6k'   },
+      { name:'High cabinet for fridge',   variants:['600mm','900mm'],                 price:'₹24–40k' },
+      { name:'High cabinet for oven',     variants:['600mm'],                         price:'₹18–30k' },
+      { name:'High cabinet microwave+oven',variants:['600mm'],                        price:'₹26–38k' },
+      { name:'Pantry high cabinet',       variants:['300mm','600mm'],                 price:'₹28–45k' },
+      { name:'High cabinet door+drawer',  variants:['600mm','900mm'],                 price:'₹22–32k' },
+      { name:'Filler & end panel',        variants:['50mm','100mm'],                  price:'₹3–7k'   },
+    ],
+  },
+  {
+    title: 'Door fronts',
+    code: 'KBX-DF',
+    items: [
+      { name:'Matte white door front',    variants:['300mm','400mm','600mm','900mm'], price:'₹2–8k'   },
+      { name:'Wood-effect door front',    variants:['400mm','600mm','800mm'],         price:'₹4–12k'  },
+      { name:'Anthracite grey door',      variants:['300mm','600mm','900mm'],         price:'₹3–10k'  },
+      { name:'Sage green door front',     variants:['400mm','600mm'],                 price:'₹4–11k'  },
+      { name:'Solid walnut door front',   variants:['400mm','600mm'],                 price:'₹8–20k'  },
+      { name:'Dark grey glass door',      variants:['400mm','600mm'],                 price:'₹6–16k'  },
+      { name:'White shaker door',         variants:['300mm','400mm','600mm'],         price:'₹3–9k'   },
     ],
   },
 ];
@@ -492,6 +601,123 @@ const EXTRAS_SECTIONS = [
   },
 ];
 
+/* ── Office desk catalog (plywood / solid wood only) ───────── */
+const DESK_SECTIONS = [
+  {
+    title: 'Writing & study desks',
+    code: 'KBX-OD',
+    items: [
+      { name:'Solid pine writing desk',       variants:['100×50cm','120×60cm','140×60cm'],  price:'₹12–18k',  material:'Solid pine' },
+      { name:'Birch plywood desk',            variants:['100×50cm','120×60cm','140×65cm'],  price:'₹16–26k',  material:'Birch plywood' },
+      { name:'Bamboo-top desk',               variants:['100×50cm','120×60cm','160×70cm'],  price:'₹14–22k',  material:'Bamboo + steel frame' },
+      { name:'Oak veneer writing desk',       variants:['120×60cm','140×65cm','160×70cm'],  price:'₹18–32k',  material:'Oak veneer + plywood core' },
+      { name:'Walnut veneer desk',            variants:['120×60cm','140×65cm'],             price:'₹22–38k',  material:'Walnut veneer + plywood' },
+      { name:'Solid mango wood desk',         variants:['110×55cm','130×65cm'],             price:'₹16–28k',  material:'Solid mango wood' },
+    ],
+  },
+  {
+    title: 'L-shape & corner desks',
+    code: 'KBX-OL',
+    items: [
+      { name:'L-shape solid wood corner desk',  variants:['150×100cm','180×120cm','200×140cm'], price:'₹28–52k', material:'Solid pine + plywood' },
+      { name:'Corner desk with shelf',          variants:['160×110cm','200×130cm'],              price:'₹32–50k', material:'Birch plywood' },
+      { name:'L-shape oak veneer desk',         variants:['180×120cm','200×140cm'],              price:'₹38–65k', material:'Oak veneer + plywood' },
+    ],
+  },
+  {
+    title: 'Standing & sit-stand',
+    code: 'KBX-OS',
+    items: [
+      { name:'Sit-stand solid wood top',      variants:['120×60cm','140×60cm','160×80cm'],  price:'₹36–62k',  material:'Solid wood top + steel frame' },
+      { name:'Height-adj bamboo desk',        variants:['120×60cm','160×80cm'],             price:'₹30–50k',  material:'Bamboo + steel frame' },
+      { name:'Sit-stand oak veneer',          variants:['120×60cm','140×60cm'],             price:'₹42–70k',  material:'Oak veneer + plywood' },
+      { name:'Fixed-height standing desk',    variants:['90cm H','100cm H','110cm H'],      price:'₹18–32k',  material:'Solid pine + steel' },
+    ],
+  },
+  {
+    title: 'Wall-mounted & floating',
+    code: 'KBX-OW',
+    items: [
+      { name:'Floating solid pine wall desk', variants:['80×30cm','100×40cm','120×40cm'],  price:'₹8–18k',   material:'Solid pine' },
+      { name:'Fold-down plywood wall desk',   variants:['80×40cm','100×50cm'],             price:'₹10–20k',  material:'Plywood + hinge hardware' },
+      { name:'Solid oak floating shelf-desk', variants:['100×35cm','140×40cm'],            price:'₹14–26k',  material:'Solid oak' },
+    ],
+  },
+  {
+    title: 'Storage & add-ons',
+    code: 'KBX-OA',
+    items: [
+      { name:'Drawer unit on castors',        variants:['3 drawer','5 drawer'],            price:'₹8–18k',   material:'Solid pine / plywood' },
+      { name:'Desktop shelf organiser',       variants:['60cm','80cm','100cm'],            price:'₹3–8k',    material:'Solid pine' },
+      { name:'Under-desk shelf',              variants:['60cm','90cm'],                    price:'₹4–9k',    material:'Plywood' },
+      { name:'Solid wood monitor stand',      variants:['40cm','60cm'],                    price:'₹3–8k',    material:'Solid wood' },
+      { name:'Desktop hutch / riser',         variants:['60cm','90cm','120cm'],            price:'₹6–14k',   material:'Birch plywood' },
+    ],
+  },
+];
+
+/* ── Wardrobe catalog ──────────────────────────────────────── */
+const WARDROBE_PRESETS = [
+  { name:'2-door hinged wardrobe',      variants:['100×58×200cm','150×58×200cm','200×58×200cm'], price:'₹22–48k',  desc:'Classic hinged · suits most bedrooms' },
+  { name:'3-door hinged wardrobe',      variants:['150×58×200cm','200×58×200cm','250×58×236cm'], price:'₹32–62k',  desc:'Extra capacity · centre mirror option' },
+  { name:'2-door sliding wardrobe',     variants:['150×65×200cm','200×65×200cm','250×65×200cm'], price:'₹38–75k',  desc:'Space-saving sliding · no door swing' },
+  { name:'Mirrored sliding wardrobe',   variants:['150×65×200cm','200×65×200cm','240×65×200cm'], price:'₹48–85k',  desc:'Full-length mirrors · brightens room' },
+  { name:'Corner wardrobe',             variants:['225×225cm footprint×200cm H'],                price:'₹58–95k',  desc:'Corner layout · maximises awkward spaces' },
+  { name:'Open wardrobe system',        variants:['100cm wide','150cm wide','200cm wide'],        price:'₹14–32k',  desc:'No doors · Scandinavian open concept' },
+  { name:'4-door hinged wardrobe',      variants:['200×58×200cm','250×58×236cm'],                price:'₹45–80k',  desc:'Full wall coverage · large families' },
+];
+
+const WARDROBE_SECTIONS = [
+  {
+    title: 'Frames & structures',
+    code: 'KBX-WF',
+    items: [
+      { name:'Wardrobe frame 35 cm depth',  variants:['50cm W','75cm W','100cm W'],   price:'₹6–14k'  },
+      { name:'Wardrobe frame 58 cm depth',  variants:['50cm W','75cm W','100cm W'],   price:'₹8–18k'  },
+      { name:'Corner connector frame',      variants:['Universal'],                   price:'₹4–8k'   },
+    ],
+  },
+  {
+    title: 'Door fronts',
+    code: 'KBX-WD',
+    items: [
+      { name:'White matte hinged door',     variants:['50×195cm','75×195cm','100×195cm'], price:'₹4–12k'  },
+      { name:'Dark grey hinged door',       variants:['50×195cm','75×195cm','100×195cm'], price:'₹4–12k'  },
+      { name:'Full-length mirror door',     variants:['50×195cm','75×195cm'],             price:'₹6–16k'  },
+      { name:'Frosted glass hinged door',   variants:['50×195cm','75×195cm'],             price:'₹8–18k'  },
+      { name:'Woven rattan front door',     variants:['50×195cm','75×195cm'],             price:'₹7–16k'  },
+      { name:'Wood-effect sliding door',    variants:['75cm','100cm','120cm'],            price:'₹10–22k' },
+      { name:'Mirror sliding door',         variants:['75cm','100cm','120cm'],            price:'₹12–26k' },
+    ],
+  },
+  {
+    title: 'Interior fittings',
+    code: 'KBX-WI',
+    items: [
+      { name:'Adjustable shelf',            variants:['50cm','75cm','100cm'],             price:'₹1–4k'   },
+      { name:'Trouser hanger',              variants:['50cm','75cm'],                     price:'₹2–5k'   },
+      { name:'Pull-out trouser rack',       variants:['50cm'],                            price:'₹4–9k'   },
+      { name:'Drawer insert',               variants:['50cm','75cm'],                     price:'₹3–7k'   },
+      { name:'Shoe shelf (3 pairs)',        variants:['50cm'],                            price:'₹2–5k'   },
+      { name:'Pull-out clothes rail',       variants:['50cm','75cm'],                     price:'₹3–8k'   },
+      { name:'Fixed clothes rail',          variants:['50cm','75cm','100cm'],             price:'₹1–3k'   },
+      { name:'Jewellery tray',              variants:['50cm'],                            price:'₹3–6k'   },
+      { name:'Interior LED strip',          variants:['40cm','80cm','120cm'],             price:'₹2–6k'   },
+      { name:'Mirror with hooks (inside)',  variants:['37×150cm'],                        price:'₹5–12k'  },
+    ],
+  },
+  {
+    title: 'Walk-in wardrobe',
+    code: 'KBX-WW',
+    items: [
+      { name:'Walk-in starter kit 2 m²',   variants:['Open','With curtain'],             price:'₹55–80k'  },
+      { name:'Walk-in system 4 m²',        variants:['3-wall layout','U-shape'],         price:'₹90–145k' },
+      { name:'Walk-in system 6 m²',        variants:['Full U-shape','Island included'],  price:'₹140–220k'},
+      { name:'Dressing island',            variants:['80×50cm','120×60cm'],              price:'₹18–35k'  },
+    ],
+  },
+];
+
 /* ── Catalog panel ─────────────────────────────────────────── */
 function CatalogPanel({ onAdd }) {
   const { useState: useS } = React;
@@ -511,6 +737,10 @@ function CatalogPanel({ onAdd }) {
   if (activeTab === 'appliances') sections = APPLIANCE_SECTIONS;
   if (activeTab === 'dining')     sections = DINING_SECTIONS;
   if (activeTab === 'extras')     sections = EXTRAS_SECTIONS;
+  if (activeTab === 'office')     sections = DESK_SECTIONS;
+  if (activeTab === 'wardrobe')   sections = WARDROBE_SECTIONS;
+
+  const presets = activeTab === 'cabinets' ? KITCHEN_PRESETS : activeTab === 'wardrobe' ? WARDROBE_PRESETS : null;
 
   const filtered = sections.map(sec => ({
     ...sec,
@@ -568,7 +798,68 @@ function CatalogPanel({ onAdd }) {
 
       {/* Content */}
       <div style={{ flex:1, overflowY:'auto', padding:'8px' }}>
-        {allItems.length === 0 && (
+
+        {/* ── Preset designs block ── */}
+        {presets && !search && (
+          <div style={{ marginBottom:10 }}>
+            <div style={{ padding:'8px 4px 6px', fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace' }}>
+              Preset designs
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              {presets.map((p, idx) => {
+                const selV = selectedVariants[p.name] || p.variants[0];
+                return (
+                  <div key={p.name} style={{ background:`linear-gradient(135deg,${pPaper},rgba(201,100,66,0.04))`, border:`1px solid ${pLine}`, borderRadius:10, padding:'10px 12px' }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:8 }}>
+                      <div style={{ flex:1 }}>
+                        <div style={{ fontSize:11, fontWeight:700 }}>{p.name}</div>
+                        {p.desc && <div style={{ fontSize:10, color:pMute, lineHeight:1.4, marginTop:2 }}>{p.desc}</div>}
+                        <div style={{ fontSize:9, color:pAccent, fontFamily:'JetBrains Mono,monospace', marginTop:4 }}>{p.price}</div>
+                      </div>
+                      <StarRow seed={idx + 80} />
+                    </div>
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:6 }}>
+                      {p.variants.map(v => (
+                        <span key={v} onClick={() => pickVariant(p.name, v)} style={{
+                          padding:'2px 6px', borderRadius:4, fontSize:9, fontWeight:600, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                          border:`1px solid ${v===selV ? pAccent : pLine}`,
+                          background: v===selV ? 'rgba(201,100,66,0.08)' : 'transparent',
+                          color: v===selV ? pAccent : pMute,
+                        }}>{v}</span>
+                      ))}
+                    </div>
+                    <button onClick={() => onAdd && onAdd({ name:p.name, variant:selV, price:p.price })}
+                      style={{ marginTop:8, width:'100%', padding:'6px', borderRadius:6, fontSize:10, fontWeight:700, border:'none', background:pInk, color:pPaper, cursor:'pointer' }}>
+                      + Select preset
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Design it yourself CTA */}
+            <div style={{ marginTop:8, background:`linear-gradient(135deg,rgba(26,24,21,0.96),rgba(60,53,46,0.98))`, borderRadius:10, padding:'14px 14px', color:pPaper }}>
+              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.55)', fontWeight:700, marginBottom:4 }}>Design it yourself</div>
+              <div style={{ fontSize:12, lineHeight:1.5, color:'rgba(255,255,255,0.85)', marginBottom:10 }}>
+                Pick your frame size, door style, finish, and interior — the planner assembles a live BOM instantly.
+              </div>
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:10 }}>
+                {(activeTab === 'cabinets'
+                  ? ['L-shape','U-shape','Island','Galley']
+                  : ['2-door','3-door','Sliding','Walk-in']
+                ).map(opt => (
+                  <span key={opt} style={{ padding:'4px 9px', borderRadius:5, fontSize:10, fontWeight:600, background:'rgba(255,255,255,0.1)', color:'rgba(255,255,255,0.8)', cursor:'pointer', border:'1px solid rgba(255,255,255,0.15)' }}>{opt}</span>
+                ))}
+              </div>
+              <button onClick={() => onAdd && onAdd({ name:`Custom ${activeTab === 'cabinets' ? 'Kitchen' : 'Wardrobe'} Design`, variant:'Bespoke', price:'Contact for quote' })}
+                style={{ width:'100%', padding:'8px', borderRadius:7, fontSize:11, fontWeight:700, border:'none', background:pAccent, color:'#fff', cursor:'pointer' }}>
+                Start designing →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {allItems.length === 0 && !presets && (
           <div style={{ padding:'24px', fontSize:12, color:pMute, textAlign:'center' }}>No results for "{search}"</div>
         )}
 
@@ -579,12 +870,16 @@ function CatalogPanel({ onAdd }) {
               const name = typeof item === 'string' ? item : item.name;
               const variants = typeof item === 'object' ? (item.variants || []) : [];
               const price = typeof item === 'object' ? (item.price || '') : '';
+              const material = typeof item === 'object' ? (item.material || '') : '';
               const selV = getSelVariant(item);
+              const dims = getDefaultDims(name);
               return (
-                <div key={name} style={{
+                <div key={name} draggable
+                  onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims }))}
+                  style={{
                   background:pPaper, border:`1px solid ${pLine}`, borderRadius:10, padding:'10px 8px',
                   display:'flex', flexDirection:'column', gap:6,
-                  transition:'box-shadow 0.15s',
+                  transition:'box-shadow 0.15s', cursor:'grab',
                 }}
                   onMouseEnter={e => { e.currentTarget.style.boxShadow=`0 4px 16px rgba(0,0,0,0.10)`; e.currentTarget.style.borderColor=pAccent; }}
                   onMouseLeave={e => { e.currentTarget.style.boxShadow='none'; e.currentTarget.style.borderColor=pLine; }}
@@ -595,6 +890,7 @@ function CatalogPanel({ onAdd }) {
                   <div>
                     <div style={{ fontSize:11, fontWeight:600, lineHeight:1.3 }}>{name}</div>
                     <StarRow seed={idx} />
+                    {material && <div style={{ fontSize:9, color:'#7a6a50', fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>🪵 {material}</div>}
                     {price && <div style={{ fontSize:9, color:pMute, fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>{price}</div>}
                   </div>
                   {variants.length > 0 && (
@@ -630,8 +926,11 @@ function CatalogPanel({ onAdd }) {
                   const variants = typeof item === 'object' ? (item.variants || []) : [];
                   const price = typeof item === 'object' ? (item.price || '') : '';
                   const selV = getSelVariant(item);
+                  const dims2 = getDefaultDims(name);
                   return (
-                    <div key={name} style={{ padding:'8px 8px 10px', borderLeft:'2px solid transparent', borderRadius:6, transition:'background 0.1s' }}
+                    <div key={name} draggable
+                      onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims2 }))}
+                      style={{ padding:'8px 8px 10px', borderLeft:'2px solid transparent', borderRadius:6, transition:'background 0.1s', cursor:'grab' }}
                       onMouseEnter={e => { e.currentTarget.style.background='rgba(26,24,21,0.04)'; e.currentTarget.style.borderLeftColor=pAccent; }}
                       onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderLeftColor='transparent'; }}
                     >
@@ -875,6 +1174,20 @@ function PlannerFrontend({ accent = pAccent }) {
   const [saveTs, setSaveTs]   = useS(null);
   const [editDim, setEditDim] = useS(false);
   const [roomItems, setRoomItems] = useS([]);
+  const [placedItems, setPlacedItems] = useS([]);
+
+  const handleDrop2D = (data) => {
+    const id = `item-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    const color = getCabColor(data.name);
+    setPlacedItems(prev => [...prev, { ...data, id, color }]);
+    addToRoom({ name: data.name, variant: data.variant, price: data.price });
+  };
+  const handleItemMove2D = (id, x, y) => {
+    setPlacedItems(prev => prev.map(it => it.id === id ? { ...it, x, y } : it));
+  };
+  const handleItemDelete2D = (id) => {
+    setPlacedItems(prev => prev.filter(it => it.id !== id));
+  };
 
   const addToRoom = (item) => {
     setRoomItems(prev => {
@@ -951,7 +1264,7 @@ function PlannerFrontend({ accent = pAccent }) {
           <span style={{ fontSize:11, color:pMute, ...pStyles.mono }}>{saveLabel}</span>
           <button onClick={handleSave} style={{ ...pStyles.pillBtn, border:`1px solid ${pLine}`, cursor:'pointer', fontSize:12 }}>Save draft</button>
           <button onClick={() => setShowModal(true)} style={{ ...pStyles.primaryBtn, border:'none', cursor:'pointer', fontSize:12 }}>Request quote →</button>
-          <a href="backend.html" style={{
+          <a href="designos.html" style={{
             padding:'8px 14px', borderRadius:8, fontSize:12, fontWeight:600,
             background:'rgba(26,24,21,0.06)', border:`1px solid ${pLine}`,
             color:pMute, textDecoration:'none', display:'flex', alignItems:'center', gap:6,
@@ -1041,7 +1354,7 @@ function PlannerFrontend({ accent = pAccent }) {
               borderRadius:12, border:`1px solid ${pLine}`,
               boxShadow:'0 30px 80px -30px rgba(0,0,0,0.18)', overflow:'hidden',
             }}>
-              {view === '2D plan'   && <KitchenPlan2D accent={accent} />}
+              {view === '2D plan'   && <KitchenPlan2D accent={accent} items={placedItems} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} />}
               {view === 'Elevation' && <KitchenElevation accent={accent} />}
               {view === '3D walk'   && <KitchenPlan3D accent={accent} />}
             </div>
