@@ -94,9 +94,10 @@ function BLogo({ size = 20, accent = bAccent }) {
   );
 }
 
-function BSidebar({ newCount = 0 }) {
+function BSidebar({ newCount = 0, section = 'orders', onSection }) {
+  const go = s => onSection && onSection(s);
   const sb  = bStyles.sbItem;
-  const a   = { ...sb, ...bStyles.sbItemActive };
+  const act = s => section === s ? { ...sb, ...bStyles.sbItemActive } : sb;
   const dot = c => <span style={{ width:6, height:6, borderRadius:'50%', background:c, flexShrink:0 }}></span>;
   const badge = (n, col) => n > 0 ? <span style={{ marginLeft:'auto', background:col||bAccent, color:'#fff', fontSize:9, padding:'1px 6px', borderRadius:999, fontWeight:700 }}>{n}</span> : null;
   return (
@@ -110,19 +111,19 @@ function BSidebar({ newCount = 0 }) {
         <div style={{ fontSize:13, fontWeight:600, color:'#fff', marginTop:2 }}>Atelier Reema</div>
       </div>
       <div style={bStyles.sbSection}>Workspace</div>
-      <div style={sb}>{dot('#aaa')} Pipeline</div>
-      <div style={a}>{dot(bAccent)} Orders {badge(newCount)}</div>
-      <div style={sb}>{dot('#aaa')} Drawings</div>
-      <div style={sb}>{dot('#aaa')} Approvals {badge(newCount, '#5b8def')}</div>
+      <div style={act('pipeline')} onClick={() => go('pipeline')}>{dot('#d9a049')} Pipeline</div>
+      <div style={act('orders')}   onClick={() => go('orders')}>{dot(bAccent)} Orders {badge(newCount)}</div>
+      <div style={act('drawings')} onClick={() => go('drawings')}>{dot('#5b8def')} Drawings</div>
+      <div style={act('approvals')} onClick={() => go('approvals')}>{dot('#7c5cff')} Approvals {badge(newCount, '#5b8def')}</div>
       <div style={bStyles.sbSection}>Operations</div>
-      <div style={sb}>{dot('#aaa')} Vendors</div>
-      <div style={sb}>{dot('#aaa')} POs</div>
-      <div style={sb}>{dot('#aaa')} Inventory</div>
-      <div style={sb}>{dot('#aaa')} Fabrication</div>
+      <div style={act('vendors')}  onClick={() => go('vendors')}>{dot('#aaa')} Vendors</div>
+      <div style={act('pos')}      onClick={() => go('pos')}>{dot('#aaa')} POs</div>
+      <div style={act('inventory')} onClick={() => go('inventory')}>{dot('#aaa')} Inventory</div>
+      <div style={act('fabrication')} onClick={() => go('fabrication')}>{dot('#4cba85')} Fabrication</div>
       <div style={bStyles.sbSection}>Studio</div>
-      <div style={sb}>{dot('#aaa')} Team</div>
-      <div style={sb}>{dot('#aaa')} Margin</div>
-      <div style={sb}>{dot('#aaa')} Library</div>
+      <div style={act('team')}    onClick={() => go('team')}>{dot('#aaa')} Team</div>
+      <div style={act('margin')}  onClick={() => go('margin')}>{dot('#4cba85')} Margin</div>
+      <div style={act('library')} onClick={() => go('library')}>{dot('#aaa')} Library</div>
       <div style={{ flex:1 }}></div>
       <a href="planner.html" style={{
         display:'flex', alignItems:'center', gap:6, padding:'7px 10px', borderRadius:6,
@@ -251,10 +252,23 @@ function KitchenPlanCAD() {
 }
 
 /* ── KREO STORE ───────────────────────────────────────────────── */
+const DEMO_ORDERS = [
+  { id:'KBX-20260501-001', ts: Date.now()-864e5*12, status:'approved', customerName:'Priya Sharma', customerPhone:'+91 98765 43210', customerCity:'Mumbai', finish:'Bali Oak', hardware:'Push-to-open', room:{W:3800,D:2840,H:2400,layout:'L-shape'}, total:681396, subtotal:506000, markup:91080, gst:84316, notes:'Island preferred, no gas hob' },
+  { id:'KBX-20260507-002', ts: Date.now()-864e5*4,  status:'reviewing', customerName:'Arjun Mehta', customerPhone:'+91 97654 32100', customerCity:'Bengaluru', finish:'Alpine White', hardware:'Soft-close', room:{W:4200,D:3000,H:2400,layout:'U-shape'}, total:924000, subtotal:686000, markup:123480, gst:114520, notes:'Integrated fridge, quartz top' },
+  { id:'KBX-20260509-003', ts: Date.now()-864e5*2,  status:'new',      customerName:'Lakshmi Iyer', customerPhone:'+91 96543 21001', customerCity:'Chennai', finish:'Graphite Grey', hardware:'Bar handles', room:{W:3000,D:2400,H:2400,layout:'Straight'}, total:412800, subtotal:306000, markup:55080, gst:51720, notes:'Small flat, maximise storage' },
+  { id:'KBX-20260510-004', ts: Date.now()-864e5*1,  status:'in-fab',   customerName:'Rohan Verma', customerPhone:'+91 95432 10002', customerCity:'Delhi', finish:'Natural Walnut', hardware:'Push-to-open', room:{W:5000,D:3800,H:2600,layout:'Island'}, total:1240000, subtotal:920000, markup:165600, gst:154400, notes:'Needs chimney for gas range' },
+];
+
 const KreoStore = (() => {
   const fire = () => window.dispatchEvent(new Event('kreobox-update'));
   return {
-    getOrders() { try { return JSON.parse(localStorage.getItem('kreobox_orders') || '[]'); } catch { return []; } },
+    getOrders() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('kreobox_orders') || '[]');
+        if (saved.length === 0) return DEMO_ORDERS;
+        return saved;
+      } catch { return DEMO_ORDERS; }
+    },
     saveOrders(o) { localStorage.setItem('kreobox_orders', JSON.stringify(o)); fire(); },
     updateOrder(id, patch) { this.saveOrders(this.getOrders().map(o => o.id === id ? { ...o, ...patch } : o)); },
     getJobs() { try { return JSON.parse(localStorage.getItem('kreobox_jobs') || '[]'); } catch { return []; } },
@@ -348,7 +362,7 @@ function ERPModuleStrip({ active, onChange, orders }) {
         const badge = fmtBadge(m.id);
         return (
           <button key={m.id}
-            onClick={() => m.id === 'manufacturing' ? window.open('factory.html','_blank') : onChange(m.id)}
+            onClick={() => onChange(m.id)}
             style={{
               display:'flex', alignItems:'center', gap:6, padding:'10px 14px', border:'none',
               background:'transparent', cursor:'pointer', position:'relative',
@@ -440,11 +454,118 @@ function FinanceModule({ orders }) {
   );
 }
 
+/* ── MANUFACTURING MODULE ─────────────────────────────────────── */
+function ManufacturingModule({ orders }) {
+  const fmt = n => '₹ ' + Number(n).toLocaleString('en-IN');
+  const STAGE_COLORS = ['rgba(255,255,255,0.4)','#d9a049','#c96442','#5b8def','#7c5cff','#c96442','#d9a049','#4cba85'];
+  const STAGES = ['Queued','Mat. Check','Cutting','Edge Band','Assembly','Finishing','QC','Done'];
+  const fabOrders = orders.filter(o => ['approved','in-fab','delivered'].includes(o.status));
+  return (
+    <div style={{ flex:1, padding:22, overflowY:'auto', background:'#1a1715' }}>
+      <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:'rgba(255,255,255,0.45)', fontWeight:700, marginBottom:16 }}>Manufacturing · Production Queue</div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:20 }}>
+        {[
+          { l:'Active jobs', v: fabOrders.filter(o=>o.status==='in-fab').length, c:'#7c5cff' },
+          { l:'In queue',    v: fabOrders.filter(o=>o.status==='approved').length, c:'#d9a049' },
+          { l:'Delivered',   v: orders.filter(o=>o.status==='delivered').length, c:'#4cba85' },
+          { l:'Factories',   v: 3, c:'#5b8def' },
+        ].map((k,i) => (
+          <div key={i} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'14px 16px' }}>
+            <div style={{ fontSize:9, letterSpacing:'0.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700 }}>{k.l}</div>
+            <div style={{ fontFamily:'"Fraunces",serif', fontSize:32, color:k.c, marginTop:4 }}>{k.v}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderRadius:8, padding:'16px', marginBottom:16 }}>
+        <div style={{ fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase', color:'rgba(255,255,255,0.4)', fontWeight:700, marginBottom:14 }}>Production jobs</div>
+        {fabOrders.length === 0 ? (
+          <div style={{ fontSize:12, color:'rgba(255,255,255,0.4)', padding:'16px 0' }}>No jobs yet. Approve an order from CRM to create a production job.</div>
+        ) : fabOrders.map((o, i) => {
+          const stage = o.status === 'in-fab' ? 4 : o.status === 'approved' ? 0 : 7;
+          return (
+            <div key={o.id} style={{ padding:'14px 0', borderTop:i?`1px solid rgba(255,255,255,0.06)`:'none' }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+                <div>
+                  <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:bAccent, fontWeight:700 }}>{o.id}</span>
+                  <span style={{ marginLeft:12, fontSize:13, color:'#fff', fontWeight:600 }}>{o.customerName}</span>
+                  <span style={{ marginLeft:8, fontSize:11, color:'rgba(255,255,255,0.5)' }}>{o.room?.layout} · {o.finish}</span>
+                </div>
+                <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:11, color:'rgba(255,255,255,0.6)' }}>{fmt(o.total)}</span>
+              </div>
+              <div style={{ display:'flex', gap:4 }}>
+                {STAGES.map((s, si) => (
+                  <div key={si} style={{ flex:1, textAlign:'center' }}>
+                    <div style={{ height:4, borderRadius:2, background: si <= stage ? STAGE_COLORS[si] : 'rgba(255,255,255,0.08)', marginBottom:3 }}/>
+                    <div style={{ fontSize:8, color: si <= stage ? STAGE_COLORS[si] : 'rgba(255,255,255,0.3)', fontFamily:'JetBrains Mono,monospace' }}>{s}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
+        {[{id:'FAC-MUM',name:'Mumbai · Bhiwandi',cap:120,used:87,c:'#c96442'},{id:'FAC-BLR',name:'Bengaluru · Peenya',cap:80,used:54,c:'#4cba85'},{id:'FAC-DEL',name:'Delhi NCR · Manesar',cap:100,used:61,c:'#5b8def'}].map(f => (
+          <div key={f.id} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderLeft:`3px solid ${f.c}`, borderRadius:8, padding:'14px' }}>
+            <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', color:f.c, fontWeight:700 }}>{f.id}</div>
+            <div style={{ fontSize:13, color:'#fff', fontWeight:600, marginTop:2 }}>{f.name}</div>
+            <div style={{ display:'flex', justifyContent:'space-between', marginTop:8, fontSize:11 }}>
+              <span style={{ color:'rgba(255,255,255,0.5)' }}>Capacity: {f.cap}/mo</span>
+              <span style={{ color:f.c, fontWeight:700 }}>{Math.round(f.used/f.cap*100)}% used</span>
+            </div>
+            <div style={{ height:4, background:'rgba(255,255,255,0.08)', borderRadius:2, marginTop:6 }}>
+              <div style={{ height:'100%', width:`${f.used/f.cap*100}%`, background:f.c, borderRadius:2 }}/>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── PIPELINE VIEW (Kanban) ───────────────────────────────────── */
+function PipelineView({ orders, onSelect }) {
+  const fmt = n => '₹' + Math.round(n/1000) + 'k';
+  const cols = [
+    { id:'new',      label:'New',        color:'#5b8def' },
+    { id:'reviewing',label:'Review',     color:'#d9a049' },
+    { id:'quoted',   label:'Quoted',     color:'#c96442' },
+    { id:'approved', label:'Approved',   color:'#4cba85' },
+    { id:'in-fab',   label:'In Fab',     color:'#7c5cff' },
+    { id:'delivered',label:'Delivered',  color:'#4cba85' },
+  ];
+  return (
+    <div style={{ flex:1, padding:16, overflowX:'auto', background:'#1a1715', display:'flex', gap:12 }}>
+      {cols.map(col => {
+        const items = orders.filter(o => o.status === col.id);
+        return (
+          <div key={col.id} style={{ minWidth:200, flex:'0 0 200px', display:'flex', flexDirection:'column', gap:8 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+              <span style={{ fontSize:10, fontWeight:700, letterSpacing:'0.12em', textTransform:'uppercase', color:col.color }}>{col.label}</span>
+              <span style={{ fontSize:10, color:'rgba(255,255,255,0.35)', fontFamily:'JetBrains Mono,monospace' }}>{items.length}</span>
+            </div>
+            {items.map(o => (
+              <div key={o.id} onClick={() => onSelect(o.id)} style={{ background:'#27241f', border:`1px solid rgba(255,255,255,0.08)`, borderTop:`2px solid ${col.color}`, borderRadius:8, padding:'12px', cursor:'pointer' }}>
+                <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', color:col.color, fontWeight:700, marginBottom:4 }}>{o.id}</div>
+                <div style={{ fontSize:12, color:'#fff', fontWeight:600, marginBottom:2 }}>{o.customerName}</div>
+                <div style={{ fontSize:10, color:'rgba(255,255,255,0.45)' }}>{o.room?.layout} · {o.finish}</div>
+                <div style={{ fontSize:11, color:'rgba(255,255,255,0.7)', fontFamily:'JetBrains Mono,monospace', marginTop:6, fontWeight:700 }}>{fmt(o.total||0)}</div>
+              </div>
+            ))}
+            {items.length === 0 && <div style={{ border:`1px dashed rgba(255,255,255,0.1)`, borderRadius:8, padding:'20px', textAlign:'center', fontSize:11, color:'rgba(255,255,255,0.2)' }}>Empty</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ── BACKEND PLANNER (studio) ─────────────────────────────────── */
 function PlannerBackend() {
   const { useState: useS, useEffect: useE } = React;
   const [orders, setOrders]   = useS(() => KreoStore.getOrders());
   const [selId, setSelId]     = useS(null);
+  const [section, setSection] = useS('orders');
   const [studioNote, setStudioNote] = useS('');
   const [quoteTotal, setQuoteTotal] = useS('');
   const [erpModule, setErpModule] = useS('crm');
@@ -502,9 +623,14 @@ function PlannerBackend() {
   const WORKFLOW_STEPS = ['Concept','Layout','Materials','Cost','Sign-off','Fab'];
   const statusStep = { new:0, reviewing:1, quoted:2, approved:3, 'in-fab':4, delivered:5 };
 
+  // Sync section → erpModule
+  const SECTION_MODULE = { pipeline:'crm', orders:'crm', drawings:'crm', approvals:'crm', vendors:'procurement', pos:'procurement', inventory:'procurement', fabrication:'manufacturing', team:'hr', margin:'finance', library:'crm' };
+  const derivedModule = SECTION_MODULE[section] || erpModule;
+  const handleSection = s => { setSection(s); setErpModule(SECTION_MODULE[s] || 'crm'); };
+
   return (
     <div style={bStyles.shell}>
-      <BSidebar newCount={newCount} />
+      <BSidebar newCount={newCount} section={section} onSection={handleSection} />
 
       <div style={bStyles.main}>
         {/* Top context bar */}
@@ -551,10 +677,13 @@ function PlannerBackend() {
         </div>
 
         {/* ERP module strip */}
-        <ERPModuleStrip active={erpModule} onChange={setErpModule} orders={orders} />
+        <ERPModuleStrip active={erpModule} onChange={m => { setErpModule(m); const MAP = {crm:'orders',finance:'margin',manufacturing:'fabrication',procurement:'vendors',logistics:'vendors',hr:'team'}; setSection(MAP[m]||'orders'); }} orders={orders} />
 
         {/* Finance module */}
         {erpModule === 'finance' && <FinanceModule orders={orders} />}
+
+        {/* Manufacturing module */}
+        {erpModule === 'manufacturing' && <ManufacturingModule orders={orders} />}
 
         {/* Procurement module */}
         {erpModule === 'procurement' && (
@@ -631,8 +760,11 @@ function PlannerBackend() {
           </div>
         )}
 
+        {/* Pipeline kanban view */}
+        {erpModule === 'crm' && section === 'pipeline' && <PipelineView orders={orders} onSelect={id => { setSelId(id); setSection('orders'); }} />}
+
         {/* CRM module (default) — Workspace 3 columns */}
-        {erpModule === 'crm' && <div style={{ flex:1, display:'grid', gridTemplateColumns:'280px 1fr 300px', minHeight:0 }}>
+        {erpModule === 'crm' && section !== 'pipeline' && <div style={{ flex:1, display:'grid', gridTemplateColumns:'280px 1fr 300px', minHeight:0 }}>
 
           {/* LEFT — order inbox */}
           <div style={{ background:'#191613', borderRight:`1px solid ${bLine}`, display:'flex', flexDirection:'column', overflow:'hidden' }}>
