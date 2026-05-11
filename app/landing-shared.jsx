@@ -371,7 +371,7 @@ function PlannerPeek({ tone = 'paper', width = 720, height = 420 }) {
 /* ── FAQ data + accordion ────────────────────────────────── */
 const FAQS_CONTRACTOR = [
   { q: 'Do you sell to independent contractors directly?', a: 'Yes. Register as a Kreobox partner contractor and you unlock 18–24% margin on listed prices, design-it-yourself access to Studio, and a single point of contact at the factory.' },
-  { q: 'What\u2019s the lead time on a single wardrobe?', a: 'Stock SKUs ship in 5–7 working days within Bangalore / NCR / MMR. Made-to-measure variations add 8–12 days depending on finish.' },
+  { q: 'What’s the lead time on a single wardrobe?', a: 'Pre-cut module kits are stocked at city depots and dispatched within 48–72 hours of order confirmation. Site installation completes in 48 hours from kit delivery.' },
   { q: 'Can I quote a client from the planner directly?', a: 'Yes. Studio exports a contractor-tagged quote sheet, a customer-facing PDF without the cost breakdown, and the cut-list for fabrication, all from the same plan.' },
   { q: 'What happens if a panel is damaged on site?', a: 'Open a replacement ticket from Studio with the SKU and panel ID. A single panel re-cut ships in 48–72 hours and you pay material-only.' },
   { q: 'Are the finishes BIFMA / E1 certified?', a: 'All carcass panels are E1 rated. Hardware is BIFMA-approved Hettich / Hafele. Material certificates print with every order.' },
