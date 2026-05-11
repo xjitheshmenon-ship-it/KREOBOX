@@ -31,7 +31,87 @@ interface PlacedItem {
   x: number; y: number
   width: number
   finish: string
-  hardware: string
+}
+
+// ── Material & hardware specs (auto-assigned, not user-selectable) ─
+interface MatSpec { label: string; spec: string }
+
+function getMaterialSpecs(entry: CatalogEntry, product: ProductMode): MatSpec[] {
+  if (product === 'kitchen') {
+    if (entry.filterTag === 'Surfaces')
+      return [{ label: 'Surface', spec: '20mm engineered quartz' }, { label: 'Edge', spec: '3mm PVC / mitred quartz' }]
+    if (entry.category === 'island')
+      return [
+        { label: 'Carcass', spec: '18mm HDHMR' },
+        { label: 'Worktop', spec: '20mm engineered quartz' },
+        { label: 'Drawer box', spec: '12mm HDHMR · 6mm HDF base' },
+        { label: 'Back panel', spec: '9mm HDF' },
+      ]
+    if (entry.category === 'upper')
+      return [
+        { label: 'Carcass', spec: '18mm HDHMR' },
+        { label: 'Back panel', spec: '6mm HDF' },
+      ]
+    if (entry.category === 'tall' || entry.category === 'fridge')
+      return [
+        { label: 'Carcass', spec: '18mm HDHMR' },
+        { label: 'Back panel', spec: '9mm HDF' },
+        { label: 'Shelf', spec: '18mm HDHMR' },
+      ]
+    // base
+    return [
+      { label: 'Carcass', spec: '18mm HDHMR' },
+      { label: 'Back panel', spec: '9mm HDF' },
+      { label: 'Shelf', spec: '18mm HDHMR' },
+      { label: 'Drawer box', spec: '12mm HDHMR · 6mm HDF base' },
+    ]
+  }
+  if (product === 'wardrobe') {
+    if (entry.id.includes('drawer') || entry.id.includes('basket'))
+      return [
+        { label: 'Box sides', spec: '12mm MDF' },
+        { label: 'Base', spec: '6mm HDF' },
+      ]
+    if (entry.category === 'wardrobe')
+      return [
+        { label: 'Carcass', spec: '18mm MDF' },
+        { label: 'Back panel', spec: '9mm MDF' },
+        { label: 'Shelf', spec: '18mm MDF' },
+      ]
+    return [
+      { label: 'Carcass', spec: '18mm MDF' },
+      { label: 'Back panel', spec: '9mm MDF' },
+    ]
+  }
+  // office → plywood throughout
+  if (entry.filterTag === 'Desks' || entry.filterTag === 'Workstations')
+    return [
+      { label: 'Desktop', spec: '25mm Commercial BWR ply' },
+      { label: 'Modesty / frame', spec: '18mm BWR ply' },
+      { label: 'Steel frame', spec: '2mm powder-coat MS' },
+    ]
+  if (entry.filterTag === 'Meeting')
+    return [
+      { label: 'Top', spec: '25mm BWR ply + veneer' },
+      { label: 'Lipping', spec: '3mm solid wood' },
+      { label: 'Base', spec: 'powder-coat mild steel' },
+    ]
+  return [
+    { label: 'Carcass', spec: '18mm BWR ply' },
+    { label: 'Back panel', spec: '9mm ply' },
+    { label: 'Shelf', spec: '18mm BWR ply' },
+  ]
+}
+
+function getAutoHardware(entry: CatalogEntry): string {
+  const c = entry.category
+  if (c === 'base' || c === 'upper') return 'Hettich Sensys soft-close hinges'
+  if (c === 'tall')     return 'Hettich InnoTech soft-close pull-out'
+  if (c === 'island')   return 'Hettich ArciTech drawer system'
+  if (c === 'wardrobe') return 'Hettich InnoTech Atira drawer system'
+  if (c === 'storage')  return 'Hettich push-to-open fittings'
+  if (c === 'desk')     return 'Cable spine + steel frame connectors'
+  return 'Standard hardware'
 }
 
 // ── Catalogs ──────────────────────────────────────────────────────
@@ -294,9 +374,8 @@ const ROOMS = {
   office:   { w: 5400, d: 3400, wallH: 2600 },
 }
 
-// ── Finishes / hardware ───────────────────────────────────────────
-const FINISHES  = ['Bali oak', 'Espresso', 'Bone matte', 'Sand grey']
-const HARDWARES = ['Push-to-open', 'Soft-close hinge', 'Handle pull']
+// ── Finishes (surface laminate — customer selects colour) ─────────
+const FINISHES = ['Bali oak', 'Espresso', 'Bone matte', 'Sand grey']
 
 // ── Project info ──────────────────────────────────────────────────
 type HomeType = '1BHK' | '2BHK' | '3BHK' | '4BHK+' | 'Villa' | 'Office' | 'Custom'
@@ -888,10 +967,11 @@ function CatalogPanel({
 
 // ── Properties Panel ──────────────────────────────────────────────
 function PropertiesPanel({
-  selectedItem, placedItems, onUpdate, onDelete, onNavigate, onSave,
+  selectedItem, placedItems, product, onUpdate, onDelete, onNavigate, onSave,
 }: {
   selectedItem: PlacedItem | null
   placedItems: PlacedItem[]
+  product: ProductMode
   onUpdate: (patch: Partial<PlacedItem>) => void
   onDelete: () => void
   onNavigate: () => void
@@ -1006,35 +1086,19 @@ function PropertiesPanel({
             <div style={{ fontSize: 14, fontWeight: 700, color: INK, marginTop: 6 }}>{(it.entry.height / 1000).toFixed(1).replace('.', ',')} mm</div>
             <div style={{ fontSize: 10, color: MUTE }}>{it.entry.height >= 2000 ? 'Full height' : 'Standard'}</div>
           </div>
-          {/* Finish */}
-          <div>
-            <div style={{ fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 6 }}>FINISH</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {/* Finish — surface laminate (customer selects colour) */}
+          <div style={{ gridColumn: '1 / -1' }}>
+            <div style={{ fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 8 }}>SURFACE FINISH</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {FINISHES.map(f => (
                 <button key={f} onClick={() => onUpdate({ finish: f })} style={{
-                  padding: '5px 8px', borderRadius: 6, border: `1.5px solid`,
+                  padding: '5px 12px', borderRadius: 20, border: `1.5px solid`,
                   borderColor: it.finish === f ? INK : LINE,
                   background: it.finish === f ? INK : 'transparent',
                   fontSize: 11, fontWeight: 600, cursor: 'pointer',
                   color: it.finish === f ? PAPER : MUTE,
-                  fontFamily: 'inherit', textAlign: 'left',
+                  fontFamily: 'inherit',
                 }}>{f}</button>
-              ))}
-            </div>
-          </div>
-          {/* Hardware */}
-          <div>
-            <div style={{ fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 6 }}>HARDWARE</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {HARDWARES.map(h => (
-                <button key={h} onClick={() => onUpdate({ hardware: h })} style={{
-                  padding: '5px 8px', borderRadius: 6, border: `1.5px solid`,
-                  borderColor: it.hardware === h ? INK : LINE,
-                  background: it.hardware === h ? INK : 'transparent',
-                  fontSize: 11, fontWeight: 600, cursor: 'pointer',
-                  color: it.hardware === h ? PAPER : MUTE,
-                  fontFamily: 'inherit', textAlign: 'left',
-                }}>{h}</button>
               ))}
             </div>
           </div>
@@ -1057,15 +1121,20 @@ function PropertiesPanel({
         </div>
       </div>
 
-      {/* Provenance */}
+      {/* Material specification — auto-assigned, read-only */}
       <div style={{ padding: '14px 20px', borderBottom: `1px solid ${LINE}` }}>
-        <div style={{ fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 8 }}>PROVENANCE</div>
-        <div style={{
-          background: BG, borderRadius: 8, padding: '12px 14px',
-          fontSize: 12, color: MUTE, lineHeight: 1.6,
-          border: `1px solid ${LINE}`,
-        }}>
-          {it.entry.provenance}
+        <div style={{ fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: MUTE, fontWeight: 700, marginBottom: 10 }}>MATERIAL SPECIFICATION</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {getMaterialSpecs(it.entry, product).map(s => (
+            <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontSize: 11, color: MUTE }}>{s.label}</span>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fontWeight: 600, color: INK }}>{s.spec}</span>
+            </div>
+          ))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 4, paddingTop: 8, borderTop: `1px solid ${LINE}` }}>
+            <span style={{ fontSize: 11, color: MUTE }}>Hardware</span>
+            <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fontWeight: 600, color: INK }}>{getAutoHardware(it.entry)}</span>
+          </div>
         </div>
       </div>
 
@@ -1404,7 +1473,7 @@ function BOMModal({ items, product, onClose, onConfirm }: BOMModalProps) {
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead>
                       <tr style={{ borderBottom: `1px solid ${LINE}` }}>
-                        {['Code', 'Name', 'Dimensions', 'Finish', 'Hardware', 'Unit price'].map(h => (
+                        {['Code', 'Name', 'Dimensions', 'Substrate', 'Finish', 'Hardware', 'Unit price'].map(h => (
                           <th key={h} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTE, fontWeight: 600, textAlign: 'left', padding: '4px 8px 8px 0' }}>{h}</th>
                         ))}
                       </tr>
@@ -1415,8 +1484,9 @@ function BOMModal({ items, product, onClose, onConfirm }: BOMModalProps) {
                           <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: ACCENT, padding: '10px 8px 10px 0', whiteSpace: 'nowrap' }}>{it.entry.code}</td>
                           <td style={{ fontWeight: 600, color: INK, padding: '10px 8px 10px 0' }}>{it.entry.name}</td>
                           <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: MUTE, padding: '10px 8px 10px 0', whiteSpace: 'nowrap' }}>{it.width} × {it.entry.height} × {it.entry.depth}</td>
+                          <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, color: MUTE, padding: '10px 8px 10px 0' }}>{getMaterialSpecs(it.entry, product)[0]?.spec ?? '—'}</td>
                           <td style={{ fontSize: 11, color: MUTE, padding: '10px 8px 10px 0' }}>{it.finish}</td>
-                          <td style={{ fontSize: 11, color: MUTE, padding: '10px 8px 10px 0' }}>{it.hardware}</td>
+                          <td style={{ fontSize: 10, color: MUTE, padding: '10px 8px 10px 0' }}>{getAutoHardware(it.entry)}</td>
                           <td style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, fontWeight: 600, color: INK, padding: '10px 0 10px 0', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatPrice(it.entry.price)}</td>
                         </tr>
                       ))}
@@ -1618,7 +1688,7 @@ export default function PlannerPage() {
 
   const handleDrop = useCallback((entry: CatalogEntry, mmX: number, mmY: number) => {
     const uid = `item-${Date.now()}-${Math.random().toString(36).slice(2)}`
-    setPlacedItems(prev => [...prev, { uid, entry, x: mmX, y: mmY, width: entry.width, finish: FINISHES[0], hardware: HARDWARES[0] }])
+    setPlacedItems(prev => [...prev, { uid, entry, x: mmX, y: mmY, width: entry.width, finish: FINISHES[0] }])
     setSelectedUid(uid)
     setDragOverPos(null)
     setDragEntry(null)
@@ -1758,6 +1828,7 @@ export default function PlannerPage() {
           <PropertiesPanel
             selectedItem={selectedItem}
             placedItems={placedItems}
+            product={product}
             onUpdate={updateItem}
             onDelete={() => { setPlacedItems(prev => prev.filter(it => it.uid !== selectedUid)); setSelectedUid(null) }}
             onNavigate={() => setShowBOM(true)}
