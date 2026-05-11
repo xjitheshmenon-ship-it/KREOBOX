@@ -423,22 +423,66 @@ interface Plan2DProps {
   zoom: number
   dragOverPos: { x: number; y: number } | null
   ghostEntry: CatalogEntry | null
-  movingUidActive: string | null
   onSelect: (uid: string | null) => void
   onDrop: (entry: CatalogEntry, mmX: number, mmY: number) => void
   onDragOver: (mmX: number, mmY: number) => void
   onDragLeave: () => void
   onMoveItem: (uid: string, mmX: number, mmY: number) => void
-  onMoveStart: (uid: string) => void
 }
 
-function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, movingUidActive, onSelect, onDrop, onDragOver, onDragLeave, onMoveItem, onMoveStart }: Plan2DProps) {
+function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, onSelect, onDrop, onDragOver, onDragLeave, onMoveItem }: Plan2DProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const room = ROOMS[product]
   const scale = getScale(room, zoom)
   const rW = room.w * scale
   const rH = room.d * scale
 
+  // ── pointer-based item move ──────────────────────────────────────
+  const moveState = useRef<{
+    uid: string; startClientX: number; startClientY: number; itemX: number; itemY: number
+  } | null>(null)
+  const [livePos, setLivePos] = useState<{ uid: string; x: number; y: number } | null>(null)
+
+  const clientToMm = useCallback((clientX: number, clientY: number) => {
+    const rect = svgRef.current?.getBoundingClientRect()
+    if (!rect) return null
+    const svgX = (clientX - rect.left) / rect.width * SVG_W
+    const svgY = (clientY - rect.top) / rect.height * SVG_H
+    const mmX = Math.round((svgX - ROOM_OX) / scale / 100) * 100
+    const mmY = Math.round((svgY - ROOM_OY) / scale / 100) * 100
+    return { mmX: Math.max(0, Math.min(room.w, mmX)), mmY: Math.max(0, Math.min(room.d, mmY)) }
+  }, [scale, room])
+
+  const handleItemMouseDown = useCallback((e: React.MouseEvent, item: PlacedItem) => {
+    e.stopPropagation()
+    e.preventDefault()
+    onSelect(item.uid)
+    moveState.current = { uid: item.uid, startClientX: e.clientX, startClientY: e.clientY, itemX: item.x, itemY: item.y }
+    setLivePos({ uid: item.uid, x: item.x, y: item.y })
+  }, [onSelect])
+
+  const handleSvgMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!moveState.current) return
+    const rect = svgRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const dSvgX = (e.clientX - moveState.current.startClientX) / rect.width * SVG_W
+    const dSvgY = (e.clientY - moveState.current.startClientY) / rect.height * SVG_H
+    const dMmX = Math.round(dSvgX / scale / 100) * 100
+    const dMmY = Math.round(dSvgY / scale / 100) * 100
+    const newX = Math.max(0, moveState.current.itemX + dMmX)
+    const newY = Math.max(0, moveState.current.itemY + dMmY)
+    setLivePos({ uid: moveState.current.uid, x: newX, y: newY })
+  }, [scale])
+
+  const commitMove = useCallback(() => {
+    if (moveState.current && livePos) {
+      onMoveItem(livePos.uid, livePos.x, livePos.y)
+    }
+    moveState.current = null
+    setLivePos(null)
+  }, [livePos, onMoveItem])
+
+  // ── catalog DnD coords ───────────────────────────────────────────
   const toMm = useCallback((svgX: number, svgY: number) => {
     const mmX = Math.round((svgX - ROOM_OX) / scale / 100) * 100
     const mmY = Math.round((svgY - ROOM_OY) / scale / 100) * 100
@@ -466,30 +510,18 @@ function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, mo
     onDrop(ghostEntry, pos.mmX, pos.mmY)
   }
 
-  const movingUid = useRef<string | null>(null)
-
-  const handleDropFinal = (e: React.DragEvent) => {
-    e.preventDefault()
-    const pos = getSvgCoords(e)
-    if (!pos) return
-    const uid = e.dataTransfer.getData('move-uid')
-    if (uid) {
-      onMoveItem(uid, pos.mmX, pos.mmY)
-      movingUid.current = null
-    } else if (ghostEntry) {
-      onDrop(ghostEntry, pos.mmX, pos.mmY)
-    }
-  }
-
   return (
     <svg
       ref={svgRef}
       viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-      style={{ width: '100%', height: '100%', display: 'block', cursor: 'crosshair' }}
+      style={{ width: '100%', height: '100%', display: 'block', cursor: moveState.current ? 'grabbing' : 'crosshair', userSelect: 'none' }}
       onDragOver={handleDragOver}
       onDragLeave={onDragLeave}
-      onDrop={handleDropFinal}
-      onClick={e => { if (e.target === svgRef.current) onSelect(null) }}
+      onDrop={handleDrop}
+      onMouseMove={handleSvgMouseMove}
+      onMouseUp={commitMove}
+      onMouseLeave={commitMove}
+      onClick={e => { if (!livePos && e.target === svgRef.current) onSelect(null) }}
     >
       <defs>
         <pattern id="pl-grid" width={scale * 100} height={scale * 100} patternUnits="userSpaceOnUse"
@@ -512,27 +544,23 @@ function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, mo
         fill="none" stroke={INK} strokeWidth="5" strokeLinecap="round" />
 
       {items.map(item => {
+        const live = livePos?.uid === item.uid ? livePos : null
+        const dispX = live ? live.x : item.x
+        const dispY = live ? live.y : item.y
         const iw = item.width * scale
         const ih = item.entry.depth * scale
-        const ix = ROOM_OX + item.x * scale
-        const iy = ROOM_OY + item.y * scale
+        const ix = ROOM_OX + dispX * scale
+        const iy = ROOM_OY + dispY * scale
         const isSel = item.uid === selectedUid
+        const isMoving = livePos?.uid === item.uid
         const isIsland = item.entry.isIsland
         const fillColor = isIsland ? '#1a1815' : '#d4c9b0'
-        const strokeColor = isSel ? ACCENT : '#a99a82'
+        const strokeColor = isMoving ? ACCENT : isSel ? ACCENT : '#a99a82'
         return (
           <g key={item.uid}
-            style={{ cursor: 'grab' }}
-            draggable
-            onDragStart={e => {
-              movingUid.current = item.uid
-              e.dataTransfer.setData('move-uid', item.uid)
-              onSelect(item.uid)
-              onMoveStart(item.uid)
-              onDragOver(item.x, item.y)
-            }}
-            onDragEnd={() => { movingUid.current = null; onDragLeave() }}
-            onClick={e => { e.stopPropagation(); onSelect(item.uid) }}
+            style={{ cursor: isMoving ? 'grabbing' : 'grab', opacity: isMoving ? 0.8 : 1 }}
+            onMouseDown={e => handleItemMouseDown(e, item)}
+            onClick={e => { e.stopPropagation(); if (!isMoving) onSelect(item.uid) }}
           >
             <rect x={ix} y={iy} width={iw} height={ih}
               fill={fillColor} stroke={strokeColor} strokeWidth={isSel ? 2.5 : 1.5} rx={2} />
@@ -573,11 +601,9 @@ function Plan2D({ product, items, selectedUid, zoom, dragOverPos, ghostEntry, mo
         )
       })}
 
-      {dragOverPos && (() => {
-        const activeEntry = ghostEntry ?? (movingUidActive ? items.find(it => it.uid === movingUidActive)?.entry ?? null : null)
-        if (!activeEntry) return null
-        const gw = activeEntry.width * scale
-        const gh = activeEntry.depth * scale
+      {dragOverPos && ghostEntry && (() => {
+        const gw = ghostEntry.width * scale
+        const gh = ghostEntry.depth * scale
         const gx = ROOM_OX + dragOverPos.x * scale
         const gy = ROOM_OY + dragOverPos.y * scale
         return (
@@ -1103,7 +1129,23 @@ function ProjectSetupDialog({ initialProduct, onStart, savedProjects, onLoad }: 
   const [tab, setTab] = useState<'new' | 'load'>('new')
   const [name, setName] = useState('')
   const [homeType, setHomeType] = useState<HomeType>('2BHK')
-  const [product, setProduct] = useState<ProductMode>(initialProduct)
+  const [product, setProduct] = useState<ProductMode>(
+    initialProduct === 'office' ? 'office' : initialProduct
+  )
+
+  // Derive which products are available for this home type
+  const allowedProducts: ProductMode[] = homeType === 'Office'
+    ? ['office']
+    : homeType === 'Custom'
+      ? ['kitchen', 'wardrobe', 'office']
+      : ['kitchen', 'wardrobe']
+
+  // Auto-correct product selection when home type changes
+  const handleHomeTypeChange = (ht: HomeType) => {
+    setHomeType(ht)
+    if (ht === 'Office') setProduct('office')
+    else if (product === 'office' && ht !== 'Custom') setProduct('kitchen')
+  }
 
   const handleStart = () => {
     const info: ProjectInfo = {
@@ -1183,7 +1225,7 @@ function ProjectSetupDialog({ initialProduct, onStart, savedProjects, onLoad }: 
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {HOME_TYPES.map(ht => (
-                  <button key={ht} onClick={() => setHomeType(ht)} style={{
+                  <button key={ht} onClick={() => handleHomeTypeChange(ht)} style={{
                     padding: '8px 16px', borderRadius: 20,
                     border: `1.5px solid ${homeType === ht ? INK : LINE2}`,
                     background: homeType === ht ? INK : 'transparent',
@@ -1201,16 +1243,33 @@ function ProjectSetupDialog({ initialProduct, onStart, savedProjects, onLoad }: 
                 What would you like to plan?
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
-                {(['kitchen', 'wardrobe', 'office'] as ProductMode[]).map(p => (
-                  <button key={p} onClick={() => setProduct(p)} style={{
-                    flex: 1, padding: '10px 8px', borderRadius: 8,
-                    border: `1.5px solid ${product === p ? ACCENT : LINE2}`,
-                    background: product === p ? `${ACCENT}10` : 'transparent',
-                    color: product === p ? ACCENT : MUTE,
-                    fontFamily: '"Inter Tight", sans-serif', fontSize: 13, fontWeight: 600,
-                    cursor: 'pointer', textTransform: 'capitalize',
-                  }}>{p}</button>
-                ))}
+                {(['kitchen', 'wardrobe', 'office'] as ProductMode[]).map(p => {
+                  const allowed = allowedProducts.includes(p)
+                  const active  = product === p
+                  return (
+                    <button key={p}
+                      onClick={() => allowed && setProduct(p)}
+                      disabled={!allowed}
+                      style={{
+                        flex: 1, padding: '10px 8px', borderRadius: 8,
+                        border: `1.5px solid ${active ? ACCENT : allowed ? LINE2 : 'rgba(26,24,21,0.08)'}`,
+                        background: active ? `${ACCENT}10` : 'transparent',
+                        color: active ? ACCENT : allowed ? MUTE : 'rgba(26,24,21,0.25)',
+                        fontFamily: '"Inter Tight", sans-serif', fontSize: 13, fontWeight: 600,
+                        cursor: allowed ? 'pointer' : 'not-allowed',
+                        textTransform: 'capitalize',
+                        position: 'relative',
+                      }}
+                    >
+                      {p}
+                      {!allowed && (
+                        <div style={{ fontSize: 9, fontWeight: 400, marginTop: 2, letterSpacing: '0.06em', textTransform: 'none' }}>
+                          {p === 'office' ? 'select "Office" type' : 'select a home type'}
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
@@ -1475,8 +1534,8 @@ function BOMModal({ items, product, onClose, onConfirm }: BOMModalProps) {
               <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 2 }}>
                 <li>Space measurement visit within 48 hours</li>
                 <li>Final layout confirmed in Planner</li>
-                <li>Pre-cut panels dispatched in 8 working days</li>
-                <li>Professional install in 2–3 days</li>
+                <li>Pre-cut panels dispatched in 24–48 hours</li>
+                <li>Professional install in 3–4 hours — clean site, no carpentry dust</li>
               </ol>
             </div>
             <button onClick={onClose} style={{ padding: '11px 28px', borderRadius: 8, border: 'none', background: INK, color: PAPER, fontWeight: 700, fontSize: 13, cursor: 'pointer', fontFamily: 'inherit' }}>
@@ -1508,7 +1567,6 @@ export default function PlannerPage() {
   const [selectedUid, setSelectedUid] = useState<string | null>(null)
   const [dragEntry, setDragEntry]     = useState<CatalogEntry | null>(null)
   const [dragOverPos, setDragOverPos] = useState<{ x: number; y: number } | null>(null)
-  const [movingUidActive, setMovingUidActive] = useState<string | null>(null)
   const [showBOM, setShowBOM] = useState(false)
   const [saveToast, setSaveToast] = useState(false)
 
@@ -1578,7 +1636,6 @@ export default function PlannerPage() {
 
   const handleCatalogDragStart = (e: React.DragEvent, entry: CatalogEntry) => {
     setDragEntry(entry)
-    setMovingUidActive(null)
     e.dataTransfer.setData('catalog-id', entry.id)
   }
 
@@ -1658,12 +1715,10 @@ export default function PlannerPage() {
               <Plan2D
                 product={product} items={placedItems} selectedUid={selectedUid}
                 zoom={zoom} dragOverPos={dragOverPos} ghostEntry={dragEntry}
-                movingUidActive={movingUidActive}
                 onSelect={setSelectedUid} onDrop={handleDrop}
                 onDragOver={(x,y) => setDragOverPos({x,y})}
-                onDragLeave={() => { setDragOverPos(null); setMovingUidActive(null) }}
-                onMoveItem={(uid, x, y) => { handleMoveItem(uid, x, y); setDragOverPos(null); setMovingUidActive(null) }}
-                onMoveStart={uid => setMovingUidActive(uid)}
+                onDragLeave={() => setDragOverPos(null)}
+                onMoveItem={handleMoveItem}
               />
             )}
             {view === 'Elevation' && <ElevationView product={product} items={placedItems} />}

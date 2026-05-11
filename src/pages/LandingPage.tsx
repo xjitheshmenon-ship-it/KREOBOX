@@ -201,9 +201,14 @@ const getBlueprintForCategory = (cat: Category, size = 120) => {
 
 // ─── KreoboxMark ─────────────────────────────────────────────────────────────
 const KreoboxMark = ({ size = 28 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="1" y="1" width="26" height="26" stroke={INK} strokeWidth="1.5" rx="2" />
-    <text x="14" y="20" textAnchor="middle" fill={INK} fontSize="16" fontFamily="Fraunces, serif" fontWeight="700">K</text>
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Cabinet body with cutout (fillRule evenodd) */}
+    <path fillRule="evenodd" clipRule="evenodd"
+      d="M16 28 H84 V84 Q84 90 78 90 H22 Q16 90 16 84 Z M30 42 V76 H70 V42 Z"
+      fill={ACCENT} />
+    {/* Lid/top rail, slightly rotated */}
+    <rect x="20" y="10" width="68" height="14" rx="3"
+      transform="rotate(-8 54 17)" fill={ACCENT} fillOpacity="0.7" />
   </svg>
 )
 
@@ -372,7 +377,7 @@ const Hero = ({ onPlanner }: HeroProps) => (
         { stat:'20 SKUs',     desc:'across 4 families' },
         { stat:'4 families',  desc:'kitchen · wardrobe · office · storage' },
         { stat:'18mm panel',  desc:'HDHMR & HDF carcass' },
-        { stat:'India-made',  desc:'dispatched in 8 days' },
+        { stat:'India-made',  desc:'dispatched in 24–48 hrs' },
       ].map((c, i) => (
         <div key={i} style={{
           flex:1, padding:'24px 0 32px',
@@ -719,7 +724,7 @@ const HowItWorks = () => (
           },
           {
             n:'03', title:'We manufacture & install',
-            body:'Pre-cut panels dispatched in 8 days, installed in 2–3. Clean site, no on-site carpentry dust.',
+            body:'Pre-cut panels dispatched in 24–48 hours, installed in 3–4 hours. Clean site, zero on-site carpentry dust.',
           },
         ].map((s, i) => (
           <div key={i} style={{ background: PAPER, padding:36, display:'flex', flexDirection:'column', gap:16 }}>
