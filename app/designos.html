@@ -143,6 +143,25 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 .note.priority{border-color:rgba(212,164,74,.4);background:rgba(212,164,74,.04);}
 .note.priority .meta .who{color:#e6b966;}
 
+/* Panel diagram cards */
+.panel-diagram-card{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:10px;}
+.pdc-head{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);}
+.pdc-head .pdc-id{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--sienna-2);letter-spacing:.14em;font-weight:600;}
+.pdc-head .pdc-name{font-size:12.5px;font-weight:500;color:var(--paper);margin-top:2px;}
+.pdc-head .pdc-dims{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.1em;margin-top:2px;}
+.pdc-head .pdc-seq{font-family:"JetBrains Mono",monospace;font-size:9px;padding:3px 8px;border-radius:100px;background:var(--surface-3);color:var(--mute);letter-spacing:.12em;text-transform:uppercase;}
+.pdc-body{padding:12px;background:var(--surface-3);}
+.pdc-svg{width:100%;background:#fbf9f3;border-radius:6px;border:1px solid rgba(22,20,15,.1);display:block;}
+.pdc-legend{display:flex;flex-wrap:wrap;gap:6px 14px;padding:8px 12px;border-top:1px solid var(--line);}
+.pdc-leg-item{display:flex;align-items:center;gap:5px;font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.1em;text-transform:uppercase;}
+.pdc-leg-sym{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.pdc-download{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:100px;background:var(--surface-3);border:1px solid var(--line);font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .12s,color .12s;margin-right:6px;}
+.pdc-download:hover{color:var(--paper);border-color:var(--line-2);}
+.pdc-actions{display:flex;align-items:center;justify-content:flex-end;padding:8px 12px 10px;gap:6px;border-top:1px solid var(--line);}
+.panels-intro{background:rgba(201,100,66,.06);border:1px solid rgba(201,100,66,.2);border-radius:8px;padding:12px 14px;margin-bottom:14px;}
+.panels-intro .pi-title{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--sienna-2);letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px;}
+.panels-intro .pi-body{font-size:12px;color:var(--mute);line-height:1.5;}
+
 /* CHECKLIST BAR */
 .checklist{grid-area:checklist;background:var(--surface);border-top:1px solid var(--line);display:flex;align-items:center;padding:0 16px;gap:16px;overflow:hidden;}
 .chk-progress{display:flex;align-items:center;gap:12px;flex-shrink:0;}
@@ -712,6 +731,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     <button class="dtab" data-tab="hardware">Hardware</button>
     <button class="dtab" data-tab="install">Install</button>
     <button class="dtab" data-tab="notes">Notes</button>
+    <button class="dtab" data-tab="panels">Panels</button>
   </div>
   <div class="detail-body">
 
@@ -870,6 +890,18 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
           <div class="step-item" data-step="8"><span class="step-num">8</span><div><div class="nm">Handles · brass bar · 128mm</div><div class="sub">DRILL TEMPLATE · HEIGHT 900MM AFL</div></div><span class="time">25 min</span></div>
           <div class="step-item" data-step="9"><span class="step-num">9</span><div><div class="nm">Final clean + customer walkthrough</div><div class="sub">VACUUM · WIPE LAMINATE · UPLOAD 6 PHOTOS</div></div><span class="time">25 min</span></div>
         </div>
+      </div>
+    </div>
+
+    <!-- PANELS TAB -->
+    <div class="tab-panel" id="tab-panels">
+      <div class="d-section">
+        <div class="panels-intro">
+          <div class="pi-title">Factory-printed panel labels</div>
+          <div class="pi-body">Every panel ships from the factory with these markings pre-printed — drill positions, dowel holes, hinge cups, and assembly sequence numbers. Use this as your digital reference.</div>
+        </div>
+        <div class="d-h"><span id="panels-head">Panels in module</span><span class="cnt" id="panels-cnt">—</span></div>
+        <div id="panelsList"><!-- rendered by JS --></div>
       </div>
     </div>
 
@@ -1488,9 +1520,260 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     e.target.value = '';
   });
 
-  // ── INIT ──
-  updateModuleSelection();
-  updateSteps();
+  // ── PANEL DIAGRAM DATA ──
+  // Each panel entry: id, name, dims (W×H mm), type, seq (assembly order), svgFn
+  const PANEL_DATA = {
+    W2D: {
+      label: '2-door wardrobe · W-2D', count: 6,
+      panels: [
+        { id:'W2D-SL', name:'Left side panel', dims:'600 × 2400 × 18 MM', type:'side', seq:'01', mat:'Walnut Matt · outer face shown' },
+        { id:'W2D-SR', name:'Right side panel', dims:'600 × 2400 × 18 MM', type:'side', seq:'02', mat:'Walnut Matt · outer face shown' },
+        { id:'W2D-T',  name:'Top panel',        dims:'764 × 600 × 18 MM',  type:'horiz', seq:'03', mat:'Walnut Matt · outer face shown' },
+        { id:'W2D-B',  name:'Bottom panel',     dims:'764 × 600 × 18 MM',  type:'horiz', seq:'04', mat:'Walnut Matt · outer face shown' },
+        { id:'W2D-BK', name:'Back panel (HDF)', dims:'764 × 2382 × 6 MM',  type:'back',  seq:'05', mat:'Ivory White · 6mm HDF' },
+        { id:'W2D-D1', name:'Door shutter × 2', dims:'400 × 2380 × 18 MM', type:'door',  seq:'06', mat:'Walnut Matt · outer face shown' },
+      ]
+    },
+    W3D: {
+      label: '3-door wardrobe · W-3D', count: 8,
+      panels: [
+        { id:'W3D-SL', name:'Left side panel',   dims:'600 × 2400 × 18 MM',  type:'side',  seq:'01', mat:'Walnut Matt · outer face shown' },
+        { id:'W3D-SR', name:'Right side panel',  dims:'600 × 2400 × 18 MM',  type:'side',  seq:'02', mat:'Walnut Matt · outer face shown' },
+        { id:'W3D-T',  name:'Top panel',         dims:'1164 × 600 × 18 MM',  type:'horiz', seq:'03', mat:'Walnut Matt · outer face shown' },
+        { id:'W3D-B',  name:'Bottom panel',      dims:'1164 × 600 × 18 MM',  type:'horiz', seq:'04', mat:'Walnut Matt · outer face shown' },
+        { id:'W3D-BK', name:'Back panel (HDF)',  dims:'1164 × 2382 × 6 MM',  type:'back',  seq:'05', mat:'Ivory White · 6mm HDF' },
+        { id:'W3D-SH', name:'Shelf × 4',         dims:'1128 × 560 × 18 MM',  type:'shelf', seq:'06', mat:'Ivory White · inner face' },
+        { id:'W3D-D1', name:'Door shutter × 3', dims:'400 × 2380 × 18 MM',  type:'door',  seq:'07', mat:'Walnut Matt · outer face shown' },
+        { id:'W3D-MID', name:'Middle divider',   dims:'560 × 2364 × 18 MM',  type:'divider', seq:'08', mat:'Ivory White · inner face' },
+      ]
+    },
+    D3S: {
+      label: 'Drawer stack · D-3S', count: 6,
+      panels: [
+        { id:'D3S-SL', name:'Left side panel',   dims:'600 × 2400 × 18 MM',  type:'side',  seq:'01', mat:'Walnut Matt · outer face shown' },
+        { id:'D3S-SR', name:'Right side panel',  dims:'600 × 2400 × 18 MM',  type:'side',  seq:'02', mat:'Walnut Matt · outer face shown' },
+        { id:'D3S-T',  name:'Top panel',         dims:'564 × 600 × 18 MM',   type:'horiz', seq:'03', mat:'Walnut Matt · outer face shown' },
+        { id:'D3S-B',  name:'Bottom panel',      dims:'564 × 600 × 18 MM',   type:'horiz', seq:'04', mat:'Walnut Matt · outer face shown' },
+        { id:'D3S-BK', name:'Back panel (HDF)',  dims:'564 × 2382 × 6 MM',   type:'back',  seq:'05', mat:'Ivory White · 6mm HDF' },
+        { id:'D3S-DF', name:'Drawer front × 4',  dims:'556 × 195 × 18 MM',   type:'drawer-front', seq:'06', mat:'Walnut Matt · outer face shown' },
+      ]
+    },
+    WMR: {
+      label: 'Mirror unit · W-MR', count: 5,
+      panels: [
+        { id:'WMR-SL', name:'Left side panel',   dims:'400 × 2400 × 18 MM',  type:'side',  seq:'01', mat:'Walnut Matt · outer face shown' },
+        { id:'WMR-SR', name:'Right side panel',  dims:'400 × 2400 × 18 MM',  type:'side',  seq:'02', mat:'Walnut Matt · outer face shown' },
+        { id:'WMR-T',  name:'Top panel',         dims:'764 × 400 × 18 MM',   type:'horiz', seq:'03', mat:'Walnut Matt · outer face shown' },
+        { id:'WMR-B',  name:'Bottom panel',      dims:'764 × 400 × 18 MM',   type:'horiz', seq:'04', mat:'Walnut Matt · outer face shown' },
+        { id:'WMR-MR', name:'Mirror panel',      dims:'736 × 2320 MM',       type:'mirror', seq:'05', mat:'5mm toughened float glass' },
+      ]
+    }
+  };
+
+  // SVG panel diagrams — draw panel face with pre-printed hole positions
+  function drawPanelSVG(panel) {
+    // Determine aspect from dims string
+    const dimMatch = panel.dims.match(/(\d+)\s*×\s*(\d+)/);
+    const pw = dimMatch ? +dimMatch[1] : 600;
+    const ph = dimMatch ? +dimMatch[2] : 800;
+    const aspect = Math.min(ph / pw, 3);
+
+    // Canvas coords (panel face)
+    const W = 300, H = Math.round(Math.min(W * aspect, 220));
+    const PX = 32, PY = 28; // panel top-left
+    const PW = W - PX * 2, PP = H - PY - 24; // panel face width, height
+
+    const SVG_H = H + 8;
+
+    let holes = '';
+
+    if (panel.type === 'side') {
+      // Shelf pin grid — 2 columns, rows every 32px scaled
+      const rowCount = 12, col1 = PX + 18, col2 = PX + PW - 18;
+      for (let i = 0; i <= rowCount; i++) {
+        const y = PY + 20 + i * ((PP - 40) / rowCount);
+        holes += `<circle cx="${col1}" cy="${y}" r="2" fill="none" stroke="#6b9dbd" stroke-width="1"/>`;
+        holes += `<circle cx="${col2}" cy="${y}" r="2" fill="none" stroke="#6b9dbd" stroke-width="1"/>`;
+      }
+      // Dowel holes — top and bottom edges, 3 each
+      [PX + PW * 0.2, PX + PW * 0.5, PX + PW * 0.8].forEach(x => {
+        holes += `<circle cx="${x}" cy="${PY + 4}" r="3" fill="#3d7abf" opacity=".7"/>`;
+        holes += `<circle cx="${x}" cy="${PY + PP - 4}" r="3" fill="#3d7abf" opacity=".7"/>`;
+      });
+      // Confirmat holes — joining edges
+      [PY + PP * 0.15, PY + PP * 0.5, PY + PP * 0.85].forEach(y => {
+        holes += `<rect x="${PX - 5}" y="${y - 3}" width="6" height="6" rx="1" fill="#c96442" opacity=".7"/>`;
+        holes += `<rect x="${PX + PW - 1}" y="${y - 3}" width="6" height="6" rx="1" fill="#c96442" opacity=".7"/>`;
+      });
+    } else if (panel.type === 'horiz') {
+      // Dowels on long edges
+      const pts = [0.15, 0.35, 0.5, 0.65, 0.85];
+      pts.forEach(t => {
+        const x = PX + PW * t;
+        holes += `<circle cx="${x}" cy="${PY + 4}" r="3" fill="#3d7abf" opacity=".7"/>`;
+        holes += `<circle cx="${x}" cy="${PY + PP - 4}" r="3" fill="#3d7abf" opacity=".7"/>`;
+      });
+      // Confirmat on short edges
+      [PY + PP * 0.3, PY + PP * 0.7].forEach(y => {
+        holes += `<rect x="${PX - 5}" y="${y - 3}" width="6" height="6" rx="1" fill="#c96442" opacity=".7"/>`;
+        holes += `<rect x="${PX + PW - 1}" y="${y - 3}" width="6" height="6" rx="1" fill="#c96442" opacity=".7"/>`;
+      });
+      // Shelf pin rows on face
+      [0.25, 0.5, 0.75].forEach(t => {
+        const x = PX + PW * t;
+        [0.3, 0.5, 0.7].forEach(ty => {
+          holes += `<circle cx="${x}" cy="${PY + PP * ty}" r="1.5" fill="none" stroke="#6b9dbd" stroke-width=".8"/>`;
+        });
+      });
+    } else if (panel.type === 'door') {
+      // Hinge cup holes — 3 cups at 100mm, 50%, 900mm from top
+      const cups = [PY + PP * 0.08, PY + PP * 0.5, PY + PP * 0.92];
+      cups.forEach(y => {
+        holes += `<circle cx="${PX + 18}" cy="${y}" r="6" fill="none" stroke="#4ea25a" stroke-width="1.5"/>`;
+        holes += `<circle cx="${PX + 18}" cy="${y}" r="2" fill="#4ea25a" opacity=".5"/>`;
+      });
+      // Handle drill positions (2 holes, 128mm c-c)
+      const hx = PX + PW * 0.75, hy1 = PY + PP * 0.5 - 8, hy2 = PY + PP * 0.5 + 8;
+      holes += `<circle cx="${hx}" cy="${hy1}" r="2.5" fill="#d4a44a" opacity=".8"/>`;
+      holes += `<circle cx="${hx}" cy="${hy2}" r="2.5" fill="#d4a44a" opacity=".8"/>`;
+      // Dowels — top/bottom
+      [0.3, 0.7].forEach(t => {
+        holes += `<circle cx="${PX + PW * t}" cy="${PY + 4}" r="3" fill="#3d7abf" opacity=".7"/>`;
+        holes += `<circle cx="${PX + PW * t}" cy="${PY + PP - 4}" r="3" fill="#3d7abf" opacity=".7"/>`;
+      });
+    } else if (panel.type === 'shelf') {
+      // Shelf pin holes — 2 columns each side
+      [PX + 8, PX + 16, PX + PW - 16, PX + PW - 8].forEach(x => {
+        holes += `<circle cx="${x}" cy="${PY + PP * 0.5}" r="2" fill="none" stroke="#6b9dbd" stroke-width="1"/>`;
+      });
+      // Edge banding indicator (amber front edge)
+      holes += `<line x1="${PX}" y1="${PY}" x2="${PX + PW}" y2="${PY}" stroke="#d4a44a" stroke-width="3" stroke-linecap="round" opacity=".8"/>`;
+    } else if (panel.type === 'drawer-front') {
+      // Handle drill
+      const hx1 = PX + PW * 0.5 - 10, hx2 = PX + PW * 0.5 + 10;
+      const hy = PY + PP * 0.5;
+      holes += `<circle cx="${hx1}" cy="${hy}" r="2.5" fill="#d4a44a" opacity=".8"/>`;
+      holes += `<circle cx="${hx2}" cy="${hy}" r="2.5" fill="#d4a44a" opacity=".8"/>`;
+      // Slide mount holes
+      [PY + PP * 0.25, PY + PP * 0.75].forEach(y => {
+        holes += `<circle cx="${PX + PW - 8}" cy="${y}" r="2" fill="#c96442" opacity=".7"/>`;
+      });
+    } else if (panel.type === 'back') {
+      // Dado groove indicator (where sides/top/bottom fit)
+      holes += `<rect x="${PX + 2}" y="${PY + 2}" width="${PW - 4}" height="${PP - 4}" fill="none" stroke="rgba(22,20,15,.15)" stroke-width="1" stroke-dasharray="4 3"/>`;
+      // Corner fixings
+      [[PX+8,PY+8],[PX+PW-8,PY+8],[PX+8,PY+PP-8],[PX+PW-8,PY+PP-8]].forEach(([x,y]) => {
+        holes += `<rect x="${x-3}" y="${y-3}" width="6" height="6" rx="1" fill="#c96442" opacity=".6"/>`;
+      });
+    } else if (panel.type === 'mirror') {
+      // 4 clip positions
+      [[PX+12,PY+12],[PX+PW-12,PY+12],[PX+12,PY+PP-12],[PX+PW-12,PY+PP-12]].forEach(([x,y]) => {
+        holes += `<circle cx="${x}" cy="${y}" r="5" fill="none" stroke="#6b9dbd" stroke-width="1.5"/>`;
+        holes += `<circle cx="${x}" cy="${y}" r="2" fill="#6b9dbd" opacity=".6"/>`;
+      });
+      // Safety film hatching
+      holes += `<rect x="${PX+4}" y="${PY+4}" width="${PW-8}" height="${PP-8}" fill="url(#mirror)" opacity=".4"/>`;
+    } else if (panel.type === 'divider') {
+      // Shelf pins both faces
+      [PX + 8, PX + PW - 8].forEach(x => {
+        for (let i = 0; i <= 8; i++) {
+          const y = PY + 16 + i * ((PP - 32) / 8);
+          holes += `<circle cx="${x}" cy="${y}" r="1.5" fill="none" stroke="#6b9dbd" stroke-width=".8"/>`;
+        }
+      });
+      // Dowels top/bottom
+      [0.3, 0.7].forEach(t => {
+        holes += `<circle cx="${PX + PW * t}" cy="${PY + 4}" r="3" fill="#3d7abf" opacity=".7"/>`;
+        holes += `<circle cx="${PX + PW * t}" cy="${PY + PP - 4}" r="3" fill="#3d7abf" opacity=".7"/>`;
+      });
+    }
+
+    // Dimension arrows
+    const dimLine = `
+      <line x1="${PX}" y1="${PY - 10}" x2="${PX + PW}" y2="${PY - 10}" stroke="rgba(22,20,15,.35)" stroke-width=".7"/>
+      <line x1="${PX}" y1="${PY - 13}" x2="${PX}" y2="${PY - 7}" stroke="rgba(22,20,15,.35)" stroke-width=".7"/>
+      <line x1="${PX + PW}" y1="${PY - 13}" x2="${PX + PW}" y2="${PY - 7}" stroke="rgba(22,20,15,.35)" stroke-width=".7"/>
+      <text x="${PX + PW/2}" y="${PY - 14}" fill="rgba(22,20,15,.55)" font-family="JetBrains Mono" font-size="7" text-anchor="middle" letter-spacing=".08em">${pw} MM</text>
+      <line x1="${PX - 10}" y1="${PY}" x2="${PX - 10}" y2="${PY + PP}" stroke="rgba(22,20,15,.35)" stroke-width=".7"/>
+      <line x1="${PX - 13}" y1="${PY}" x2="${PX - 7}" y2="${PY}" stroke="rgba(22,20,15,.35)" stroke-width=".7"/>
+      <line x1="${PX - 13}" y1="${PY + PP}" x2="${PX - 7}" y2="${PY + PP}" stroke="rgba(22,20,15,.35)" stroke-width=".7"/>
+      <text x="${PX - 14}" y="${PY + PP/2}" fill="rgba(22,20,15,.55)" font-family="JetBrains Mono" font-size="7" text-anchor="middle" letter-spacing=".08em" transform="rotate(-90 ${PX - 14} ${PY + PP/2})">${ph} MM</text>
+    `;
+
+    // QR code placeholder
+    const qrX = PX + PW - 28, qrY = PY + PP + 4;
+    const qr = `<rect x="${qrX}" y="${qrY}" width="20" height="20" fill="none" stroke="rgba(22,20,15,.3)" stroke-width=".8" rx="1"/>
+      <rect x="${qrX+2}" y="${qrY+2}" width="6" height="6" fill="rgba(22,20,15,.3)" rx=".5"/>
+      <rect x="${qrX+12}" y="${qrY+2}" width="6" height="6" fill="rgba(22,20,15,.3)" rx=".5"/>
+      <rect x="${qrX+2}" y="${qrY+12}" width="6" height="6" fill="rgba(22,20,15,.3)" rx=".5"/>
+      <rect x="${qrX+10}" y="${qrY+10}" width="2" height="2" fill="rgba(22,20,15,.2)"/>
+      <rect x="${qrX+13}" y="${qrY+13}" width="2" height="2" fill="rgba(22,20,15,.2)"/>`;
+
+    // Assembly sequence badge
+    const seq = `<rect x="${PX}" y="${PY + PP + 4}" width="26" height="18" rx="3" fill="rgba(22,20,15,.06)" stroke="rgba(22,20,15,.2)" stroke-width=".8"/>
+      <text x="${PX + 13}" y="${PY + PP + 16}" fill="rgba(22,20,15,.7)" font-family="JetBrains Mono" font-size="8" text-anchor="middle" letter-spacing=".08em" font-weight="700">${panel.seq}</text>`;
+
+    return `<svg class="pdc-svg" viewBox="0 0 ${W} ${SVG_H + 22}" xmlns="http://www.w3.org/2000/svg">
+      <!-- Panel face -->
+      <rect x="${PX}" y="${PY}" width="${PW}" height="${PP}" fill="#faf8f2" stroke="rgba(22,20,15,.55)" stroke-width="1"/>
+      <!-- Edge thickness indicator -->
+      <rect x="${PX}" y="${PY}" width="${PW}" height="3" fill="rgba(22,20,15,.08)"/>
+      ${dimLine}
+      ${holes}
+      ${seq}
+      ${qr}
+      <!-- Panel ID label -->
+      <text x="${PX + 32}" y="${PY + PP + 14}" fill="rgba(22,20,15,.55)" font-family="JetBrains Mono" font-size="8" letter-spacing=".1em">${panel.id}</text>
+    </svg>`;
+  }
+
+  function renderPanelDiagrams(moduleId) {
+    const data = PANEL_DATA[moduleId];
+    if (!data) return;
+    document.getElementById('panels-head').textContent = data.label;
+    document.getElementById('panels-cnt').textContent = data.count + ' panels';
+    const list = document.getElementById('panelsList');
+    list.innerHTML = data.panels.map(p => `
+      <div class="panel-diagram-card">
+        <div class="pdc-head">
+          <div>
+            <div class="pdc-id">${p.id}</div>
+            <div class="pdc-name">${p.name}</div>
+            <div class="pdc-dims">${p.dims} · ${p.mat}</div>
+          </div>
+          <span class="pdc-seq">STEP ${p.seq}</span>
+        </div>
+        <div class="pdc-body">${drawPanelSVG(p)}</div>
+        <div class="pdc-legend">
+          <span class="pdc-leg-item"><span class="pdc-leg-sym" style="background:#3d7abf;"></span> Dowel Ø8</span>
+          <span class="pdc-leg-item"><span class="pdc-leg-sym" style="background:#c96442;border-radius:2px;"></span> Confirmat Ø5</span>
+          <span class="pdc-leg-item"><span class="pdc-leg-sym" style="background:none;border:1.5px solid #4ea25a;"></span> Hinge cup Ø35</span>
+          <span class="pdc-leg-item"><span class="pdc-leg-sym" style="background:none;border:1px solid #6b9dbd;"></span> Shelf pin Ø5</span>
+          <span class="pdc-leg-item"><span class="pdc-leg-sym" style="background:#d4a44a;"></span> Handle drill</span>
+        </div>
+        <div class="pdc-actions">
+          <button class="pdc-download" onclick="showToast('${p.id} PDF PRINTING…')">Print label</button>
+          <button class="pdc-download" onclick="showToast('${p.id} DXF EXPORTED', 'green')">Export DXF</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Render panels when tab switches to panels, or module changes
+  const origSetDetailTab = setDetailTab;
+  function setDetailTab(tab) {
+    origSetDetailTab(tab);
+    if (tab === 'panels') renderPanelDiagrams(selectedModule);
+  }
+
+  const origSelectModule = selectModule;
+  function selectModule(id) {
+    origSelectModule(id);
+    if (activeDetailTab === 'panels') renderPanelDiagrams(id);
+  }
+
+  // Initial render if panels tab is active
+  renderPanelDiagrams('W3D');
 
 })();
 </script>
