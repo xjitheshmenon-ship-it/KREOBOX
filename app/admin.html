@@ -394,6 +394,51 @@
     .topbar .search { display: none; }
     .topbar .center { display: none; }
   }
+
+  /* ── PANEL SYSTEM ── */
+  .main-panel { display: none; }
+  .main-panel.active { display: block; }
+
+  /* ── SHARED TABLE STYLES ── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .data-table th { font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--mute); text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .data-table td { padding: 11px 16px; border-bottom: 1px solid var(--line); color: var(--paper); }
+  .data-table tbody tr { cursor: pointer; transition: background .12s; }
+  .data-table tbody tr:last-child td { border-bottom: 0; }
+  .data-table tbody tr:hover { background: var(--surface-2); }
+  .data-table .mono-cell { font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: .1em; }
+  .data-table .id-cell { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--sienna-2); letter-spacing: .12em; }
+  .data-table .val-cell { font-family: "Fraunces", serif; font-size: 14px; }
+  .status-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 100px; font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+  .status-chip.ordered { background: rgba(107,157,189,.14); color: var(--blue); }
+  .status-chip.cnc { background: rgba(212,164,74,.14); color: var(--amber); }
+  .status-chip.ready { background: rgba(111,191,122,.14); color: var(--green); }
+  .status-chip.installing { background: rgba(201,100,66,.14); color: var(--sienna-2); }
+  .status-chip.done { background: rgba(111,191,122,.08); color: rgba(111,191,122,.6); }
+  .status-chip.urgent { background: rgba(201,84,66,.2); color: #ff7a6b; border: 1px solid rgba(201,84,66,.3); }
+  .status-chip.transit { background: rgba(139,107,201,.14); color: #a98ad8; }
+  .tier-chip { display: inline-flex; padding: 3px 8px; border-radius: 100px; font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; }
+  .tier-chip.platinum { background: rgba(139,107,201,.16); color: #a98ad8; }
+  .tier-chip.gold { background: rgba(212,164,74,.16); color: #e6b966; }
+  .tier-chip.silver { background: rgba(245,243,237,.1); color: var(--paper); }
+  .panel-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .panel-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--surface-2); flex-wrap: wrap; }
+  .panel-toolbar .filter-tabs { display: inline-flex; gap: 3px; padding: 3px; border-radius: 7px; background: var(--surface-3); border: 1px solid var(--line); }
+  .panel-toolbar .filter-tabs button { padding: 5px 10px; font-family: "JetBrains Mono", monospace; font-size: 9.5px; color: var(--mute); border-radius: 4px; letter-spacing: .1em; text-transform: uppercase; transition: background .12s, color .12s; }
+  .panel-toolbar .filter-tabs button.active { background: var(--surface-4); color: var(--paper); }
+  .tbl-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 100px; background: var(--surface-3); border: 1px solid var(--line); font-size: 11px; font-weight: 500; color: var(--paper); cursor: pointer; transition: background .12s; }
+  .tbl-btn:hover { background: var(--surface-4); }
+  .tbl-btn.primary { background: var(--sienna); border-color: var(--sienna); }
+  .alert-row { background: rgba(201,84,66,.05); border-left: 2px solid var(--sienna); }
+
+  /* mini sparkline inline */
+  .mini-spark { height: 16px; width: 50px; display: inline-block; vertical-align: middle; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 48px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--surface-4); border: 1px solid var(--line-2); border-radius: 100px; padding: 9px 18px; font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--paper); letter-spacing: .1em; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; z-index: 200; white-space: nowrap; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.green { border-color: rgba(111,191,122,.4); color: var(--green); }
+  .toast.warn { border-color: rgba(212,164,74,.4); color: var(--amber); }
 </style>
 </head>
 <body>
@@ -438,7 +483,7 @@
         <svg width="22" height="22"><use href="#kbx"/></svg>
         <span class="nm" style="color: var(--paper);">KREOBOX · OPS</span>
       </a>
-      <span class="view-title">Network <span class="it">ops</span> · Kreobox HQ</span>
+      <span class="view-title" id="viewTitle">Network <span class="it">ops</span> · Dashboard</span>
     </div>
     <div class="center">
       <span class="live-pill"><span class="dot"></span> Live · realtime</span>
@@ -459,21 +504,24 @@
   </div>
 
   <!-- ── LEFT RAIL ── -->
-  <div class="rail">
-    <button class="rail-btn active" title="Dashboard"><svg class="ic"><use href="#i-dash"/></svg></button>
-    <button class="rail-btn" title="Orders" data-badge="42"><svg class="ic"><use href="#i-orders"/></svg></button>
+  <div class="rail" id="rail">
+    <button class="rail-btn active" data-panel="dash" title="Dashboard"><svg class="ic"><use href="#i-dash"/></svg></button>
+    <button class="rail-btn" data-panel="orders" data-badge="42" title="Orders"><svg class="ic"><use href="#i-orders"/></svg></button>
     <a href="designos.html" class="rail-btn" title="DesignOS · Production"><svg class="ic"><use href="#i-factory"/></svg></a>
-    <button class="rail-btn" title="Studio inventory"><svg class="ic"><use href="#i-inv"/></svg></button>
-    <button class="rail-btn" title="Logistics"><svg class="ic"><use href="#i-truck"/></svg></button>
-    <button class="rail-btn" title="Contractors" data-badge="3"><svg class="ic"><use href="#i-people"/></svg></button>
-    <button class="rail-btn" title="Customers"><svg class="ic"><use href="#i-cust"/></svg></button>
-    <button class="rail-btn" title="Analytics"><svg class="ic"><use href="#i-chart"/></svg></button>
+    <button class="rail-btn" data-panel="inventory" title="Studio inventory"><svg class="ic"><use href="#i-inv"/></svg></button>
+    <button class="rail-btn" data-panel="logistics" title="Logistics"><svg class="ic"><use href="#i-truck"/></svg></button>
+    <button class="rail-btn" data-panel="contractors" data-badge="3" title="Contractors"><svg class="ic"><use href="#i-people"/></svg></button>
+    <button class="rail-btn" data-panel="customers" title="Customers"><svg class="ic"><use href="#i-cust"/></svg></button>
+    <button class="rail-btn" data-panel="analytics" title="Analytics"><svg class="ic"><use href="#i-chart"/></svg></button>
     <div class="rail-spacer"></div>
-    <button class="rail-btn" title="Settings"><svg class="ic"><use href="#i-cog"/></svg></button>
+    <button class="rail-btn" data-panel="settings" title="Settings"><svg class="ic"><use href="#i-cog"/></svg></button>
   </div>
 
   <!-- ── MAIN ── -->
   <main class="main">
+
+  <!-- ═══ DASHBOARD PANEL ═══ -->
+  <div class="main-panel active" id="panel-dash">
     <div class="main-inner">
 
       <!-- Page header -->
@@ -1057,7 +1105,265 @@
         </div>
       </div>
 
+    </div><!-- .main-inner -->
+  </div><!-- #panel-dash -->
+
+  <!-- ═══ ORDERS PANEL ═══ -->
+  <div class="main-panel" id="panel-orders">
+    <div class="main-inner">
+      <div class="page-h">
+        <div class="left"><div class="sub">42 orders · 7 urgent</div><h1>Order <span class="it">pipeline</span></h1></div>
+        <div class="right"><button class="tbl-btn primary" onclick="toast('NEW ORDER FORM OPENING…')">+ New order</button></div>
+      </div>
+      <div class="panel-wrap">
+        <div class="panel-toolbar">
+          <div class="filter-tabs" id="orderTabs">
+            <button class="active" data-filter="all">All (42)</button>
+            <button data-filter="urgent">Urgent (7)</button>
+            <button data-filter="installing">Installing (6)</button>
+            <button data-filter="ready">Kit ready (5)</button>
+            <button data-filter="cnc">In CNC (8)</button>
+            <button data-filter="done">Done (3)</button>
+          </div>
+          <button class="tbl-btn" onclick="toast('EXPORT CSV DOWNLOADED', 'green')"><svg width="11" height="11"><use href="#i-filter"/></svg> Export</button>
+        </div>
+        <table class="data-table" id="ordersTable">
+          <thead>
+            <tr>
+              <th>Order ID</th><th>Customer</th><th>Product</th><th>City</th><th>Value</th><th>Stage</th><th>Date</th><th>Contractor</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr data-status="urgent" class="alert-row"><td class="id-cell">#KBX-04812</td><td>Aishwarya Menon</td><td>Master bedroom set · 4 modules</td><td class="mono-cell">WHFLD · BLR</td><td class="val-cell">₹1,84,400</td><td><span class="status-chip urgent">⚡ T-19HRS</span></td><td class="mono-cell">12 MAY</td><td>Suresh K.</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING KBX-04812…')">Open</button></td></tr>
+            <tr data-status="ordered"><td class="id-cell">#KBX-04813</td><td>Kavita Rao</td><td>L-shape kitchen · 6 modules</td><td class="mono-cell">VIMAN · PUN</td><td class="val-cell">₹2,68,000</td><td><span class="status-chip ordered">Ordered</span></td><td class="mono-cell">12 MAY</td><td>Deepak M.</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING KBX-04813…')">Open</button></td></tr>
+            <tr data-status="ordered"><td class="id-cell">#KBX-04814</td><td>Arun Gupta</td><td>Studio wardrobe · 1 module</td><td class="mono-cell">GACH · HYD</td><td class="val-cell">₹62,000</td><td><span class="status-chip ordered">Ordered</span></td><td class="mono-cell">12 MAY</td><td>Ajay R.</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING KBX-04814…')">Open</button></td></tr>
+            <tr data-status="cnc"><td class="id-cell">#KBX-04798</td><td>Rahul Verma</td><td>Home office + study · 3 modules</td><td class="mono-cell">BANDRA · MUM</td><td class="val-cell">₹96,800</td><td><span class="status-chip cnc">CNC Cut</span></td><td class="mono-cell">10 MAY</td><td>Deepak M.</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING KBX-04798…')">Open</button></td></tr>
+            <tr data-status="cnc"><td class="id-cell">#KBX-04795</td><td>Suresh Pillai</td><td>3-door wardrobe</td><td class="mono-cell">JP · BLR</td><td class="val-cell">₹86,000</td><td><span class="status-chip cnc">CNC Cut</span></td><td class="mono-cell">9 MAY</td><td>Suresh K.</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING KBX-04795…')">Open</button></td></tr>
+            <tr data-status="ready"><td class="id-cell">#KBX-04807</td><td>Vikram Singh</td><td>Living wall unit · 5 modules</td><td class="mono-cell">INDIR · BLR</td><td class="val-cell">₹2,45,000</td><td><span class="status-chip ready">Kit Ready</span></td><td class="mono-cell">8 MAY</td><td>Suresh K.</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING KBX-04807…')">Open</button></td></tr>
+            <tr data-status="ready"><td class="id-cell">#KBX-04803</td><td>Meera Nair</td><td>Guest bedroom · 2 modules</td><td class="mono-cell">KORE · PUN</td><td class="val-cell">₹72,000</td><td><span class="status-chip ready">Kit Ready</span></td><td class="mono-cell">7 MAY</td><td>Deepak M.</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING KBX-04803…')">Open</button></td></tr>
+            <tr data-status="installing urgent"><td class="id-cell">#KBX-04761</td><td>Priya Menon</td><td>Master bedroom set · 4 modules</td><td class="mono-cell">WHFLD · BLR</td><td class="val-cell">₹1,42,000</td><td><span class="status-chip installing">Installing · 84%</span></td><td class="mono-cell">6 MAY</td><td>Suresh K.</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING KBX-04761…')">Open</button></td></tr>
+            <tr data-status="installing"><td class="id-cell">#KBX-04763</td><td>Anand Pillai</td><td>Parallel kitchen</td><td class="mono-cell">JP · BLR</td><td class="val-cell">₹2,24,000</td><td><span class="status-chip installing">Installing · 42%</span></td><td class="mono-cell">6 MAY</td><td>Rajesh P.</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING KBX-04763…')">Open</button></td></tr>
+            <tr data-status="done"><td class="id-cell">#KBX-04752</td><td>Kiran Bhat</td><td>3-door wardrobe</td><td class="mono-cell">HSR · BLR</td><td class="val-cell">₹86,000</td><td><span class="status-chip done">Done</span></td><td class="mono-cell">2 MAY</td><td>Suresh K.</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING KBX-04752…')">Open</button></td></tr>
+            <tr data-status="done"><td class="id-cell">#KBX-04748</td><td>Sonia Malik</td><td>Drawer stack × 3</td><td class="mono-cell">KORM · BLR</td><td class="val-cell">₹43,000</td><td><span class="status-chip done">Done</span></td><td class="mono-cell">30 APR</td><td>Mohammed A.</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING KBX-04748…')">Open</button></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+  </div>
+
+  <!-- ═══ INVENTORY PANEL ═══ -->
+  <div class="main-panel" id="panel-inventory">
+    <div class="main-inner">
+      <div class="page-h">
+        <div class="left"><div class="sub">38 studios · 3 factories</div><h1>Studio <span class="it">inventory</span></h1></div>
+        <div class="right"><button class="tbl-btn primary" onclick="toast('RESTOCK ORDER RAISED', 'green')">Raise restock</button></div>
+      </div>
+      <div class="panel-wrap" style="margin-bottom:12px;">
+        <div class="panel-h"><div><div class="ti">Low stock alerts</div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;margin-top:4px;">3 SKUs below reorder threshold</div></div></div>
+        <table class="data-table">
+          <thead><tr><th>SKU</th><th>Product</th><th>BLR Stock</th><th>PUN Stock</th><th>HYD Stock</th><th>Reorder Level</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr class="alert-row"><td class="id-cell">K-PR</td><td>Pantry module</td><td class="mono-cell">18</td><td class="mono-cell" style="color:var(--sienna-2);font-weight:600;">6 ⚠</td><td class="mono-cell">12</td><td class="mono-cell">20</td><td><span class="status-chip urgent">LOW</span></td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('RESTOCK QUEUED FOR K-PR PUN', 'green')">Restock PUN</button></td></tr>
+            <tr class="alert-row"><td class="id-cell">K-LSH</td><td>L-shape kitchen</td><td class="mono-cell" style="color:var(--amber);font-weight:600;">14</td><td class="mono-cell" style="color:var(--amber);font-weight:600;">11</td><td class="mono-cell" style="color:var(--sienna-2);font-weight:600;">4 ⚠</td><td class="mono-cell">20</td><td><span class="status-chip urgent">CRITICAL</span></td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('URGENT RESTOCK: K-LSH ALL CITIES', 'warn')">Restock all</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel-wrap">
+        <div class="panel-h"><div><div class="ti">Full inventory heatmap</div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;margin-top:4px;">unit count by SKU × city cluster</div></div></div>
+        <div style="padding:16px 20px;">
+          <div class="inv-grid">
+            <div></div><div class="h">BLR</div><div class="h">PUN</div><div class="h">HYD</div>
+            <div class="h row">W-2D</div><div class="inv-cell l3">42</div><div class="inv-cell l2">28</div><div class="inv-cell l3">36</div>
+            <div class="h row">W-3D</div><div class="inv-cell l4">68</div><div class="inv-cell l3">44</div><div class="inv-cell l2">22</div>
+            <div class="h row">W-4D</div><div class="inv-cell l3">38</div><div class="inv-cell l1">14</div><div class="inv-cell l2">26</div>
+            <div class="h row">W-MR</div><div class="inv-cell l4">82</div><div class="inv-cell l3">52</div><div class="inv-cell l3">48</div>
+            <div class="h row">D-3S</div><div class="inv-cell l3">54</div><div class="inv-cell l4">76</div><div class="inv-cell l3">42</div>
+            <div class="h row">K-PR</div><div class="inv-cell l2">18</div><div class="inv-cell l0">6</div><div class="inv-cell l1">12</div>
+            <div class="h row">K-LSH</div><div class="inv-cell l1">14</div><div class="inv-cell l1">11</div><div class="inv-cell l0">4</div>
+            <div class="h row">T-PNT</div><div class="inv-cell l3">36</div><div class="inv-cell l2">22</div><div class="inv-cell l3">34</div>
+            <div class="h row">B-SHF</div><div class="inv-cell l2">24</div><div class="inv-cell l3">38</div><div class="inv-cell l2">18</div>
+            <div class="h row">OFC-01</div><div class="inv-cell l3">32</div><div class="inv-cell l2">16</div><div class="inv-cell l1">10</div>
+          </div>
+          <div class="inv-legend"><span>STOCK-OUT</span><div class="inv-gradient"></div><span>SURPLUS</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ LOGISTICS PANEL ═══ -->
+  <div class="main-panel" id="panel-logistics">
+    <div class="main-inner">
+      <div class="page-h">
+        <div class="left"><div class="sub">14 in transit · 8 arriving today</div><h1>Logistics <span class="it">tracker</span></h1></div>
+        <div class="right"><button class="tbl-btn" onclick="toast('DISPATCH SCHEDULE OPENED')">View dispatch schedule</button></div>
+      </div>
+      <div class="panel-wrap">
+        <div class="panel-toolbar">
+          <div class="filter-tabs" id="logisticsFilter">
+            <button class="active">All (14)</button>
+            <button>Arriving today (8)</button>
+            <button>In transit (6)</button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Shipment ID</th><th>From</th><th>To</th><th>Order</th><th>Items</th><th>ETA</th><th>Status</th><th>Driver</th></tr></thead>
+          <tbody>
+            <tr><td class="id-cell">SHP-2214</td><td class="mono-cell">F-01 · BLR</td><td class="mono-cell">WHITEFIELD STUDIO</td><td class="id-cell">#KBX-04812</td><td class="mono-cell">4 modules · 28 panels</td><td class="mono-cell" style="color:var(--green);">TODAY · 08:30</td><td><span class="status-chip ready">Arrived</span></td><td>Raju · KA01</td></tr>
+            <tr><td class="id-cell">SHP-2215</td><td class="mono-cell">F-01 · BLR</td><td class="mono-cell">INDIRANAGAR STUDIO</td><td class="id-cell">#KBX-04807</td><td class="mono-cell">5 modules · 32 panels</td><td class="mono-cell" style="color:var(--green);">TODAY · 09:15</td><td><span class="status-chip ready">Arrived</span></td><td>Suresh · KA02</td></tr>
+            <tr><td class="id-cell">SHP-2218</td><td class="mono-cell">F-02 · PUN</td><td class="mono-cell">KOREGAON STUDIO</td><td class="id-cell">#KBX-04803</td><td class="mono-cell">2 modules · 12 panels</td><td class="mono-cell" style="color:var(--amber);">TODAY · 14:00</td><td><span class="status-chip transit">In transit</span></td><td>Ravi · MH04</td></tr>
+            <tr><td class="id-cell">SHP-2219</td><td class="mono-cell">F-02 · PUN</td><td class="mono-cell">BANDRA STUDIO</td><td class="id-cell">#KBX-04798</td><td class="mono-cell">3 modules · 16 panels</td><td class="mono-cell" style="color:var(--amber);">TODAY · 16:30</td><td><span class="status-chip transit">In transit</span></td><td>Vijay · MH08</td></tr>
+            <tr><td class="id-cell">SHP-2221</td><td class="mono-cell">F-03 · HYD</td><td class="mono-cell">GACHIBOWLI STUDIO</td><td class="id-cell">#KBX-04814</td><td class="mono-cell">1 module · 6 panels</td><td class="mono-cell">TUE 13 · 10:00</td><td><span class="status-chip transit">In transit</span></td><td>Anand · TS02</td></tr>
+            <tr><td class="id-cell">SHP-2223</td><td class="mono-cell">F-01 · BLR</td><td class="mono-cell">JP NAGAR STUDIO</td><td class="id-cell">#KBX-04815</td><td class="mono-cell">5 modules · 36 panels</td><td class="mono-cell">TUE 13 · 11:00</td><td><span class="status-chip transit">In transit</span></td><td>Raju · KA01</td></tr>
+            <tr class="alert-row"><td class="id-cell">SHP-2210</td><td class="mono-cell">F-03 · HYD</td><td class="mono-cell">VIMAN NAGAR STUDIO</td><td class="id-cell">#KBX-04811</td><td class="mono-cell">8 modules · 56 panels</td><td class="mono-cell" style="color:var(--sienna-2);">DELAYED · 14 MAY</td><td><span class="status-chip urgent">Delayed</span></td><td>Deepak · TS05</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CONTRACTORS PANEL ═══ -->
+  <div class="main-panel" id="panel-contractors">
+    <div class="main-inner">
+      <div class="page-h">
+        <div class="left"><div class="sub">212 active · 3 need attention</div><h1>Contractor <span class="it">network</span></h1></div>
+        <div class="right"><button class="tbl-btn primary" onclick="toast('ONBOARDING FORM OPENED')">+ Onboard contractor</button></div>
+      </div>
+      <div class="panel-wrap" style="margin-bottom:12px;">
+        <div class="panel-h"><div class="ti" style="font-size:14px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);">NEEDS ATTENTION · 3</div></div>
+        <table class="data-table">
+          <thead><tr><th>Contractor</th><th>City</th><th>Issue</th><th>Last active</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr class="alert-row"><td><strong>Ahmed Khan</strong><br><span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute)">SILVER · PUN</span></td><td class="mono-cell">PUNE</td><td style="color:var(--amber);">Customer complaint · 2 installs</td><td class="mono-cell">10 MAY</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('CONTACTING AHMED KHAN…')">Contact</button></td></tr>
+            <tr class="alert-row"><td><strong>Ramesh Nair</strong><br><span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute)">SILVER · HYD</span></td><td class="mono-cell">HYD</td><td style="color:var(--sienna-2);">No photo uploads · last 5 installs</td><td class="mono-cell">8 MAY</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('CONTACTING RAMESH NAIR…')">Contact</button></td></tr>
+            <tr class="alert-row"><td><strong>Sunil Das</strong><br><span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute)">SILVER · BLR</span></td><td class="mono-cell">BLR</td><td style="color:var(--sienna-2);">SLA breach · 2 late installs</td><td class="mono-cell">9 MAY</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('CONTACTING SUNIL DAS…')">Contact</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel-wrap">
+        <div class="panel-toolbar">
+          <div class="filter-tabs">
+            <button class="active">All (212)</button>
+            <button>Platinum (12)</button>
+            <button>Gold (48)</button>
+            <button>Silver (152)</button>
+          </div>
+          <button class="tbl-btn" onclick="toast('EXPORT CONTRACTOR LIST')"><svg width="11" height="11"><use href="#i-filter"/></svg> Export</button>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Contractor</th><th>City</th><th>Tier</th><th>Installs · May</th><th>Score</th><th>Active jobs</th><th>Earnings · May</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><strong>Rajesh Patil</strong><div class="lb-meta">since NOV '25</div></td><td class="mono-cell">PUN</td><td><span class="tier-chip platinum">Platinum</span></td><td class="mono-cell">38</td><td class="mono-cell" style="color:var(--green)">A+</td><td class="mono-cell">4</td><td class="val-cell">₹68,400</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING RAJESH PATIL PROFILE…')">View</button></td></tr>
+            <tr><td><strong>Suresh Kalyanaraman</strong><div class="lb-meta">since JAN '26</div></td><td class="mono-cell">BLR</td><td><span class="tier-chip gold">Gold</span></td><td class="mono-cell">32</td><td class="mono-cell" style="color:var(--green)">A+</td><td class="mono-cell">3</td><td class="val-cell">₹57,600</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING SURESH K. PROFILE…')">View</button></td></tr>
+            <tr><td><strong>Mohammed Asif</strong><div class="lb-meta">since FEB '26</div></td><td class="mono-cell">HYD</td><td><span class="tier-chip gold">Gold</span></td><td class="mono-cell">28</td><td class="mono-cell" style="color:var(--green)">A</td><td class="mono-cell">2</td><td class="val-cell">₹50,400</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING MOHAMMED A. PROFILE…')">View</button></td></tr>
+            <tr><td><strong>Pradeep Iyer</strong><div class="lb-meta">since OCT '25</div></td><td class="mono-cell">BLR</td><td><span class="tier-chip gold">Gold</span></td><td class="mono-cell">24</td><td class="mono-cell" style="color:var(--green)">A</td><td class="mono-cell">3</td><td class="val-cell">₹43,200</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING PRADEEP I. PROFILE…')">View</button></td></tr>
+            <tr><td><strong>Deepak Mehta</strong><div class="lb-meta">since AUG '25</div></td><td class="mono-cell">MUM</td><td><span class="tier-chip gold">Gold</span></td><td class="mono-cell">21</td><td class="mono-cell" style="color:var(--green)">A</td><td class="mono-cell">2</td><td class="val-cell">₹37,800</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING DEEPAK M. PROFILE…')">View</button></td></tr>
+            <tr><td><strong>Ahmed Khan</strong><div class="lb-meta">since FEB '26</div></td><td class="mono-cell">PUN</td><td><span class="tier-chip silver">Silver</span></td><td class="mono-cell">19</td><td class="mono-cell" style="color:var(--amber)">B+</td><td class="mono-cell">2</td><td class="val-cell">₹34,200</td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('OPENING AHMED K. PROFILE…')">View</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CUSTOMERS PANEL ═══ -->
+  <div class="main-panel" id="panel-customers">
+    <div class="main-inner">
+      <div class="page-h">
+        <div class="left"><div class="sub">1,842 customers · ₹14.2Cr lifetime</div><h1>Customer <span class="it">base</span></h1></div>
+        <div class="right"><button class="tbl-btn" onclick="toast('CUSTOMER CSV DOWNLOADED', 'green')">Export CRM</button></div>
+      </div>
+      <div class="panel-wrap">
+        <div class="panel-toolbar">
+          <div class="filter-tabs">
+            <button class="active">All (1842)</button>
+            <button>Active order (42)</button>
+            <button>Repeat buyers (284)</button>
+            <button>High value (128)</button>
+          </div>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Customer</th><th>City</th><th>Orders</th><th>Lifetime value</th><th>Last order</th><th>Referred by</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Aishwarya Menon</strong><div class="lb-meta">WHITEFIELD · BLR</div></td><td class="mono-cell">BLR</td><td class="mono-cell">2</td><td class="val-cell">₹2,84,400</td><td class="mono-cell">12 MAY</td><td class="mono-cell">ORGANIC</td><td><span class="status-chip installing">Active</span></td></tr>
+            <tr><td><strong>Rahul Verma</strong><div class="lb-meta">BANDRA · MUM</div></td><td class="mono-cell">MUM</td><td class="mono-cell">1</td><td class="val-cell">₹96,800</td><td class="mono-cell">10 MAY</td><td class="mono-cell">REFERRAL</td><td><span class="status-chip cnc">In prod</span></td></tr>
+            <tr><td><strong>Priya Sharma</strong><div class="lb-meta">VASANT KUNJ · DEL</div></td><td class="mono-cell">DEL</td><td class="mono-cell">1</td><td class="val-cell">₹3,20,000</td><td class="mono-cell">8 MAY</td><td class="mono-cell">GOOGLE</td><td><span class="status-chip cnc">In prod</span></td></tr>
+            <tr><td><strong>Vikram Singh</strong><div class="lb-meta">INDIRANAGAR · BLR</div></td><td class="mono-cell">BLR</td><td class="mono-cell">3</td><td class="val-cell">₹6,45,000</td><td class="mono-cell">8 MAY</td><td class="mono-cell">REPEAT</td><td><span class="status-chip ready">Kit ready</span></td></tr>
+            <tr><td><strong>Kavita Rao</strong><div class="lb-meta">VIMAN NAGAR · PUN</div></td><td class="mono-cell">PUN</td><td class="mono-cell">1</td><td class="val-cell">₹2,68,000</td><td class="mono-cell">12 MAY</td><td class="mono-cell">INSTAGRAM</td><td><span class="status-chip ordered">Ordered</span></td></tr>
+            <tr><td><strong>Meera Nair</strong><div class="lb-meta">KOREGAON PARK · PUN</div></td><td class="mono-cell">PUN</td><td class="mono-cell">2</td><td class="val-cell">₹1,34,000</td><td class="mono-cell">7 MAY</td><td class="mono-cell">REFERRAL</td><td><span class="status-chip ready">Kit ready</span></td></tr>
+            <tr><td><strong>Kiran Bhat</strong><div class="lb-meta">HSR LAYOUT · BLR</div></td><td class="mono-cell">BLR</td><td class="mono-cell">4</td><td class="val-cell">₹5,12,000</td><td class="mono-cell">2 MAY</td><td class="mono-cell">REPEAT</td><td><span class="status-chip done">Done</span></td></tr>
+            <tr><td><strong>Ananya Reddy</strong><div class="lb-meta">JUBILEE HILLS · HYD</div></td><td class="mono-cell">HYD</td><td class="mono-cell">1</td><td class="val-cell">₹1,12,000</td><td class="mono-cell">5 MAY</td><td class="mono-cell">GOOGLE</td><td><span class="status-chip ordered">Design phase</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ANALYTICS PANEL ═══ -->
+  <div class="main-panel" id="panel-analytics">
+    <div class="main-inner">
+      <div class="page-h">
+        <div class="left"><div class="sub">7-day view · May 6–12 2026</div><h1>Network <span class="it">analytics</span></h1></div>
+        <div class="right">
+          <div class="seg" id="analyticsSeg">
+            <button>1H</button><button>24H</button><button class="active">7D</button><button>30D</button><button>QTD</button>
+          </div>
+        </div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><span class="l">Revenue · 7 days</span><div class="kpi-top"><span class="kpi-v">₹38.4L</span></div><span class="kpi-delta up">▲ 22% vs prev week</span><svg class="spark" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="var(--sienna)" stroke-width="1.5" points="0,18 14,14 28,16 42,12 56,10 70,8 84,6 100,3"/></svg></div>
+        <div class="kpi amber"><span class="l">Orders · 7 days</span><div class="kpi-top"><span class="kpi-v">186</span><span class="kpi-unit">orders</span></div><span class="kpi-delta up">▲ 18% vs prev week</span><svg class="spark" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="var(--amber)" stroke-width="1.5" points="0,16 14,14 28,12 42,14 56,10 70,8 84,7 100,4"/></svg></div>
+        <div class="kpi green"><span class="l">Installs completed</span><div class="kpi-top"><span class="kpi-v">142</span><span class="kpi-unit">jobs</span></div><span class="kpi-delta up">SLA 98.2% on time</span><svg class="spark" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="var(--green)" stroke-width="1.5" points="0,14 14,12 28,11 42,10 56,8 70,7 84,5 100,4"/></svg></div>
+        <div class="kpi blue"><span class="l">Avg order value</span><div class="kpi-top"><span class="kpi-v">₹2.06L</span></div><span class="kpi-delta up">▲ 8% vs prev week</span><svg class="spark" viewBox="0 0 100 22" preserveAspectRatio="none"><polyline fill="none" stroke="var(--blue)" stroke-width="1.5" points="0,16 14,15 28,14 42,13 56,12 70,11 84,9 100,8"/></svg></div>
+      </div>
+      <div class="row-2" style="margin-top:0;">
+        <div class="panel-wrap">
+          <div class="panel-h"><div><div class="ti">Revenue by city cluster</div></div></div>
+          <table class="data-table">
+            <thead><tr><th>City</th><th>Revenue</th><th>Orders</th><th>Avg value</th><th>7D trend</th><th>SLA</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Bengaluru</strong></td><td class="val-cell">₹18.2L</td><td class="mono-cell">88</td><td class="mono-cell">₹2.07L</td><td style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px;">▲ 24%</td><td class="mono-cell" style="color:var(--green)">99.1%</td></tr>
+              <tr><td><strong>Pune</strong></td><td class="val-cell">₹10.4L</td><td class="mono-cell">52</td><td class="mono-cell">₹2.00L</td><td style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px;">▲ 19%</td><td class="mono-cell" style="color:var(--green)">97.8%</td></tr>
+              <tr><td><strong>Hyderabad</strong></td><td class="val-cell">₹6.2L</td><td class="mono-cell">31</td><td class="mono-cell">₹2.00L</td><td style="color:var(--amber);font-family:'JetBrains Mono',monospace;font-size:11px;">▲ 12%</td><td class="mono-cell" style="color:var(--amber)">96.4%</td></tr>
+              <tr><td><strong>Mumbai</strong></td><td class="val-cell">₹3.6L</td><td class="mono-cell">15</td><td class="mono-cell">₹2.40L</td><td style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px;">▲ 31%</td><td class="mono-cell" style="color:var(--green)">100%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel-wrap">
+          <div class="panel-h"><div><div class="ti">Top SKUs · 7D revenue</div></div></div>
+          <table class="data-table">
+            <thead><tr><th>SKU</th><th>Product</th><th>Units</th><th>Revenue</th><th>Trend</th></tr></thead>
+            <tbody>
+              <tr><td class="id-cell">W-3D</td><td>3-door wardrobe</td><td class="mono-cell">62</td><td class="val-cell">₹8.4L</td><td style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px;">▲ 42%</td></tr>
+              <tr><td class="id-cell">K-LSH</td><td>L-shape kitchen</td><td class="mono-cell">38</td><td class="val-cell">₹9.8L</td><td style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px;">▲ 28%</td></tr>
+              <tr><td class="id-cell">W-2D</td><td>2-door wardrobe</td><td class="mono-cell">44</td><td class="val-cell">₹3.2L</td><td style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px;">▲ 14%</td></tr>
+              <tr><td class="id-cell">T-PNT</td><td>Tall pantry unit</td><td class="mono-cell">28</td><td class="val-cell">₹3.6L</td><td style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px;">▲ 8%</td></tr>
+              <tr><td class="id-cell">H-BR</td><td>Brass bar handle</td><td class="mono-cell">312</td><td class="val-cell">₹1.2L</td><td style="color:var(--sienna-2);font-family:'JetBrains Mono',monospace;font-size:11px;">▼ 22%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SETTINGS PANEL ═══ -->
+  <div class="main-panel" id="panel-settings">
+    <div class="main-inner">
+      <div class="page-h"><div class="left"><div class="sub">System configuration</div><h1>Admin <span class="it">settings</span></h1></div></div>
+      <div class="panel-wrap">
+        <div class="panel-h"><div class="ti" style="font-size:15px;">General</div></div>
+        <div style="padding:20px;">
+          <div style="display:grid;grid-template-columns:200px 1fr;gap:14px 24px;align-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mute);letter-spacing:.1em;text-transform:uppercase;">
+            <span>Build version</span><span style="color:var(--paper)">2026.05.12 · rev 4421</span>
+            <span>Environment</span><span style="color:var(--green)">PRODUCTION · LIVE</span>
+            <span>API latency · P95</span><span style="color:var(--paper)">42 ms</span>
+            <span>Ops owner</span><span style="color:var(--paper)">Ravi Vaidyanathan · RV</span>
+            <span>Factories active</span><span style="color:var(--green)">3 / 3 ONLINE</span>
+            <span>Studios live</span><span style="color:var(--green)">38 / 100 TARGET</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   </main>
 
   <!-- ── STATUS BAR ── -->
@@ -1075,6 +1381,136 @@
   </div>
 
 </div>
+
+<div class="toast" id="adminToast"></div>
+
+<script>
+(function(){
+  const TITLES = {
+    dash:        'Network <span class="it">ops</span> · Dashboard',
+    orders:      'Order <span class="it">pipeline</span>',
+    inventory:   'Studio <span class="it">inventory</span>',
+    logistics:   'Logistics <span class="it">tracker</span>',
+    contractors: 'Contractor <span class="it">network</span>',
+    customers:   'Customer <span class="it">base</span>',
+    analytics:   'Network <span class="it">analytics</span>',
+    settings:    'Admin <span class="it">settings</span>'
+  };
+
+  // Toast
+  let toastTimer;
+  window.toast = function(msg, cls) {
+    const el = document.getElementById('adminToast');
+    el.textContent = msg;
+    el.className = 'toast' + (cls ? ' '+cls : '') + ' show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+  };
+
+  // Rail navigation
+  document.getElementById('rail').addEventListener('click', e => {
+    const btn = e.target.closest('.rail-btn[data-panel]');
+    if (!btn) return;
+    const panel = btn.dataset.panel;
+    // Update active rail button
+    document.querySelectorAll('.rail-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Show panel
+    document.querySelectorAll('.main-panel').forEach(p => p.classList.remove('active'));
+    const panelEl = document.getElementById('panel-' + panel);
+    if (panelEl) panelEl.classList.add('active');
+    // Update view title
+    const titleEl = document.getElementById('viewTitle');
+    if (titleEl && TITLES[panel]) titleEl.innerHTML = TITLES[panel];
+  });
+
+  // Orders filter tabs
+  const orderTabs = document.getElementById('orderTabs');
+  if (orderTabs) {
+    orderTabs.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-filter]');
+      if (!btn) return;
+      orderTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('#ordersTable tbody tr').forEach(row => {
+        if (filter === 'all') { row.style.display = ''; return; }
+        const status = row.dataset.status || '';
+        row.style.display = status.includes(filter) ? '' : 'none';
+      });
+    });
+  }
+
+  // Dashboard time period toggle
+  const dashSeg = document.querySelector('#panel-dash .seg');
+  if (dashSeg) {
+    dashSeg.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      dashSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      toast('SHOWING · ' + btn.textContent + ' DATA');
+    });
+  }
+
+  // Analytics time toggle
+  const analyticsSeg = document.getElementById('analyticsSeg');
+  if (analyticsSeg) {
+    analyticsSeg.addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      analyticsSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      toast('ANALYTICS · ' + btn.textContent + ' PERIOD');
+    });
+  }
+
+  // Pipeline kanban cards
+  document.querySelectorAll('.pipe-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.querySelector('.id')?.textContent || '';
+      const nm = card.querySelector('.nm')?.textContent || '';
+      toast('OPENING ' + id + ' · ' + nm + '…');
+    });
+  });
+
+  // Leaderboard rows
+  document.querySelectorAll('.lb-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const nm = row.querySelector('.lb-nm')?.textContent || '';
+      toast('OPENING PROFILE · ' + nm.toUpperCase());
+    });
+  });
+
+  // Demand signal rows
+  document.querySelectorAll('.demand-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const nm = row.querySelector('.demand-nm')?.textContent || '';
+      toast('DEMAND DETAIL · ' + nm.toUpperCase());
+    });
+  });
+
+  // Search
+  const searchInput = document.querySelector('.topbar .search input');
+  if (searchInput) {
+    searchInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && searchInput.value.trim()) {
+        toast('SEARCHING: ' + searchInput.value.toUpperCase());
+        searchInput.value = '';
+      }
+      if (e.key === 'Escape') searchInput.blur();
+    });
+    // Cmd+K / Ctrl+K focus
+    document.addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+    });
+  }
+})();
+</script>
 
 </body>
 </html>
