@@ -336,14 +336,18 @@ function estimateItemPrice(priceStr) {
 }
 
 /* ── TRUE PERSPECTIVE 3D view — driven by placed items ──────── */
-function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: RD = 2840, roomH: RH = 2400 }) {
+function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: RD = 2840, roomH: RH = 2400, onMoveItem }) {
   const { useState: useS, useCallback: useCB, useMemo: useM, useRef } = React;
   const SVG_W = 620, SVG_H = 440;
   const denom = Math.sqrt(RW * RW + RD * RD);
-  const p = SVG_W * 0.65;
-  const [yaw, setYaw]     = useS(-35);
-  const [pitch, setPitch] = useS(-45);
+  const focalP = SVG_W * 0.65;
+  const [yaw, setYaw]       = useS(-35);
+  const [pitch, setPitch]   = useS(-45);
+  const [selIdx, setSelIdx] = useS(null);
+  const [zoom, setZoom]     = useS(1);
+  const [zoomCtr, setZoomCtr] = useS({ x: SVG_W/2, y: SVG_H/2 });
   const drag = useRef(null);
+  const svgRef = useRef(null);
 
   const project = useCB((wx, wy, wz) => {
     const tx = wx - RW/2, ty = wy - RH*0.42, tz = wz - RD/2;
@@ -352,77 +356,164 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
     const rx = tx*cy + tz*sy, rz = -tx*sy + tz*cy;
     const ry = ty*cp - rz*sp, depth = ty*sp + rz*cp + denom;
     if (depth < 1) return { x: SVG_W/2, y: SVG_H/2, z: -1 };
-    return { x: SVG_W/2 + rx*p/depth, y: SVG_H/2 - ry*p/depth, z: depth };
+    return { x: SVG_W/2 + rx*focalP/depth, y: SVG_H/2 - ry*focalP/depth, z: depth };
   }, [yaw, pitch, RW, RD, RH]);
 
-  const polys = useM(() => {
-    const ps = [];
-    const face = (pts3, fill, stroke='#00000018', sw=0.5) => ps.push({ pts3, fill, stroke, sw });
+  /* item dimensions helper */
+  const itemDims = (item) => {
+    const n = item.name.toLowerCase();
+    const isWall = (n.includes('wall') && n.includes('cabinet')) || n.includes('floating') || n.includes('wall shelf');
+    const isHigh = n.includes('high cabinet') || n.includes('pantry high') || n.includes('wardrobe') || n.includes('frame');
+    const bx = Math.max(0, item.x), bz = Math.max(0, item.y);
+    const bw = Math.max(150, item.w || 600), bd = Math.max(100, item.h || 580);
+    const by0 = isWall ? 1380 : 0;
+    const by1 = isHigh ? 2200 : isWall ? 2100 : 870;
+    return { bx, bz, bw, bd, by0, by1 };
+  };
 
-    // Room shell — floor + back wall + left wall
+  /* item projected center for zoom focus */
+  const itemCenter2D = (item) => {
+    const { bx, bz, bw, bd, by0, by1 } = itemDims(item);
+    return project(bx + bw/2, (by0+by1)/2, bz + bd/2);
+  };
+
+  /* room shell polys (floor + walls) */
+  const shellPolys = useM(() => {
+    const ps = [];
+    const face = (pts3, fill, stroke='#00000018', sw=0.5) => ps.push({ pts3, fill, stroke, sw, itemIdx: null });
     face([[0,0,0],[RW,0,0],[RW,0,RD],[0,0,RD]], '#d8d3c8', '#c4bfb4');
     face([[0,0,0],[RW,0,0],[RW,RH,0],[0,RH,0]], '#edeae4', '#d8d3c8');
     face([[0,0,0],[0,0,RD],[0,RH,RD],[0,RH,0]], '#e8e4dc', '#d8d3c8');
-
     if (items.length === 0) {
-      // Placeholder ghost of a base cabinet run so the room doesn't look empty
       const cf = 'rgba(200,192,176,0.35)';
       face([[0,0,0],[2400,0,0],[2400,870,0],[0,870,0]], cf, '#00000010', 0.3);
       face([[0,870,0],[2400,870,0],[2400,870,580],[0,870,580]], cf, '#00000010', 0.3);
     }
-
-    // Each dropped item as a 3D box
-    items.forEach(item => {
-      const n = item.name.toLowerCase();
-      const isWall = (n.includes('wall') && n.includes('cabinet')) || n.includes('floating') || n.includes('wall shelf');
-      const isHigh = n.includes('high cabinet') || n.includes('pantry high') || n.includes('wardrobe') || n.includes('frame');
-      const bx = Math.max(0, item.x);
-      const bz = Math.max(0, item.y);
-      const bw = Math.max(150, item.w || 600);
-      const bd = Math.max(100, item.h || 580);
-      let by0, by1;
-      if (isHigh)      { by0 = 0; by1 = 2200; }
-      else if (isWall) { by0 = 1380; by1 = 2100; }
-      else             { by0 = 0; by1 = 870; }
-      const fc = item.color || '#c8c0b0';
-      // Front face (door side, toward room center)
-      face([[bx,by0,bz+bd],[bx+bw,by0,bz+bd],[bx+bw,by1,bz+bd],[bx,by1,bz+bd]], fc, '#00000022', 1.2);
-      // Back face (against wall)
-      face([[bx,by0,bz],[bx+bw,by0,bz],[bx+bw,by1,bz],[bx,by1,bz]], fc, '#00000015', 0.5);
-      // Top face
-      face([[bx,by1,bz],[bx+bw,by1,bz],[bx+bw,by1,bz+bd],[bx,by1,bz+bd]], fc, '#00000012', 0.4);
-      // Right side
-      face([[bx+bw,by0,bz],[bx+bw,by0,bz+bd],[bx+bw,by1,bz+bd],[bx+bw,by1,bz]], fc, '#00000030', 0.5);
-      // Left side
-      face([[bx,by0,bz],[bx,by0,bz+bd],[bx,by1,bz+bd],[bx,by1,bz]], fc, '#00000028', 0.5);
-    });
-
     return ps;
-  }, [yaw, pitch, accent, items, RW, RD, RH]);
+  }, [items.length, RW, RD, RH]);
 
-  const projected = useM(() =>
-    polys.map(poly => {
+  /* item polys grouped by index */
+  const allItemPolys = useM(() =>
+    items.map((item, idx) => {
+      const { bx, bz, bw, bd, by0, by1 } = itemDims(item);
+      const fc = item.color || '#c8c0b0';
+      const sel = idx === selIdx;
+      const hi = sel ? '#fff' : '#00000022';
+      const sw = sel ? 2 : 1.2;
+      return [
+        { pts3:[[bx,by0,bz+bd],[bx+bw,by0,bz+bd],[bx+bw,by1,bz+bd],[bx,by1,bz+bd]], fill:fc, stroke:hi, sw, itemIdx:idx },
+        { pts3:[[bx,by0,bz],[bx+bw,by0,bz],[bx+bw,by1,bz],[bx,by1,bz]],               fill:fc, stroke:'#00000015', sw:0.5, itemIdx:idx },
+        { pts3:[[bx,by1,bz],[bx+bw,by1,bz],[bx+bw,by1,bz+bd],[bx,by1,bz+bd]],          fill:fc, stroke:'#00000012', sw:0.4, itemIdx:idx },
+        { pts3:[[bx+bw,by0,bz],[bx+bw,by0,bz+bd],[bx+bw,by1,bz+bd],[bx+bw,by1,bz]],   fill:fc, stroke:'#00000030', sw:0.5, itemIdx:idx },
+        { pts3:[[bx,by0,bz],[bx,by0,bz+bd],[bx,by1,bz+bd],[bx,by1,bz]],                fill:fc, stroke:'#00000028', sw:0.5, itemIdx:idx },
+      ];
+    })
+  , [items, selIdx]);
+
+  /* project + sort all polys together for painter's algorithm */
+  const projected = useM(() => {
+    const all = [...shellPolys, ...allItemPolys.flat()].map(poly => {
       const pts2 = poly.pts3.map(([wx,wy,wz]) => project(wx,wy,wz));
-      const avgZ = pts2.reduce((s,p2) => s+p2.z,0)/pts2.length;
-      const ptsStr = pts2.map(p2=>`${p2.x.toFixed(1)},${p2.y.toFixed(1)}`).join(' ');
+      const avgZ = pts2.reduce((s,p2) => s+p2.z, 0) / pts2.length;
+      const ptsStr = pts2.map(p2 => `${p2.x.toFixed(1)},${p2.y.toFixed(1)}`).join(' ');
       return { ...poly, avgZ, ptsStr };
-    }).sort((a,b) => b.avgZ - a.avgZ)
-  , [polys, project]);
+    });
+    return all.sort((a,b) => b.avgZ - a.avgZ);
+  }, [shellPolys, allItemPolys, project]);
+
+  /* zoom SVG transform: center view on selected item */
+  const gTransform = selIdx !== null
+    ? `translate(${(SVG_W/2 - zoomCtr.x * zoom).toFixed(1)} ${(SVG_H/2 - zoomCtr.y * zoom).toFixed(1)}) scale(${zoom})`
+    : '';
+
+  /* mouse handlers */
+  const onDown = (e, clickedItemIdx = null) => {
+    e.stopPropagation();
+    if (clickedItemIdx !== null) {
+      const item = items[clickedItemIdx];
+      const c2 = itemCenter2D(item);
+      setSelIdx(clickedItemIdx);
+      setZoomCtr({ x: c2.x, y: c2.y });
+      setZoom(2);
+      drag.current = { type: 'move', idx: clickedItemIdx, ox: item.x, oy: item.y, depth: c2.z };
+    } else {
+      if (selIdx !== null) { setSelIdx(null); setZoom(1); drag.current = null; return; }
+      drag.current = { type: 'rotate', sx: e.clientX, sy: e.clientY, y0: yaw, p0: pitch };
+    }
+  };
+
+  const onMove = (e) => {
+    if (!drag.current) return;
+    if (drag.current.type === 'rotate') {
+      setYaw(drag.current.y0 + (e.clientX - drag.current.sx) * 0.4);
+      setPitch(Math.max(-80, Math.min(80, drag.current.p0 - (e.clientY - drag.current.sy) * 0.25)));
+    } else if (drag.current.type === 'move' && onMoveItem) {
+      const rect = svgRef.current ? svgRef.current.getBoundingClientRect() : { width: SVG_W, height: SVG_H };
+      const svgScale = SVG_W / rect.width;
+      const dmx = e.movementX * svgScale / zoom;
+      const dmy = e.movementY * svgScale / zoom;
+      const cy_ = Math.cos(yaw * Math.PI/180), sy_ = Math.sin(yaw * Math.PI/180);
+      const sp  = Math.sin(pitch * Math.PI/180);
+      const depth = Math.max(1, drag.current.depth);
+      const perspScale = depth / focalP;
+      const drx = dmx * perspScale;
+      const drz = Math.abs(sp) > 0.15 ? (dmy * perspScale / sp) : 0;
+      const dwx = drx * cy_ - drz * sy_;
+      const dwz = drx * sy_ + drz * cy_;
+      const newX = drag.current.ox + dwx;
+      const newY = drag.current.oy + dwz;
+      drag.current.ox = newX;
+      drag.current.oy = newY;
+      onMoveItem(drag.current.idx, { x: newX, y: newY });
+      /* keep zoom centered on updated item position */
+      const item = items[drag.current.idx];
+      if (item) {
+        const c2 = project(newX + (item.w||600)/2, (itemDims(item).by0+itemDims(item).by1)/2, newY + (item.h||580)/2);
+        setZoomCtr({ x: c2.x, y: c2.y });
+      }
+    }
+  };
+
+  const onUp = () => { drag.current = null; };
+
+  const confirmMove = (e) => {
+    e.stopPropagation();
+    setSelIdx(null);
+    setZoom(1);
+  };
 
   return (
-    <svg viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-      style={{ width:'100%', height:'100%', display:'block', cursor:'grab', userSelect:'none' }}
-      onMouseDown={e => { drag.current = { sx:e.clientX, sy:e.clientY, y0:yaw, p0:pitch }; }}
-      onMouseMove={e => { if(!drag.current) return; setYaw(drag.current.y0+(e.clientX-drag.current.sx)*0.4); setPitch(Math.max(15,Math.min(80,drag.current.p0-(e.clientY-drag.current.sy)*0.25))); }}
-      onMouseUp={() => { drag.current=null; }} onMouseLeave={() => { drag.current=null; }}>
-      <rect width={SVG_W} height={SVG_H} fill={pBg}/>
-      {projected.map((poly,i) => poly.avgZ > 0 && (
-        <polygon key={i} points={poly.ptsStr} fill={poly.fill} stroke={poly.stroke} strokeWidth={poly.sw}/>
-      ))}
-      <text x={12} y={SVG_H-12} fill={pMute} fontSize="9" fontFamily="JetBrains Mono,monospace" style={{pointerEvents:'none'}}>
-        3D PERSPECTIVE · drag to rotate
-      </text>
-    </svg>
+    <div style={{ position:'relative', width:'100%', height:'100%' }}>
+      <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+        style={{ width:'100%', height:'100%', display:'block', userSelect:'none',
+          cursor: selIdx !== null ? 'move' : 'grab' }}
+        onMouseDown={e => onDown(e, null)}
+        onMouseMove={onMove}
+        onMouseUp={onUp}
+        onMouseLeave={onUp}>
+        <rect width={SVG_W} height={SVG_H} fill={pBg} />
+        <g transform={gTransform}>
+          {projected.map((poly, i) => poly.avgZ > 0 && (
+            <polygon key={i} points={poly.ptsStr} fill={poly.fill} stroke={poly.stroke} strokeWidth={poly.sw}
+              style={{ cursor: poly.itemIdx !== null ? 'move' : 'default' }}
+              onMouseDown={poly.itemIdx !== null ? e => onDown(e, poly.itemIdx) : undefined} />
+          ))}
+        </g>
+        <text x={12} y={SVG_H-12} fill={pMute} fontSize="9" fontFamily="JetBrains Mono,monospace" style={{ pointerEvents:'none' }}>
+          {selIdx !== null ? `3D · drag to move · click ✓ to confirm` : '3D PERSPECTIVE · drag to rotate · click item to select'}
+        </text>
+      </svg>
+
+      {/* Confirm button when item selected */}
+      {selIdx !== null && (
+        <button onMouseDown={confirmMove}
+          style={{ position:'absolute', top:12, right:12, padding:'7px 16px', borderRadius:8,
+            background:'#1a1815', color:'#fff', border:'1px solid rgba(255,255,255,0.15)',
+            fontSize:12, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>
+          ✓ Done
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -1568,7 +1659,7 @@ function PlannerFrontend({ accent = pAccent }) {
             }}>
               {view === '2D plan'   && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} roomW={roomW} roomD={roomD} />}
               {view === 'Elevation' && <KitchenElevation accent={accent} items={placedItems} roomW={roomW} roomH={roomH} />}
-              {view === '3D walk'   && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH} />}
+              {view === '3D walk'   && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH} onMoveItem={(idx, pos) => setPlacedItems(prev => prev.map((it, i) => i === idx ? { ...it, x: pos.x, y: pos.y } : it))} />}
             </div>
           </div>
 
