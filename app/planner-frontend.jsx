@@ -1179,10 +1179,11 @@ function computeBOM(roomW, roomD, layout, finish) {
 /* ─── QUOTE MODAL ──────────────────────────────────────────── */
 function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, onSubmit, onClose }) {
   const { useState: useS } = React;
-  const [name, setName]   = useS('');
-  const [phone, setPhone] = useS('');
-  const [city, setCity]   = useS('');
-  const [notes, setNotes] = useS('');
+  const [name, setName]     = useS('');
+  const [phone, setPhone]   = useS('');
+  const [city, setCity]     = useS('');
+  const [notes, setNotes]   = useS('');
+  const [payOpt, setPayOpt] = useS('visit');
   const fmt = n => '₹ ' + n.toLocaleString('en-IN');
   const ok  = name.trim().length > 0;
   return (
@@ -1233,33 +1234,61 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
               fontSize:13, fontFamily:'"Inter Tight",sans-serif', color:pInk, background:pBg, outline:'none', resize:'vertical', boxSizing:'border-box',
             }} />
           </div>
-          {/* Payment option */}
-          <div style={{ marginBottom:20, padding:'14px 16px', border:`1px solid ${pLine}`, borderRadius:8, background:'#fafaf7' }}>
-            <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:10 }}>Booking fee</div>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
-              <div>
-                <div style={{ fontSize:13, fontWeight:600, color:pInk }}>Designer site visit</div>
-                <div style={{ fontSize:11, color:pMute }}>Refundable on order confirmation</div>
-              </div>
-              <div style={{ fontSize:15, fontWeight:700, color:pInk }}>₹ 999</div>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-              {['Pay online (UPI / Card / Net banking)', 'Pay on visit (cash / UPI)'].map((opt, i) => (
-                <label key={i} style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:pInk, cursor:'pointer' }}>
-                  <input type="radio" name="paymode" defaultChecked={i===0} style={{ accentColor:'#c96442' }} />
-                  {opt}
-                </label>
-              ))}
+          {/* Confirmation options */}
+          <div style={{ marginBottom:20 }}>
+            <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:10 }}>How would you like to proceed?</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+
+              {/* Option 1 — Designer visit */}
+              <label style={{ cursor:'pointer' }}>
+                <input type="radio" name="payopt" value="visit" checked={payOpt==='visit'} onChange={() => setPayOpt('visit')} style={{ display:'none' }} />
+                <div style={{ padding:'14px 16px', border:`2px solid ${payOpt==='visit' ? '#c96442' : pLine}`, borderRadius:8, background: payOpt==='visit' ? 'rgba(201,100,66,0.04)' : '#fafaf7', transition:'all 0.15s' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:6 }}>
+                    <div>
+                      <div style={{ fontSize:13, fontWeight:700, color:pInk }}>Book a designer site visit</div>
+                      <div style={{ fontSize:11, color:pMute, marginTop:2 }}>Our designer visits your premises · ₹999 refundable on order confirmation</div>
+                    </div>
+                    <div style={{ fontSize:14, fontWeight:700, color:'#c96442', marginLeft:12, flexShrink:0 }}>₹ 999</div>
+                  </div>
+                  {payOpt === 'visit' && (
+                    <div style={{ display:'flex', flexDirection:'column', gap:5, marginTop:8, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
+                      {['Pay online (UPI / Card / Net banking)', 'Pay on visit (cash / UPI)'].map((opt, i) => (
+                        <label key={i} style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:pInk, cursor:'pointer' }}>
+                          <input type="radio" name="paymode" defaultChecked={i===0} style={{ accentColor:'#c96442' }} />
+                          {opt}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </label>
+
+              {/* Option 2 — 70% advance */}
+              <label style={{ cursor:'pointer' }}>
+                <input type="radio" name="payopt" value="advance" checked={payOpt==='advance'} onChange={() => setPayOpt('advance')} style={{ display:'none' }} />
+                <div style={{ padding:'14px 16px', border:`2px solid ${payOpt==='advance' ? '#c96442' : pLine}`, borderRadius:8, background: payOpt==='advance' ? 'rgba(201,100,66,0.04)' : '#fafaf7', transition:'all 0.15s' }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                    <div>
+                      <div style={{ fontSize:13, fontWeight:700, color:pInk }}>Pay 70% advance &amp; confirm order</div>
+                      <div style={{ fontSize:11, color:pMute, marginTop:2 }}>Skip site visit · We verify &amp; dispatch your BOQ to the fabrication team</div>
+                    </div>
+                    <div style={{ fontSize:14, fontWeight:700, color:'#c96442', marginLeft:12, flexShrink:0 }}>70% of {total ? '₹ '+Number(total).toLocaleString('en-IN') : 'total'}</div>
+                  </div>
+                </div>
+              </label>
+
             </div>
           </div>
           <div style={{ display:'flex', gap:10 }}>
-            <button disabled={!ok} onClick={() => ok && onSubmit({ customerName:name, customerPhone:phone, customerCity:city, notes })} style={{
+            <button disabled={!ok} onClick={() => ok && onSubmit({ customerName:name, customerPhone:phone, customerCity:city, notes, payOpt })} style={{
               flex:1, ...pStyles.primaryBtn, padding:'13px', borderRadius:8, border:'none',
               opacity:ok?1:0.4, cursor:ok?'pointer':'not-allowed', fontSize:13,
-            }}>Confirm &amp; Book Designer →</button>
+            }}>{payOpt==='visit' ? 'Confirm & Book Designer →' : 'Confirm & Pay Advance →'}</button>
             <button onClick={onClose} style={{ ...pStyles.pillBtn, padding:'13px 16px', borderRadius:8, cursor:'pointer', fontSize:13 }}>Cancel</button>
           </div>
-          <div style={{ fontSize:11, color:pMute, marginTop:10, textAlign:'center' }}>Our designer will visit your premises within 24 hours of booking.</div>
+          <div style={{ fontSize:11, color:pMute, marginTop:10, textAlign:'center' }}>
+            {payOpt==='visit' ? 'Our designer will visit your premises within 24–48 hours of booking.' : 'Our team will verify your BOQ and confirm dispatch within 24–48 hours.'}
+          </div>
         </div>
       </div>
     </div>
