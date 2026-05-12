@@ -49,11 +49,121 @@ function KreoboxWordmark({ size = 18, color = pInk }) {
   );
 }
 
+/* ── Item Modify Panel ─────────────────────────────────────── */
+const DOOR_FINISHES = [
+  { name:'Bali Oak',       color:'#c8b89a' },
+  { name:'Bone Matte',     color:'#e8e4dc' },
+  { name:'Espresso',       color:'#2e2822' },
+  { name:'Sand Grey',      color:'#b8af9e' },
+  { name:'Graphite',       color:'#424250' },
+  { name:'Nat. Walnut',    color:'#a07850' },
+  { name:'Sage Green',     color:'#7a9e7e' },
+];
+const HANDLE_TYPES = ['Push-to-open', 'Bar handle', 'Cup pull', 'T-bar', 'Recessed'];
+const WORKTOP_TYPES = ['Quartz White', 'Quartz Calacatta', 'Laminate Oak', 'Laminate Concrete', 'Solid Walnut'];
+
+function ItemModifyPanel({ item, onUpdate, onDuplicate, onDelete, onClose }) {
+  const { useState: useS } = React;
+  const isBase = item.name && item.name.toLowerCase().includes('base');
+  const dims = item.w && item.h ? `${Math.round(item.w)}×600×${Math.round(item.h)} mm` : '';
+  const code = 'KBX-' + item.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,5);
+
+  const SECTIONS = [
+    { label:'Door finish', key:'doorFinish', options: DOOR_FINISHES.map(d => d.name) },
+    { label:'Handle', key:'handle', options: HANDLE_TYPES },
+    ...(isBase ? [{ label:'Worktop', key:'worktop', options: WORKTOP_TYPES }] : []),
+  ];
+
+  const iconBtn = (label, icon, onClick, danger) => (
+    <button onClick={onClick} style={{
+      display:'flex', flexDirection:'column', alignItems:'center', gap:4,
+      padding:'8px 10px', border:`1px solid ${danger ? '#e05050' : pLine}`,
+      borderRadius:8, background:'transparent', cursor:'pointer',
+      color: danger ? '#e05050' : pMute, fontSize:9, fontWeight:700,
+      fontFamily:'JetBrains Mono,monospace', letterSpacing:'0.06em',
+    }}>
+      <span style={{ fontSize:16 }}>{icon}</span>
+      {label}
+    </button>
+  );
+
+  return (
+    <div style={{
+      position:'absolute', top:0, right:0, bottom:0, width:260, zIndex:20,
+      background:pPaper, borderLeft:`1px solid ${pLine}`,
+      display:'flex', flexDirection:'column', overflowY:'auto',
+      boxShadow:'-8px 0 32px rgba(0,0,0,0.08)',
+    }}>
+      {/* Header */}
+      <div style={{ padding:'14px 16px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+          <div>
+            <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', fontWeight:700, letterSpacing:'0.16em', color:pMute, marginBottom:3 }}>{code}</div>
+            <div style={{ fontFamily:'Fraunces,serif', fontSize:15, fontWeight:400, lineHeight:1.25, color:pInk }}>{item.name}</div>
+            {item.variant && <div style={{ fontSize:10, color:pMute, marginTop:3 }}>{item.variant}</div>}
+            {dims && <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', color:pMute, marginTop:2 }}>{dims}</div>}
+          </div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:pMute, fontSize:18, lineHeight:1, padding:0 }}>×</button>
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <div style={{ padding:'12px 16px', borderBottom:`1px solid ${pLine}`, display:'flex', gap:6, flexWrap:'wrap', flexShrink:0 }}>
+        {iconBtn('Duplicate', '⧉', onDuplicate)}
+        {iconBtn('Remove', '🗑', onDelete, true)}
+      </div>
+
+      {/* Customisation sections */}
+      <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:16 }}>
+        {SECTIONS.map(sec => (
+          <div key={sec.key}>
+            <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>
+              {sec.label}
+            </div>
+            {sec.key === 'doorFinish' ? (
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                {DOOR_FINISHES.map(df => (
+                  <div key={df.name} onClick={() => onUpdate({ doorFinish: df.name })}
+                    title={df.name}
+                    style={{
+                      width:28, height:28, borderRadius:6, background:df.color, cursor:'pointer',
+                      border: item.doorFinish === df.name ? `2px solid ${pAccent}` : `2px solid transparent`,
+                      boxShadow: item.doorFinish === df.name ? `0 0 0 1px ${pAccent}` : 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                    }} />
+                ))}
+              </div>
+            ) : (
+              <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
+                {sec.options.map(opt => (
+                  <button key={opt} onClick={() => onUpdate({ [sec.key]: opt })} style={{
+                    padding:'4px 8px', borderRadius:5, fontSize:10, fontWeight:600, cursor:'pointer',
+                    border: `1px solid ${item[sec.key] === opt ? pAccent : pLine}`,
+                    background: item[sec.key] === opt ? 'rgba(201,100,66,0.08)' : 'transparent',
+                    color: item[sec.key] === opt ? pAccent : pMute,
+                  }}>{opt}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Price */}
+      {item.price && (
+        <div style={{ marginTop:'auto', padding:'14px 16px', borderTop:`1px solid ${pLine}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <span style={{ fontSize:11, color:pMute }}>Unit price</span>
+          <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:13, fontWeight:700, color:pInk }}>{item.price}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── 2D top-down kitchen plan (blank canvas, drag-and-drop) ── */
-function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], roomElements = [], onDrop, onItemMove, onItemDelete, roomW: ROOM_W = 3800, roomD: ROOM_D = 2840 }) {
+function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], roomElements = [], onDrop, onItemMove, onItemDelete, onItemSelect, selectedItemId, roomW: ROOM_W = 3800, roomD: ROOM_D = 2840 }) {
   const { useState: useS, useRef } = React;
   const svgRef = useRef(null);
-  const [drag, setDrag] = useS(null); // { id, startSX, startSY, origX, origY }
+  const [drag, setDrag] = useS(null); // { id, startSX, startSY, origX, origY, moved }
 
   const SVG_W = 480, SVG_H = 380;
   const PX = 48, PY = 44, PW = 390, PH = 292;
@@ -81,7 +191,7 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], roo
   const handleItemDown = (e, item) => {
     e.stopPropagation();
     const { sx, sy } = svgXY(e);
-    setDrag({ id: item.id, startSX: sx, startSY: sy, origX: item.x, origY: item.y });
+    setDrag({ id: item.id, startSX: sx, startSY: sy, origX: item.x, origY: item.y, moved: false });
   };
 
   const handleMouseMove = e => {
@@ -89,7 +199,17 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], roo
     const { sx, sy } = svgXY(e);
     const dx = (sx - drag.startSX) * ROOM_W / PW;
     const dy = (sy - drag.startSY) * ROOM_D / PH;
-    onItemMove && onItemMove(drag.id, drag.origX + dx, drag.origY + dy);
+    if (Math.abs(sx - drag.startSX) > 3 || Math.abs(sy - drag.startSY) > 3) {
+      setDrag(d => ({ ...d, moved: true }));
+      onItemMove && onItemMove(drag.id, drag.origX + dx, drag.origY + dy);
+    }
+  };
+
+  const handleMouseUp = (e) => {
+    if (drag && !drag.moved) {
+      onItemSelect && onItemSelect(drag.id === selectedItemId ? null : drag.id);
+    }
+    setDrag(null);
   };
 
   const dimColor = pMute;
@@ -100,8 +220,9 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], roo
         onDrop={handleDrop}
         onDragOver={e => e.preventDefault()}
         onMouseMove={handleMouseMove}
-        onMouseUp={() => setDrag(null)}
+        onMouseUp={handleMouseUp}
         onMouseLeave={() => setDrag(null)}
+        onClick={() => onItemSelect && onItemSelect(null)}
       >
         <defs>
           <pattern id="grid"       width="20"  height="20"  patternUnits="userSpaceOnUse"><path d="M20 0 L0 0 0 20" fill="none" stroke="rgba(26,24,21,0.06)" strokeWidth="1"/></pattern>
@@ -177,13 +298,15 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], roo
           const sw = Math.max(8, r2sw(item.w));
           const sh = Math.max(6, r2sh(item.h));
           const isActive = drag?.id === item.id;
+          const isSelected = selectedItemId === item.id;
           return (
             <g key={item.id} onMouseDown={e => handleItemDown(e, item)}
               style={{ cursor: isActive ? 'grabbing' : 'grab' }}>
+              {isSelected && <rect x={sp.x-2} y={sp.y-2} width={sw+4} height={sh+4} fill="none" stroke={accent} strokeWidth={2} rx={3} strokeDasharray="4 2" />}
               <rect x={sp.x} y={sp.y} width={sw} height={sh}
-                fill={item.color} fillOpacity={0.88}
-                stroke={isActive ? accent : 'rgba(26,24,21,0.4)'}
-                strokeWidth={isActive ? 2 : 1} rx={1}/>
+                fill={item.color} fillOpacity={isSelected ? 1 : 0.88}
+                stroke={isActive ? accent : isSelected ? accent : 'rgba(26,24,21,0.4)'}
+                strokeWidth={isActive || isSelected ? 2 : 1} rx={1}/>
               {sw > 18 && sh > 10 && (
                 <>
                   <line x1={sp.x+sw*0.2} y1={sp.y+sh/2} x2={sp.x+sw*0.8} y2={sp.y+sh/2}
@@ -198,10 +321,6 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], roo
                   </text>
                 </>
               )}
-              {/* delete ×  */}
-              <text x={sp.x+sw-3} y={sp.y+7} fill={accent} fontSize={8} fontWeight="800"
-                style={{ cursor:'pointer' }}
-                onClick={e => { e.stopPropagation(); onItemDelete && onItemDelete(item.id); }}>×</text>
             </g>
           );
         })}
@@ -1689,6 +1808,18 @@ function PlannerFrontend({ accent = pAccent }) {
   const [catalogTab, setCatalogTab] = useS('base');
   const [placedItems, setPlacedItems] = useS([]);
   const [roomElements, setRoomElements] = useS([]);
+  const [selectedItemId, setSelectedItemId] = useS(null);
+
+  const handleItemUpdate = (id, updates) => {
+    setPlacedItems(prev => prev.map(it => it.id === id ? { ...it, ...updates } : it));
+  };
+  const handleItemDuplicate = (id) => {
+    const src = placedItems.find(it => it.id === id);
+    if (!src) return;
+    const newId = `item-${Date.now()}-dup`;
+    setPlacedItems(prev => [...prev, { ...src, id: newId, x: src.x + 200, y: src.y + 100 }]);
+    setSelectedItemId(newId);
+  };
 
   // roomItems is always derived from placedItems — single source of truth
   const roomItems = useM(() => {
@@ -1909,14 +2040,27 @@ function PlannerFrontend({ accent = pAccent }) {
           )}
           <div style={{ flex:1, padding:24, display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setEditDim(false)}>
             <div style={{
-              width:'100%', maxWidth: view === '3D walk' ? 800 : 700,
+              width:'100%', maxWidth: view === '3D walk' ? 800 : view === '2D plan' && selectedItemId ? 960 : 700,
               aspectRatio: view === '3D walk' ? '620 / 440' : view === 'Room setup' ? '560 / 400' : '480 / 380',
               background: view === '3D walk' ? pBg : pPaper,
               borderRadius:12, border:`1px solid ${pLine}`,
               boxShadow:'0 30px 80px -30px rgba(0,0,0,0.18)', overflow:'hidden',
+              position:'relative',
             }}>
               {view === 'Room setup' && <RoomSetupView roomW={roomW} roomD={roomD} elements={roomElements} onAdd={el => setRoomElements(prev => [...prev, el])} onRemove={id => setRoomElements(prev => prev.filter(e => e.id !== id))} onMove={(id, x, y) => setRoomElements(prev => prev.map(e => e.id === id ? { ...e, x, y } : e))} />}
-              {view === '2D plan'    && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} roomElements={roomElements} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} roomW={roomW} roomD={roomD} />}
+              {view === '2D plan'    && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} roomElements={roomElements} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} onItemSelect={setSelectedItemId} selectedItemId={selectedItemId} roomW={roomW} roomD={roomD} />}
+              {view === '2D plan' && selectedItemId && (() => {
+                const item = placedItems.find(it => it.id === selectedItemId);
+                return item ? (
+                  <ItemModifyPanel
+                    item={item}
+                    onUpdate={u => handleItemUpdate(selectedItemId, u)}
+                    onDuplicate={() => handleItemDuplicate(selectedItemId)}
+                    onDelete={() => { handleItemDelete2D(selectedItemId); setSelectedItemId(null); }}
+                    onClose={() => setSelectedItemId(null)}
+                  />
+                ) : null;
+              })()}
               {view === 'Elevation'  && <KitchenElevation accent={accent} items={placedItems} roomW={roomW} roomH={roomH} />}
               {view === '3D walk'    && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH} onMoveItem={(idx, pos) => setPlacedItems(prev => prev.map((it, i) => i === idx ? { ...it, x: pos.x, y: pos.y } : it))} />}
             </div>
