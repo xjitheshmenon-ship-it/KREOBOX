@@ -559,9 +559,11 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
 }
 
 /* ── Room Setup View ───────────────────────────────────────── */
-function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRemove }) {
+function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRemove, onMove }) {
   const { useState: useS, useRef } = React;
   const [tool, setTool] = useS('door');
+  const [dragState, setDragState] = useS(null); // { id, startMx, startMy, startElX, startElY }
+  const [hoverId, setHoverId] = useS(null);
   const svgRef = useRef(null);
 
   const TOOLS = [
@@ -579,10 +581,17 @@ function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRem
   const ox = (VW - roomW * sc) / 2;
   const oy = (VH - roomD * sc) / 2;
 
-  const handleSvgClick = (e) => {
+  const svgCoords = (e) => {
     const rect = svgRef.current.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) / rect.width * VW;
-    const my = (e.clientY - rect.top)  / rect.height * VH;
+    return {
+      mx: (e.clientX - rect.left) / rect.width * VW,
+      my: (e.clientY - rect.top)  / rect.height * VH,
+    };
+  };
+
+  const handleSvgMouseDown = (e) => {
+    if (e.button !== 0) return;
+    const { mx, my } = svgCoords(e);
     const rx = (mx - ox) / sc;
     const ry = (my - oy) / sc;
     if (rx < 0 || ry < 0 || rx > roomW || ry > roomD) return;
@@ -590,53 +599,96 @@ function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRem
     onAdd && onAdd(newEl);
   };
 
+  const handleElMouseDown = (e, el) => {
+    e.stopPropagation();
+    if (e.button !== 0) return;
+    const { mx, my } = svgCoords(e);
+    setDragState({ id: el.id, startMx: mx, startMy: my, startElX: el.x, startElY: el.y });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!dragState) return;
+    const { mx, my } = svgCoords(e);
+    const dx = (mx - dragState.startMx) / sc;
+    const dy = (my - dragState.startMy) / sc;
+    const newX = Math.max(0, Math.min(roomW, dragState.startElX + dx));
+    const newY = Math.max(0, Math.min(roomD, dragState.startElY + dy));
+    onMove && onMove(dragState.id, newX, newY);
+  };
+
+  const handleMouseUp = () => setDragState(null);
+
   const renderEl = (el) => {
     const x = ox + el.x * sc, y = oy + el.y * sc;
     const w = el.w * sc, d = (el.d || 200) * sc;
+    const isHovered = hoverId === el.id;
+    const isDragging = dragState?.id === el.id;
+    const baseProps = {
+      key: el.id,
+      style: { cursor: isDragging ? 'grabbing' : 'grab' },
+      onMouseDown: e => handleElMouseDown(e, el),
+      onMouseEnter: () => setHoverId(el.id),
+      onMouseLeave: () => setHoverId(null),
+    };
+    const deleteBtn = isHovered && (
+      <g onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
+        <circle cx={x + w/2} cy={y - d/2 - 8} r={8} fill="#e05050" />
+        <text x={x + w/2} y={y - d/2 - 4} textAnchor="middle" fontSize={10} fill="#fff" style={{ pointerEvents:'none' }}>×</text>
+      </g>
+    );
+
     if (el.type === 'door') {
       const r = el.w * sc;
       return (
-        <g key={el.id} onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
-          <rect x={x} y={y - d/2} width={w} height={d} fill="rgba(201,100,66,0.15)" stroke="#c96442" strokeWidth={1.5} />
-          <path d={`M ${x} ${y} A ${r*0.6} ${r*0.6} 0 0 1 ${x + r*0.6} ${y}`} fill="none" stroke="#c96442" strokeWidth={1} strokeDasharray="3 2" />
-          <text x={x + w/2} y={y + 4} textAnchor="middle" fontSize={8} fill="#c96442" fontFamily="JetBrains Mono,monospace">DOOR</text>
+        <g {...baseProps}>
+          <rect x={x} y={y - d/2} width={w} height={d} fill={isHovered ? 'rgba(201,100,66,0.25)' : 'rgba(201,100,66,0.15)'} stroke="#c96442" strokeWidth={isDragging ? 2 : 1.5} />
+          <path d={`M ${x} ${y} A ${r*0.6} ${r*0.6} 0 0 1 ${x + r*0.6} ${y}`} fill="none" stroke="#c96442" strokeWidth={1} strokeDasharray="3 2" style={{ pointerEvents:'none' }} />
+          <text x={x + w/2} y={y + 4} textAnchor="middle" fontSize={8} fill="#c96442" fontFamily="JetBrains Mono,monospace" style={{ pointerEvents:'none' }}>DOOR</text>
+          {deleteBtn}
         </g>
       );
     }
     if (el.type === 'window') {
       return (
-        <g key={el.id} onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
-          <rect x={x} y={y - d/2} width={w} height={d} fill="rgba(91,141,239,0.18)" stroke="#5b8def" strokeWidth={1.5} />
-          <line x1={x + w/3} y1={y - d/2} x2={x + w/3} y2={y + d/2} stroke="#5b8def" strokeWidth={1} />
-          <line x1={x + 2*w/3} y1={y - d/2} x2={x + 2*w/3} y2={y + d/2} stroke="#5b8def" strokeWidth={1} />
-          <text x={x + w/2} y={y + 4} textAnchor="middle" fontSize={8} fill="#5b8def" fontFamily="JetBrains Mono,monospace">WIN</text>
+        <g {...baseProps}>
+          <rect x={x} y={y - d/2} width={w} height={d} fill={isHovered ? 'rgba(91,141,239,0.28)' : 'rgba(91,141,239,0.18)'} stroke="#5b8def" strokeWidth={isDragging ? 2 : 1.5} />
+          <line x1={x + w/3} y1={y - d/2} x2={x + w/3} y2={y + d/2} stroke="#5b8def" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          <line x1={x + 2*w/3} y1={y - d/2} x2={x + 2*w/3} y2={y + d/2} stroke="#5b8def" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          <text x={x + w/2} y={y + 4} textAnchor="middle" fontSize={8} fill="#5b8def" fontFamily="JetBrains Mono,monospace" style={{ pointerEvents:'none' }}>WIN</text>
+          {deleteBtn}
         </g>
       );
     }
     if (el.type === 'pillar') {
       return (
-        <g key={el.id} onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
-          <rect x={x - w/2} y={y - d/2} width={w} height={d} fill="rgba(136,136,136,0.25)" stroke="#888" strokeWidth={1.5} />
-          <line x1={x - w/2} y1={y - d/2} x2={x + w/2} y2={y + d/2} stroke="#888" strokeWidth={1} />
-          <line x1={x + w/2} y1={y - d/2} x2={x - w/2} y2={y + d/2} stroke="#888" strokeWidth={1} />
+        <g {...baseProps}>
+          <rect x={x - w/2} y={y - d/2} width={w} height={d} fill={isHovered ? 'rgba(136,136,136,0.4)' : 'rgba(136,136,136,0.25)'} stroke="#888" strokeWidth={isDragging ? 2 : 1.5} />
+          <line x1={x - w/2} y1={y - d/2} x2={x + w/2} y2={y + d/2} stroke="#888" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          <line x1={x + w/2} y1={y - d/2} x2={x - w/2} y2={y + d/2} stroke="#888" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          {isHovered && <circle cx={x + w/2} cy={y - d/2 - 8} r={8} fill="#e05050" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }} />}
+          {isHovered && <text x={x + w/2} y={y - d/2 - 4} textAnchor="middle" fontSize={10} fill="#fff" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer', pointerEvents:'all' }}>×</text>}
         </g>
       );
     }
     if (el.type === 'electrical') {
       return (
-        <g key={el.id} onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
-          <circle cx={x} cy={y} r={10} fill="rgba(240,192,64,0.2)" stroke="#f0c040" strokeWidth={1.5} />
-          <text x={x} y={y+4} textAnchor="middle" fontSize={10} fill="#f0c040">E</text>
+        <g {...baseProps}>
+          <circle cx={x} cy={y} r={10} fill={isHovered ? 'rgba(240,192,64,0.35)' : 'rgba(240,192,64,0.2)'} stroke="#f0c040" strokeWidth={isDragging ? 2 : 1.5} />
+          <text x={x} y={y+4} textAnchor="middle" fontSize={10} fill="#f0c040" style={{ pointerEvents:'none' }}>E</text>
+          {isHovered && <circle cx={x+10} cy={y-10} r={7} fill="#e05050" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }} />}
+          {isHovered && <text x={x+10} y={y-6} textAnchor="middle" fontSize={9} fill="#fff" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer', pointerEvents:'all' }}>×</text>}
         </g>
       );
     }
     if (el.type === 'ventilation') {
       return (
-        <g key={el.id} onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
-          <circle cx={x} cy={y} r={10} fill="rgba(76,186,133,0.2)" stroke="#4cba85" strokeWidth={1.5} />
-          <line x1={x-8} y1={y} x2={x+8} y2={y} stroke="#4cba85" strokeWidth={1} />
-          <line x1={x} y1={y-8} x2={x} y2={y+8} stroke="#4cba85" strokeWidth={1} />
-          <circle cx={x} cy={y} r={2} fill="#4cba85" />
+        <g {...baseProps}>
+          <circle cx={x} cy={y} r={10} fill={isHovered ? 'rgba(76,186,133,0.35)' : 'rgba(76,186,133,0.2)'} stroke="#4cba85" strokeWidth={isDragging ? 2 : 1.5} />
+          <line x1={x-8} y1={y} x2={x+8} y2={y} stroke="#4cba85" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          <line x1={x} y1={y-8} x2={x} y2={y+8} stroke="#4cba85" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          <circle cx={x} cy={y} r={2} fill="#4cba85" style={{ pointerEvents:'none' }} />
+          {isHovered && <circle cx={x+10} cy={y-10} r={7} fill="#e05050" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }} />}
+          {isHovered && <text x={x+10} y={y-6} textAnchor="middle" fontSize={9} fill="#fff" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer', pointerEvents:'all' }}>×</text>}
         </g>
       );
     }
@@ -661,7 +713,7 @@ function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRem
           </button>
         ))}
         <div style={{ marginTop:'auto', fontSize:10, color:pMute, lineHeight:1.5 }}>
-          Click on the floor plan to place.<br/>Click element to remove.
+          Click floor to place.<br/>Drag to reposition.<br/>Hover + × to delete.
         </div>
         {elements.length > 0 && (
           <button onClick={() => elements.forEach(el => onRemove && onRemove(el.id))} style={{
@@ -674,8 +726,11 @@ function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRem
       {/* SVG canvas */}
       <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
         <svg ref={svgRef} viewBox={`0 0 ${VW} ${VH}`}
-          style={{ width:'100%', height:'100%', display:'block', cursor:'crosshair', maxWidth:560 }}
-          onClick={handleSvgClick}>
+          style={{ width:'100%', height:'100%', display:'block', cursor: dragState ? 'grabbing' : 'crosshair', maxWidth:560, userSelect:'none' }}
+          onMouseDown={handleSvgMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}>
           <rect width={VW} height={VH} fill={pPaper} />
           {/* Room outline */}
           <rect x={ox} y={oy} width={roomW*sc} height={roomD*sc} fill="rgba(26,24,21,0.03)" stroke={pInk} strokeWidth={2} />
@@ -691,9 +746,9 @@ function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRem
           <text x={ox - 14} y={oy + roomD*sc/2} textAnchor="middle" fontSize={10} fill={pMute} fontFamily="JetBrains Mono,monospace" transform={`rotate(-90,${ox-14},${oy+roomD*sc/2})`}>{(roomD/1000).toFixed(2)} m</text>
           {/* Room elements */}
           {elements.map(renderEl)}
-          {/* Active tool cursor hint */}
+          {/* Active tool hint */}
           <text x={VW-8} y={VH-8} textAnchor="end" fontSize={9} fill={pMute} fontFamily="JetBrains Mono,monospace">
-            {`Tool: ${tool.toUpperCase()} · click to place`}
+            {`Tool: ${tool.toUpperCase()} · click to place · drag to move`}
           </text>
         </svg>
       </div>
@@ -1860,7 +1915,7 @@ function PlannerFrontend({ accent = pAccent }) {
               borderRadius:12, border:`1px solid ${pLine}`,
               boxShadow:'0 30px 80px -30px rgba(0,0,0,0.18)', overflow:'hidden',
             }}>
-              {view === 'Room setup' && <RoomSetupView roomW={roomW} roomD={roomD} elements={roomElements} onAdd={el => setRoomElements(prev => [...prev, el])} onRemove={id => setRoomElements(prev => prev.filter(e => e.id !== id))} />}
+              {view === 'Room setup' && <RoomSetupView roomW={roomW} roomD={roomD} elements={roomElements} onAdd={el => setRoomElements(prev => [...prev, el])} onRemove={id => setRoomElements(prev => prev.filter(e => e.id !== id))} onMove={(id, x, y) => setRoomElements(prev => prev.map(e => e.id === id ? { ...e, x, y } : e))} />}
               {view === '2D plan'    && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} roomElements={roomElements} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} roomW={roomW} roomD={roomD} />}
               {view === 'Elevation'  && <KitchenElevation accent={accent} items={placedItems} roomW={roomW} roomH={roomH} />}
               {view === '3D walk'    && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH} onMoveItem={(idx, pos) => setPlacedItems(prev => prev.map((it, i) => i === idx ? { ...it, x: pos.x, y: pos.y } : it))} />}
