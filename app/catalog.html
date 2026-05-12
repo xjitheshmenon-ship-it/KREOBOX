@@ -6,14 +6,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#f0eee9;--paper:#fafaf7;--ink:#1a1815;--mute:rgba(26,24,21,0.5);
-  --line:rgba(26,24,21,0.09);--accent:#c96442;--ok:#4cba85;
+  --bg:#ece9e2;--paper:#f5f3ed;--ink:#16140f;--ink-soft:#4a463d;
+  --mute:rgba(22,20,15,0.55);--line:rgba(22,20,15,0.10);--line-2:rgba(22,20,15,0.20);
+  --sienna:#c96442;--sienna-2:#e0795a;--sienna-deep:#9c4928;
+  --status:#4ea25a;--grid:rgba(22,20,15,0.04);
+  --accent:#c96442;--ok:#4ea25a;
 }
-html,body{background:var(--bg);color:var(--ink);font-family:"Inter Tight",-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+html,body{background:var(--bg);color:var(--ink);font-family:"Geist",-apple-system,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:56px 56px;background-position:-1px -1px}
 
 /* ── NAV ── */
 nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:0 32px;height:60px;display:flex;align-items:center;gap:20px}
@@ -23,7 +27,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop
 .nav-link{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;color:var(--mute);text-decoration:none;transition:color 0.15s,background 0.15s}
 .nav-link:hover,.nav-link.active{color:var(--ink);background:rgba(26,24,21,0.06)}
 .nav-spacer{flex:1}
-.nav-cta{padding:8px 16px;background:var(--ink);color:var(--bg);border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;transition:opacity 0.15s}
+.nav-cta{padding:8px 16px;background:var(--ink);color:var(--paper);border-radius:100px;font-size:12px;font-weight:700;text-decoration:none;transition:opacity 0.15s}
 .nav-cta:hover{opacity:0.85}
 
 /* ── HERO ── */
@@ -33,8 +37,9 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop
 .hero-title em{font-style:italic;color:var(--accent)}
 .hero-body{font-size:15px;color:var(--mute);line-height:1.65;margin-bottom:32px;max-width:520px;margin-left:auto;margin-right:auto}
 .hero-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
-.btn-primary{padding:12px 22px;background:var(--ink);color:var(--bg);border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
-.btn-outline{padding:12px 22px;border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:6px;background:var(--paper)}
+.btn-primary{padding:12px 22px;background:var(--ink);color:var(--paper);border-radius:100px;font-size:13px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:transform 0.15s,opacity 0.15s}
+.btn-primary:hover{transform:translateY(-1px);opacity:0.92}
+.btn-outline{padding:12px 22px;border:1px solid var(--line-2);border-radius:100px;font-size:13px;font-weight:600;text-decoration:none;color:var(--ink);display:inline-flex;align-items:center;gap:6px;background:transparent;transition:border-color 0.15s}
 .btn-outline:hover{border-color:var(--ink)}
 
 /* ── SECTION ── */
@@ -45,7 +50,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop
 /* ── ROOM TYPE CARDS ── */
 .room-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
 .room-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:28px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:12px;transition:box-shadow 0.18s,border-color 0.18s,transform 0.14s;min-height:200px;cursor:pointer}
-.room-card:hover,.room-card.active{box-shadow:0 12px 40px rgba(0,0,0,0.1);border-color:var(--accent);transform:translateY(-2px)}
+.room-card:hover,.room-card.active{box-shadow:0 12px 40px rgba(0,0,0,0.1);border-color:var(--sienna);transform:translateY(-3px)}
 .room-card.active{border-width:2px;background:linear-gradient(135deg,#fdfcf8,rgba(201,100,66,0.03))}
 .room-card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px}
 .room-card-label{font-size:9px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--mute);font-family:"JetBrains Mono",monospace}
@@ -63,7 +68,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop
 /* ── PRODUCT GRID ── */
 .product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}
 .product-card{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:box-shadow 0.18s,transform 0.14s}
-.product-card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.1);transform:translateY(-2px)}
+.product-card:hover{box-shadow:0 12px 40px rgba(0,0,0,0.1);transform:translateY(-3px);border-color:var(--sienna)}
 .product-img{background:linear-gradient(135deg,#ede8e0,#e4ddd2);height:200px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .product-badge{position:absolute;top:10px;left:10px;padding:3px 8px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase}
 .badge-popular{background:rgba(76,186,133,0.15);color:#2d8f60;border:1px solid rgba(76,186,133,0.3)}
@@ -89,6 +94,23 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop
 
 /* ── UTILITY ── */
 .divider{height:1px;background:var(--line);margin:0 32px}
+
+/* ── SUB-TABS ── */
+.subtab-container{display:flex;gap:2px;background:rgba(22,20,15,0.06);border-radius:100px;padding:4px;flex-wrap:wrap}
+.subtab{padding:7px 16px;border-radius:100px;border:none;background:transparent;font-size:12px;font-weight:600;color:var(--ink-soft);cursor:pointer;transition:background 0.15s,color 0.15s;font-family:"Geist",sans-serif}
+.subtab:hover{color:var(--ink)}
+.subtab.active{background:var(--ink);color:var(--paper)}
+
+/* ── SKU CARD (compact) ── */
+.sku-card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:box-shadow 0.15s,transform 0.12s}
+.sku-card:hover{box-shadow:0 8px 24px rgba(0,0,0,0.08);transform:translateY(-1px)}
+.sku-code{font-size:9px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:var(--mute);font-family:"JetBrains Mono",monospace}
+.sku-name{font-family:"Fraunces",serif;font-size:16px;font-weight:400;line-height:1.25}
+.sku-variants{display:flex;flex-wrap:wrap;gap:4px}
+.sku-variant{padding:2px 7px;background:rgba(26,24,21,0.05);border-radius:4px;font-size:10px;color:var(--mute);font-family:"JetBrains Mono",monospace;cursor:pointer;border:1px solid transparent}
+.sku-variant.sel{background:rgba(201,100,66,0.08);border-color:var(--accent);color:var(--accent)}
+.sku-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--line)}
+.sku-price{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:700;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -176,6 +198,18 @@ nav{position:sticky;top:0;z-index:100;background:rgba(250,250,247,0.92);backdrop
     <h2 class="section-title" id="designs-title">Kitchen designs</h2>
     <span style="font-size:12px;color:var(--mute)" id="designs-count"></span>
   </div>
+
+  <!-- Kitchen sub-tabs (only shown for kitchen room) -->
+  <div id="kitchen-subtabs" style="margin-bottom:24px">
+    <div class="subtab-container">
+      <button class="subtab active" data-subtab="designs" onclick="selectSubtab('designs')">All designs</button>
+      <button class="subtab" data-subtab="base" onclick="selectSubtab('base')">Base cabinets</button>
+      <button class="subtab" data-subtab="wall" onclick="selectSubtab('wall')">Wall cabinets</button>
+      <button class="subtab" data-subtab="high" onclick="selectSubtab('high')">High cabinets</button>
+      <button class="subtab" data-subtab="fronts" onclick="selectSubtab('fronts')">Door fronts</button>
+    </div>
+  </div>
+
   <div class="product-grid" id="product-grid"></div>
   <div style="margin-top:28px;padding:16px 20px;background:var(--paper);border:1px solid var(--line);border-radius:10px;font-size:13px;color:var(--mute);display:flex;align-items:center;gap:10px">
     <span style="font-size:18px">📐</span>
@@ -392,16 +426,101 @@ const DESIGNS = {
   ],
 };
 
-const TITLES = { kitchen: 'Kitchen designs', wardrobe: 'Wardrobe designs', office: 'Office designs' };
+const TITLES = { kitchen: 'Kitchen', wardrobe: 'Wardrobe designs', office: 'Office designs' };
 let currentRoom = 'kitchen';
+let currentSubtab = 'designs';
+
+const SKUS = {
+  base: [
+    { code:'KBX-BC-01', name:'Base corner cabinet',       variants:['600x600mm','900x900mm'],         price:'₹18–26k' },
+    { code:'KBX-BC-02', name:'Base cabinet for sink',     variants:['600mm','800mm','1000mm'],        price:'₹12–18k' },
+    { code:'KBX-BC-03', name:'Base cabinet for hob',      variants:['600mm','900mm'],                 price:'₹9–15k'  },
+    { code:'KBX-BC-04', name:'Base cabinet with drawers', variants:['400mm','600mm','800mm'],         price:'₹15–24k' },
+    { code:'KBX-BC-05', name:'Base cabinet with door',    variants:['300mm','400mm','600mm','900mm'], price:'₹8–20k'  },
+    { code:'KBX-BC-06', name:'Base cabinet door+drawer',  variants:['600mm','800mm'],                 price:'₹16–24k' },
+    { code:'KBX-BC-07', name:'Pull-out pantry unit',      variants:['300mm','600mm'],                 price:'₹24–36k' },
+    { code:'KBX-BC-08', name:'Wire basket pull-out',      variants:['400mm','600mm'],                 price:'₹6–12k'  },
+    { code:'KBX-BC-09', name:'Open base unit',            variants:['600mm','900mm'],                 price:'₹7–14k'  },
+    { code:'KBX-BC-10', name:'Filler & end panel',        variants:['50mm','100mm','200mm'],          price:'₹2–6k'   },
+  ],
+  wall: [
+    { code:'KBX-WC-01', name:'Wall cabinet with door',    variants:['300mm','400mm','600mm','800mm'], price:'₹6–15k'  },
+    { code:'KBX-WC-02', name:'Wall cabinet glass doors',  variants:['400mm','600mm'],                 price:'₹9–18k'  },
+    { code:'KBX-WC-03', name:'Horizontal wall cabinet',   variants:['600mm','900mm','1200mm'],        price:'₹10–22k' },
+    { code:'KBX-WC-04', name:'Corner wall cabinet',       variants:['600x600mm'],                     price:'₹12–20k' },
+    { code:'KBX-WC-05', name:'Cabinet for extractor',     variants:['600mm','900mm'],                 price:'₹8–16k'  },
+    { code:'KBX-WC-06', name:'Cabinet for microwave',     variants:['600mm'],                         price:'₹10–18k' },
+    { code:'KBX-WC-07', name:'Open wall shelf unit',      variants:['600mm','900mm','1200mm'],        price:'₹5–12k'  },
+    { code:'KBX-WC-08', name:'Filler & end panel',        variants:['50mm','100mm'],                  price:'₹1–5k'   },
+  ],
+  high: [
+    { code:'KBX-HC-01', name:'High cabinet for fridge',   variants:['600mm','900mm'],                 price:'₹24–40k' },
+    { code:'KBX-HC-02', name:'High cabinet for oven',     variants:['600mm'],                         price:'₹18–30k' },
+    { code:'KBX-HC-03', name:'High cabinet micro+oven',   variants:['600mm'],                         price:'₹26–38k' },
+    { code:'KBX-HC-04', name:'Pantry high cabinet',       variants:['300mm','600mm'],                 price:'₹28–45k' },
+    { code:'KBX-HC-05', name:'High cabinet door+drawer',  variants:['600mm','900mm'],                 price:'₹22–32k' },
+    { code:'KBX-HC-06', name:'Filler & end panel',        variants:['50mm','100mm'],                  price:'₹3–7k'   },
+  ],
+  fronts: [
+    { code:'KBX-DF-01', name:'Matte white door front',    variants:['300mm','400mm','600mm','900mm'], price:'₹2–8k'   },
+    { code:'KBX-DF-02', name:'Wood-effect door front',    variants:['400mm','600mm','800mm'],         price:'₹4–12k'  },
+    { code:'KBX-DF-03', name:'Anthracite grey door',      variants:['300mm','600mm','900mm'],         price:'₹3–10k'  },
+    { code:'KBX-DF-04', name:'Sage green door front',     variants:['400mm','600mm'],                 price:'₹4–11k'  },
+    { code:'KBX-DF-05', name:'Solid walnut door front',   variants:['400mm','600mm'],                 price:'₹8–20k'  },
+    { code:'KBX-DF-06', name:'Dark grey glass door',      variants:['400mm','600mm'],                 price:'₹6–16k'  },
+    { code:'KBX-DF-07', name:'White shaker door',         variants:['300mm','400mm','600mm'],         price:'₹3–9k'   },
+  ],
+};
+
+const selectedVariants = {};
+
+function selectVariant(code, v, el) {
+  selectedVariants[code] = v;
+  el.closest('.sku-variants').querySelectorAll('.sku-variant').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+}
 
 function selectRoom(room) {
   currentRoom = room;
+  currentSubtab = 'designs';
   document.querySelectorAll('.room-card').forEach(c => c.classList.remove('active'));
   document.getElementById('room-' + room).classList.add('active');
+  const sub = document.getElementById('kitchen-subtabs');
+  if (sub) sub.style.display = room === 'kitchen' ? 'flex' : 'none';
+  document.querySelectorAll('.subtab').forEach(b => b.classList.toggle('active', b.dataset.subtab === 'designs'));
   document.getElementById('designs-title').textContent = TITLES[room];
-  renderDesigns();
+  renderGrid();
   document.getElementById('product-grid').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function selectSubtab(tab) {
+  currentSubtab = tab;
+  document.querySelectorAll('.subtab').forEach(b => b.classList.toggle('active', b.dataset.subtab === tab));
+  const title = { designs:'Kitchen designs', base:'Base cabinets', wall:'Wall cabinets', high:'High cabinets', fronts:'Door fronts' };
+  document.getElementById('designs-title').textContent = title[tab] || 'Kitchen';
+  renderGrid();
+}
+
+function renderGrid() {
+  if (currentRoom !== 'kitchen' || currentSubtab === 'designs') {
+    renderDesigns();
+    return;
+  }
+  const items = SKUS[currentSubtab] || [];
+  document.getElementById('designs-count').textContent = items.length + ' SKUs';
+  document.getElementById('product-grid').innerHTML = items.map(p => `
+    <div class="sku-card">
+      <div class="sku-code">${p.code}</div>
+      <div class="sku-name">${p.name}</div>
+      <div class="sku-variants">
+        ${p.variants.map((v, i) => `<span class="sku-variant${i===0?' sel':''}" onclick="selectVariant('${p.code}',this.textContent,this)">${v}</span>`).join('')}
+      </div>
+      <div class="sku-footer">
+        <div class="sku-price">${p.price}</div>
+        <a class="btn-quote" href="planner.html">Add to BOQ →</a>
+      </div>
+    </div>
+  `).join('');
 }
 
 function renderDesigns() {

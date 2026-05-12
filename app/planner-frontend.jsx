@@ -3,15 +3,15 @@
    Audience: interior contractors. Execution engine — every module = real SKU, BOQ auto-generated.
    ============================================================ */
 
-const pInk    = '#1a1815';
-const pPaper  = '#fafaf7';
-const pBg     = '#f0eee9';
-const pMute   = 'rgba(26,24,21,0.55)';
-const pLine   = 'rgba(26,24,21,0.09)';
+const pInk    = '#16140f';
+const pPaper  = '#f5f3ed';
+const pBg     = '#ece9e2';
+const pMute   = 'rgba(22,20,15,0.55)';
+const pLine   = 'rgba(22,20,15,0.10)';
 const pAccent = '#c96442';
 
 const pStyles = {
-  shell:      { width:'100%', height:'100%', background:pBg, color:pInk, fontFamily:'"Inter Tight",-apple-system,system-ui,sans-serif', display:'flex', flexDirection:'column', overflow:'hidden' },
+  shell:      { width:'100%', height:'100%', background:pBg, color:pInk, fontFamily:'"Geist",-apple-system,system-ui,sans-serif', display:'flex', flexDirection:'column', overflow:'hidden' },
   topbar:     { height:60, padding:'0 24px', background:pPaper, borderBottom:`1px solid ${pLine}`, display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 },
   body:       { flex:1, display:'flex', minHeight:0 },
   panel:      { background:pPaper, borderRight:`1px solid ${pLine}`, display:'flex', flexDirection:'column' },
@@ -49,11 +49,121 @@ function KreoboxWordmark({ size = 18, color = pInk }) {
   );
 }
 
+/* ── Item Modify Panel ─────────────────────────────────────── */
+const DOOR_FINISHES = [
+  { name:'Bali Oak',       color:'#c8b89a' },
+  { name:'Bone Matte',     color:'#e8e4dc' },
+  { name:'Espresso',       color:'#2e2822' },
+  { name:'Sand Grey',      color:'#b8af9e' },
+  { name:'Graphite',       color:'#424250' },
+  { name:'Nat. Walnut',    color:'#a07850' },
+  { name:'Sage Green',     color:'#7a9e7e' },
+];
+const HANDLE_TYPES = ['Push-to-open', 'Bar handle', 'Cup pull', 'T-bar', 'Recessed'];
+const WORKTOP_TYPES = ['Quartz White', 'Quartz Calacatta', 'Laminate Oak', 'Laminate Concrete', 'Solid Walnut'];
+
+function ItemModifyPanel({ item, onUpdate, onDuplicate, onDelete, onClose }) {
+  const { useState: useS } = React;
+  const isBase = item.name && item.name.toLowerCase().includes('base');
+  const dims = item.w && item.h ? `${Math.round(item.w)}×600×${Math.round(item.h)} mm` : '';
+  const code = 'KBX-' + item.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,5);
+
+  const SECTIONS = [
+    { label:'Door finish', key:'doorFinish', options: DOOR_FINISHES.map(d => d.name) },
+    { label:'Handle', key:'handle', options: HANDLE_TYPES },
+    ...(isBase ? [{ label:'Worktop', key:'worktop', options: WORKTOP_TYPES }] : []),
+  ];
+
+  const iconBtn = (label, icon, onClick, danger) => (
+    <button onClick={onClick} style={{
+      display:'flex', flexDirection:'column', alignItems:'center', gap:4,
+      padding:'8px 10px', border:`1px solid ${danger ? '#e05050' : pLine}`,
+      borderRadius:8, background:'transparent', cursor:'pointer',
+      color: danger ? '#e05050' : pMute, fontSize:9, fontWeight:700,
+      fontFamily:'JetBrains Mono,monospace', letterSpacing:'0.06em',
+    }}>
+      <span style={{ fontSize:16 }}>{icon}</span>
+      {label}
+    </button>
+  );
+
+  return (
+    <div style={{
+      position:'absolute', top:0, right:0, bottom:0, width:260, zIndex:20,
+      background:pPaper, borderLeft:`1px solid ${pLine}`,
+      display:'flex', flexDirection:'column', overflowY:'auto',
+      boxShadow:'-8px 0 32px rgba(0,0,0,0.08)',
+    }}>
+      {/* Header */}
+      <div style={{ padding:'14px 16px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+          <div>
+            <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', fontWeight:700, letterSpacing:'0.16em', color:pMute, marginBottom:3 }}>{code}</div>
+            <div style={{ fontFamily:'Fraunces,serif', fontSize:15, fontWeight:400, lineHeight:1.25, color:pInk }}>{item.name}</div>
+            {item.variant && <div style={{ fontSize:10, color:pMute, marginTop:3 }}>{item.variant}</div>}
+            {dims && <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', color:pMute, marginTop:2 }}>{dims}</div>}
+          </div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:pMute, fontSize:18, lineHeight:1, padding:0 }}>×</button>
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <div style={{ padding:'12px 16px', borderBottom:`1px solid ${pLine}`, display:'flex', gap:6, flexWrap:'wrap', flexShrink:0 }}>
+        {iconBtn('Duplicate', '⧉', onDuplicate)}
+        {iconBtn('Remove', '🗑', onDelete, true)}
+      </div>
+
+      {/* Customisation sections */}
+      <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:16 }}>
+        {SECTIONS.map(sec => (
+          <div key={sec.key}>
+            <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>
+              {sec.label}
+            </div>
+            {sec.key === 'doorFinish' ? (
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                {DOOR_FINISHES.map(df => (
+                  <div key={df.name} onClick={() => onUpdate({ doorFinish: df.name })}
+                    title={df.name}
+                    style={{
+                      width:28, height:28, borderRadius:6, background:df.color, cursor:'pointer',
+                      border: item.doorFinish === df.name ? `2px solid ${pAccent}` : `2px solid transparent`,
+                      boxShadow: item.doorFinish === df.name ? `0 0 0 1px ${pAccent}` : 'inset 0 0 0 1px rgba(0,0,0,0.1)',
+                    }} />
+                ))}
+              </div>
+            ) : (
+              <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
+                {sec.options.map(opt => (
+                  <button key={opt} onClick={() => onUpdate({ [sec.key]: opt })} style={{
+                    padding:'4px 8px', borderRadius:5, fontSize:10, fontWeight:600, cursor:'pointer',
+                    border: `1px solid ${item[sec.key] === opt ? pAccent : pLine}`,
+                    background: item[sec.key] === opt ? 'rgba(201,100,66,0.08)' : 'transparent',
+                    color: item[sec.key] === opt ? pAccent : pMute,
+                  }}>{opt}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Price */}
+      {item.price && (
+        <div style={{ marginTop:'auto', padding:'14px 16px', borderTop:`1px solid ${pLine}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <span style={{ fontSize:11, color:pMute }}>Unit price</span>
+          <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:13, fontWeight:700, color:pInk }}>{item.price}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── 2D top-down kitchen plan (blank canvas, drag-and-drop) ── */
-function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onDrop, onItemMove, onItemDelete, roomW: ROOM_W = 3800, roomD: ROOM_D = 2840 }) {
+function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], roomElements = [], onDrop, onItemMove, onItemDelete, onItemSelect, selectedItemId, roomW: ROOM_W = 3800, roomD: ROOM_D = 2840 }) {
   const { useState: useS, useRef } = React;
   const svgRef = useRef(null);
-  const [drag, setDrag] = useS(null); // { id, startSX, startSY, origX, origY }
+  const [drag, setDrag] = useS(null); // { id, startSX, startSY, origX, origY, moved }
 
   const SVG_W = 480, SVG_H = 380;
   const PX = 48, PY = 44, PW = 390, PH = 292;
@@ -81,7 +191,7 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onD
   const handleItemDown = (e, item) => {
     e.stopPropagation();
     const { sx, sy } = svgXY(e);
-    setDrag({ id: item.id, startSX: sx, startSY: sy, origX: item.x, origY: item.y });
+    setDrag({ id: item.id, startSX: sx, startSY: sy, origX: item.x, origY: item.y, moved: false });
   };
 
   const handleMouseMove = e => {
@@ -89,7 +199,17 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onD
     const { sx, sy } = svgXY(e);
     const dx = (sx - drag.startSX) * ROOM_W / PW;
     const dy = (sy - drag.startSY) * ROOM_D / PH;
-    onItemMove && onItemMove(drag.id, drag.origX + dx, drag.origY + dy);
+    if (Math.abs(sx - drag.startSX) > 3 || Math.abs(sy - drag.startSY) > 3) {
+      setDrag(d => ({ ...d, moved: true }));
+      onItemMove && onItemMove(drag.id, drag.origX + dx, drag.origY + dy);
+    }
+  };
+
+  const handleMouseUp = (e) => {
+    if (drag && !drag.moved) {
+      onItemSelect && onItemSelect(drag.id === selectedItemId ? null : drag.id);
+    }
+    setDrag(null);
   };
 
   const dimColor = pMute;
@@ -100,8 +220,9 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onD
         onDrop={handleDrop}
         onDragOver={e => e.preventDefault()}
         onMouseMove={handleMouseMove}
-        onMouseUp={() => setDrag(null)}
+        onMouseUp={handleMouseUp}
         onMouseLeave={() => setDrag(null)}
+        onClick={() => onItemSelect && onItemSelect(null)}
       >
         <defs>
           <pattern id="grid"       width="20"  height="20"  patternUnits="userSpaceOnUse"><path d="M20 0 L0 0 0 20" fill="none" stroke="rgba(26,24,21,0.06)" strokeWidth="1"/></pattern>
@@ -177,13 +298,15 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onD
           const sw = Math.max(8, r2sw(item.w));
           const sh = Math.max(6, r2sh(item.h));
           const isActive = drag?.id === item.id;
+          const isSelected = selectedItemId === item.id;
           return (
             <g key={item.id} onMouseDown={e => handleItemDown(e, item)}
               style={{ cursor: isActive ? 'grabbing' : 'grab' }}>
+              {isSelected && <rect x={sp.x-2} y={sp.y-2} width={sw+4} height={sh+4} fill="none" stroke={accent} strokeWidth={2} rx={3} strokeDasharray="4 2" />}
               <rect x={sp.x} y={sp.y} width={sw} height={sh}
-                fill={item.color} fillOpacity={0.88}
-                stroke={isActive ? accent : 'rgba(26,24,21,0.4)'}
-                strokeWidth={isActive ? 2 : 1} rx={1}/>
+                fill={item.color} fillOpacity={isSelected ? 1 : 0.88}
+                stroke={isActive ? accent : isSelected ? accent : 'rgba(26,24,21,0.4)'}
+                strokeWidth={isActive || isSelected ? 2 : 1} rx={1}/>
               {sw > 18 && sh > 10 && (
                 <>
                   <line x1={sp.x+sw*0.2} y1={sp.y+sh/2} x2={sp.x+sw*0.8} y2={sp.y+sh/2}
@@ -198,12 +321,49 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onD
                   </text>
                 </>
               )}
-              {/* delete ×  */}
-              <text x={sp.x+sw-3} y={sp.y+7} fill={accent} fontSize={8} fontWeight="800"
-                style={{ cursor:'pointer' }}
-                onClick={e => { e.stopPropagation(); onItemDelete && onItemDelete(item.id); }}>×</text>
             </g>
           );
+        })}
+
+        {/* Room elements overlay */}
+        {roomElements.map(el => {
+          const sp = r2s(el.x, el.y);
+          const sw = r2sw(el.w || 800), sh = r2sh(60);
+          if (el.type === 'door') return (
+            <g key={el.id}>
+              <rect x={sp.x} y={sp.y-sh/2} width={sw} height={sh} fill="#fff" stroke="#333" strokeWidth="2"/>
+              <path d={`M${sp.x} ${sp.y} A${sw} ${sw} 0 0 1 ${sp.x+sw} ${sp.y-sw}`} fill="none" stroke="#333" strokeWidth="1" strokeDasharray="3 2"/>
+            </g>
+          );
+          if (el.type === 'window') return (
+            <g key={el.id}>
+              <rect x={sp.x} y={sp.y-sh/2} width={sw} height={sh} fill="#bde" stroke="#36a" strokeWidth="2"/>
+              <line x1={sp.x+sw*0.33} y1={sp.y-sh/2} x2={sp.x+sw*0.33} y2={sp.y+sh/2} stroke="#36a" strokeWidth="1"/>
+              <line x1={sp.x+sw*0.66} y1={sp.y-sh/2} x2={sp.x+sw*0.66} y2={sp.y+sh/2} stroke="#36a" strokeWidth="1"/>
+            </g>
+          );
+          if (el.type === 'pillar') return (
+            <g key={el.id}>
+              <rect x={sp.x-8} y={sp.y-8} width={16} height={16} fill="#888" stroke="#444" strokeWidth="1.5"/>
+              <line x1={sp.x-8} y1={sp.y-8} x2={sp.x+8} y2={sp.y+8} stroke="#444" strokeWidth="1"/>
+              <line x1={sp.x+8} y1={sp.y-8} x2={sp.x-8} y2={sp.y+8} stroke="#444" strokeWidth="1"/>
+            </g>
+          );
+          if (el.type === 'electrical') return (
+            <g key={el.id}>
+              <circle cx={sp.x} cy={sp.y} r={8} fill="#fff9c4" stroke="#e6b800" strokeWidth="2"/>
+              <text x={sp.x} y={sp.y+3} textAnchor="middle" fontSize="8" fontWeight="700" fill="#b38600" style={{pointerEvents:'none'}}>⚡</text>
+            </g>
+          );
+          if (el.type === 'ventilation') return (
+            <g key={el.id}>
+              <circle cx={sp.x} cy={sp.y} r={9} fill="#e8f5e9" stroke="#388e3c" strokeWidth="2"/>
+              <line x1={sp.x-6} y1={sp.y} x2={sp.x+6} y2={sp.y} stroke="#388e3c" strokeWidth="1.5"/>
+              <line x1={sp.x} y1={sp.y-6} x2={sp.x} y2={sp.y+6} stroke="#388e3c" strokeWidth="1.5"/>
+              <circle cx={sp.x} cy={sp.y} r={3} fill="#388e3c"/>
+            </g>
+          );
+          return null;
         })}
 
         {/* Scale label */}
@@ -517,9 +677,207 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
   );
 }
 
+/* ── Room Setup View ───────────────────────────────────────── */
+function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRemove, onMove }) {
+  const { useState: useS, useRef } = React;
+  const [tool, setTool] = useS('door');
+  const [dragState, setDragState] = useS(null); // { id, startMx, startMy, startElX, startElY }
+  const [hoverId, setHoverId] = useS(null);
+  const svgRef = useRef(null);
+
+  const TOOLS = [
+    { id: 'door',        label: 'Door',        color: '#c96442', icon: 'D' },
+    { id: 'window',      label: 'Window',      color: '#5b8def', icon: 'W' },
+    { id: 'pillar',      label: 'Pillar',      color: '#888',    icon: 'P' },
+    { id: 'electrical',  label: 'Electrical',  color: '#f0c040', icon: 'E' },
+    { id: 'ventilation', label: 'Ventilation', color: '#4cba85', icon: 'V' },
+  ];
+
+  const PAD = 40, VW = 560, VH = 400;
+  const scaleX = (VW - PAD * 2) / roomW;
+  const scaleY = (VH - PAD * 2) / roomD;
+  const sc = Math.min(scaleX, scaleY);
+  const ox = (VW - roomW * sc) / 2;
+  const oy = (VH - roomD * sc) / 2;
+
+  const svgCoords = (e) => {
+    const rect = svgRef.current.getBoundingClientRect();
+    return {
+      mx: (e.clientX - rect.left) / rect.width * VW,
+      my: (e.clientY - rect.top)  / rect.height * VH,
+    };
+  };
+
+  const handleSvgMouseDown = (e) => {
+    if (e.button !== 0) return;
+    const { mx, my } = svgCoords(e);
+    const rx = (mx - ox) / sc;
+    const ry = (my - oy) / sc;
+    if (rx < 0 || ry < 0 || rx > roomW || ry > roomD) return;
+    const newEl = { id: `el-${Date.now()}`, type: tool, x: rx, y: ry, w: tool === 'window' ? 800 : tool === 'door' ? 700 : 300, d: tool === 'pillar' ? 300 : 200 };
+    onAdd && onAdd(newEl);
+  };
+
+  const handleElMouseDown = (e, el) => {
+    e.stopPropagation();
+    if (e.button !== 0) return;
+    const { mx, my } = svgCoords(e);
+    setDragState({ id: el.id, startMx: mx, startMy: my, startElX: el.x, startElY: el.y });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!dragState) return;
+    const { mx, my } = svgCoords(e);
+    const dx = (mx - dragState.startMx) / sc;
+    const dy = (my - dragState.startMy) / sc;
+    const newX = Math.max(0, Math.min(roomW, dragState.startElX + dx));
+    const newY = Math.max(0, Math.min(roomD, dragState.startElY + dy));
+    onMove && onMove(dragState.id, newX, newY);
+  };
+
+  const handleMouseUp = () => setDragState(null);
+
+  const renderEl = (el) => {
+    const x = ox + el.x * sc, y = oy + el.y * sc;
+    const w = el.w * sc, d = (el.d || 200) * sc;
+    const isHovered = hoverId === el.id;
+    const isDragging = dragState?.id === el.id;
+    const baseProps = {
+      key: el.id,
+      style: { cursor: isDragging ? 'grabbing' : 'grab' },
+      onMouseDown: e => handleElMouseDown(e, el),
+      onMouseEnter: () => setHoverId(el.id),
+      onMouseLeave: () => setHoverId(null),
+    };
+    const deleteBtn = isHovered && (
+      <g onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
+        <circle cx={x + w/2} cy={y - d/2 - 8} r={8} fill="#e05050" />
+        <text x={x + w/2} y={y - d/2 - 4} textAnchor="middle" fontSize={10} fill="#fff" style={{ pointerEvents:'none' }}>×</text>
+      </g>
+    );
+
+    if (el.type === 'door') {
+      const r = el.w * sc;
+      return (
+        <g {...baseProps}>
+          <rect x={x} y={y - d/2} width={w} height={d} fill={isHovered ? 'rgba(201,100,66,0.25)' : 'rgba(201,100,66,0.15)'} stroke="#c96442" strokeWidth={isDragging ? 2 : 1.5} />
+          <path d={`M ${x} ${y} A ${r*0.6} ${r*0.6} 0 0 1 ${x + r*0.6} ${y}`} fill="none" stroke="#c96442" strokeWidth={1} strokeDasharray="3 2" style={{ pointerEvents:'none' }} />
+          <text x={x + w/2} y={y + 4} textAnchor="middle" fontSize={8} fill="#c96442" fontFamily="JetBrains Mono,monospace" style={{ pointerEvents:'none' }}>DOOR</text>
+          {deleteBtn}
+        </g>
+      );
+    }
+    if (el.type === 'window') {
+      return (
+        <g {...baseProps}>
+          <rect x={x} y={y - d/2} width={w} height={d} fill={isHovered ? 'rgba(91,141,239,0.28)' : 'rgba(91,141,239,0.18)'} stroke="#5b8def" strokeWidth={isDragging ? 2 : 1.5} />
+          <line x1={x + w/3} y1={y - d/2} x2={x + w/3} y2={y + d/2} stroke="#5b8def" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          <line x1={x + 2*w/3} y1={y - d/2} x2={x + 2*w/3} y2={y + d/2} stroke="#5b8def" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          <text x={x + w/2} y={y + 4} textAnchor="middle" fontSize={8} fill="#5b8def" fontFamily="JetBrains Mono,monospace" style={{ pointerEvents:'none' }}>WIN</text>
+          {deleteBtn}
+        </g>
+      );
+    }
+    if (el.type === 'pillar') {
+      return (
+        <g {...baseProps}>
+          <rect x={x - w/2} y={y - d/2} width={w} height={d} fill={isHovered ? 'rgba(136,136,136,0.4)' : 'rgba(136,136,136,0.25)'} stroke="#888" strokeWidth={isDragging ? 2 : 1.5} />
+          <line x1={x - w/2} y1={y - d/2} x2={x + w/2} y2={y + d/2} stroke="#888" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          <line x1={x + w/2} y1={y - d/2} x2={x - w/2} y2={y + d/2} stroke="#888" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          {isHovered && <circle cx={x + w/2} cy={y - d/2 - 8} r={8} fill="#e05050" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }} />}
+          {isHovered && <text x={x + w/2} y={y - d/2 - 4} textAnchor="middle" fontSize={10} fill="#fff" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer', pointerEvents:'all' }}>×</text>}
+        </g>
+      );
+    }
+    if (el.type === 'electrical') {
+      return (
+        <g {...baseProps}>
+          <circle cx={x} cy={y} r={10} fill={isHovered ? 'rgba(240,192,64,0.35)' : 'rgba(240,192,64,0.2)'} stroke="#f0c040" strokeWidth={isDragging ? 2 : 1.5} />
+          <text x={x} y={y+4} textAnchor="middle" fontSize={10} fill="#f0c040" style={{ pointerEvents:'none' }}>E</text>
+          {isHovered && <circle cx={x+10} cy={y-10} r={7} fill="#e05050" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }} />}
+          {isHovered && <text x={x+10} y={y-6} textAnchor="middle" fontSize={9} fill="#fff" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer', pointerEvents:'all' }}>×</text>}
+        </g>
+      );
+    }
+    if (el.type === 'ventilation') {
+      return (
+        <g {...baseProps}>
+          <circle cx={x} cy={y} r={10} fill={isHovered ? 'rgba(76,186,133,0.35)' : 'rgba(76,186,133,0.2)'} stroke="#4cba85" strokeWidth={isDragging ? 2 : 1.5} />
+          <line x1={x-8} y1={y} x2={x+8} y2={y} stroke="#4cba85" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          <line x1={x} y1={y-8} x2={x} y2={y+8} stroke="#4cba85" strokeWidth={1} style={{ pointerEvents:'none' }} />
+          <circle cx={x} cy={y} r={2} fill="#4cba85" style={{ pointerEvents:'none' }} />
+          {isHovered && <circle cx={x+10} cy={y-10} r={7} fill="#e05050" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }} />}
+          {isHovered && <text x={x+10} y={y-6} textAnchor="middle" fontSize={9} fill="#fff" onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer', pointerEvents:'all' }}>×</text>}
+        </g>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div style={{ display:'flex', height:'100%', background:pPaper }}>
+      {/* Toolbar */}
+      <div style={{ width:160, borderRight:`1px solid ${pLine}`, padding:'16px 12px', display:'flex', flexDirection:'column', gap:8 }}>
+        <div style={{ fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:4 }}>Place elements</div>
+        {TOOLS.map(t => (
+          <button key={t.id} onClick={() => setTool(t.id)} style={{
+            padding:'8px 12px', borderRadius:8, border:`1.5px solid ${tool === t.id ? t.color : pLine}`,
+            background: tool === t.id ? `${t.color}18` : 'transparent',
+            color: tool === t.id ? t.color : pMute,
+            fontSize:12, fontWeight:600, cursor:'pointer', textAlign:'left',
+            display:'flex', alignItems:'center', gap:8,
+          }}>
+            <span style={{ width:22, height:22, borderRadius:5, background:`${t.color}22`, border:`1px solid ${t.color}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, color:t.color }}>{t.icon}</span>
+            {t.label}
+          </button>
+        ))}
+        <div style={{ marginTop:'auto', fontSize:10, color:pMute, lineHeight:1.5 }}>
+          Click floor to place.<br/>Drag to reposition.<br/>Hover + × to delete.
+        </div>
+        {elements.length > 0 && (
+          <button onClick={() => elements.forEach(el => onRemove && onRemove(el.id))} style={{
+            padding:'7px', borderRadius:6, border:`1px solid ${pLine}`, background:'transparent',
+            color:pMute, fontSize:11, cursor:'pointer',
+          }}>Clear all</button>
+        )}
+      </div>
+
+      {/* SVG canvas */}
+      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
+        <svg ref={svgRef} viewBox={`0 0 ${VW} ${VH}`}
+          style={{ width:'100%', height:'100%', display:'block', cursor: dragState ? 'grabbing' : 'crosshair', maxWidth:560, userSelect:'none' }}
+          onMouseDown={handleSvgMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}>
+          <rect width={VW} height={VH} fill={pPaper} />
+          {/* Room outline */}
+          <rect x={ox} y={oy} width={roomW*sc} height={roomD*sc} fill="rgba(26,24,21,0.03)" stroke={pInk} strokeWidth={2} />
+          {/* Grid */}
+          {Array.from({length: Math.floor(roomW/500)+1}, (_,i) => (
+            <line key={`gx${i}`} x1={ox+i*500*sc} y1={oy} x2={ox+i*500*sc} y2={oy+roomD*sc} stroke={pLine} strokeWidth={0.5} />
+          ))}
+          {Array.from({length: Math.floor(roomD/500)+1}, (_,i) => (
+            <line key={`gy${i}`} x1={ox} y1={oy+i*500*sc} x2={ox+roomW*sc} y2={oy+i*500*sc} stroke={pLine} strokeWidth={0.5} />
+          ))}
+          {/* Dimension labels */}
+          <text x={ox + roomW*sc/2} y={oy + roomD*sc + 18} textAnchor="middle" fontSize={10} fill={pMute} fontFamily="JetBrains Mono,monospace">{(roomW/1000).toFixed(2)} m</text>
+          <text x={ox - 14} y={oy + roomD*sc/2} textAnchor="middle" fontSize={10} fill={pMute} fontFamily="JetBrains Mono,monospace" transform={`rotate(-90,${ox-14},${oy+roomD*sc/2})`}>{(roomD/1000).toFixed(2)} m</text>
+          {/* Room elements */}
+          {elements.map(renderEl)}
+          {/* Active tool hint */}
+          <text x={VW-8} y={VH-8} textAnchor="end" fontSize={9} fill={pMute} fontFamily="JetBrains Mono,monospace">
+            {`Tool: ${tool.toUpperCase()} · click to place · drag to move`}
+          </text>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 /* ── View toggle ───────────────────────────────────────────── */
 function ViewToggle({ value, onChange }) {
-  const opts = ['2D plan', 'Elevation', '3D walk'];
+  const opts = ['Room setup', '2D plan', 'Elevation', '3D walk'];
   return (
     <div style={{ display:'flex', background:'rgba(26,24,21,0.05)', borderRadius:8, padding:3 }}>
       {opts.map(o => {
@@ -652,7 +1010,10 @@ function getCabColor(name) {
 /* ── Catalog tabs per room type ────────────────────────────── */
 const CATALOG_TABS_BY_ROOM = {
   kitchen:  [
-    { id:'cabinets',   label:'Kitchen',     icon:'▦' },
+    { id:'base',       label:'Base',        icon:'▬' },
+    { id:'wall',       label:'Wall',        icon:'▭' },
+    { id:'high',       label:'High',        icon:'▮' },
+    { id:'fronts',     label:'Fronts',      icon:'▱' },
     { id:'appliances', label:'Appliances',  icon:'⊡' },
     { id:'dining',     label:'Dining',      icon:'⊞' },
     { id:'extras',     label:'Extras',      icon:'⊟' },
@@ -675,7 +1036,7 @@ const KITCHEN_PRESETS = [
   { name:'Peninsula kitchen',           variants:['4×3m + peninsula'],                             price:'₹6.5–12L',   desc:'L-shape with attached peninsula · semi-open concept' },
 ];
 
-const CABINET_SECTIONS = [
+const BASE_SECTIONS = [
   {
     title: 'Base cabinets · METOD frame',
     code: 'KBX-BC',
@@ -692,6 +1053,9 @@ const CABINET_SECTIONS = [
       { name:'Filler & end panel',        variants:['50mm','100mm','200mm'],          price:'₹2–6k'   },
     ],
   },
+];
+
+const WALL_SECTIONS = [
   {
     title: 'Wall cabinets · METOD frame',
     code: 'KBX-WC',
@@ -706,6 +1070,9 @@ const CABINET_SECTIONS = [
       { name:'Filler & end panel',        variants:['50mm','100mm'],                  price:'₹1–5k'   },
     ],
   },
+];
+
+const HIGH_SECTIONS = [
   {
     title: 'High cabinets · METOD frame',
     code: 'KBX-HC',
@@ -718,6 +1085,9 @@ const CABINET_SECTIONS = [
       { name:'Filler & end panel',        variants:['50mm','100mm'],                  price:'₹3–7k'   },
     ],
   },
+];
+
+const DOOR_SECTIONS = [
   {
     title: 'Door fronts',
     code: 'KBX-DF',
@@ -732,6 +1102,8 @@ const CABINET_SECTIONS = [
     ],
   },
 ];
+
+const CABINET_SECTIONS = [...BASE_SECTIONS, ...WALL_SECTIONS, ...HIGH_SECTIONS, ...DOOR_SECTIONS];
 
 const APPLIANCE_SECTIONS = [
   {
@@ -976,6 +1348,10 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
 
   const tab = validActiveTab;
   let sections = [];
+  if (tab === 'base')       sections = BASE_SECTIONS;
+  if (tab === 'wall')       sections = WALL_SECTIONS;
+  if (tab === 'high')       sections = HIGH_SECTIONS;
+  if (tab === 'fronts')     sections = DOOR_SECTIONS;
   if (tab === 'cabinets')   sections = CABINET_SECTIONS;
   if (tab === 'appliances') sections = APPLIANCE_SECTIONS;
   if (tab === 'dining')     sections = DINING_SECTIONS;
@@ -1027,7 +1403,7 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
         <div style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', background:'rgba(26,24,21,0.04)', borderRadius:8, fontSize:12, color:pMute, marginBottom:8 }}>
           <span>⌕</span>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${roomType}…`}
-            style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Inter Tight",sans-serif' }} />
+            style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Geist",sans-serif' }} />
           {search && <span onClick={() => setSearch('')} style={{ cursor:'pointer', fontSize:14, lineHeight:1 }}>×</span>}
         </div>
         <div style={{ display:'flex', gap:4 }}>
@@ -1251,9 +1627,9 @@ function computeBOM(roomW, roomD, layout, finish) {
   const appliances = s.applianceFlat;
   const hardware  = Math.round((baseCabs + wallCabs + highCabs) * s.hardwareRate / 100);
   const subtotal  = baseCabs + wallCabs + highCabs + worktop + appliances + hardware;
-  const markup    = Math.round(subtotal * s.markup / 100);
-  const gst       = Math.round((subtotal + markup) * s.gst / 100);
-  const total     = subtotal + markup + gst;
+  const gst       = Math.round(subtotal * s.gst / 100);
+  const total     = subtotal + gst;
+  const markup    = 0;
   return {
     bom: [
       { category: 'Base cabinets',     qty: baseCount,  unit: 'units', unitPrice: Math.round(s.cabinetRate * 0.6),       amount: baseCabs },
@@ -1268,7 +1644,7 @@ function computeBOM(roomW, roomD, layout, finish) {
 }
 
 /* ─── QUOTE MODAL ──────────────────────────────────────────── */
-function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, onSubmit, onClose }) {
+function QuoteModal({ bom, roomType = 'kitchen', room, layout, finish, onSubmit, onClose }) {
   const { useState: useS } = React;
   const [name, setName]     = useS('');
   const [phone, setPhone]   = useS('');
@@ -1277,32 +1653,42 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
   const [payOpt, setPayOpt] = useS('visit');
   const fmt = n => '₹ ' + n.toLocaleString('en-IN');
   const ok  = name.trim().length > 0;
+
+  // Always derive from bom line items — no separate subtotal/markup/gst props
+  const bomSubtotal = bom.reduce((sum, b) => sum + b.amount, 0);
+  const bomGst      = Math.round(bomSubtotal * 0.18);
+  const bomTotal    = bomSubtotal + bomGst;
+
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div style={{ background:pPaper, borderRadius:12, width:480, maxHeight:'88vh', overflow:'auto', boxShadow:'0 40px 120px rgba(0,0,0,0.35)' }}>
         <div style={{ padding:'24px 28px 0' }}>
           <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:4 }}>Submit BOQ to Studio</div>
-          <div style={{ ...pStyles.fraunces, fontSize:24, marginBottom:4 }}>Your kitchen · {layout}</div>
+          <div style={{ ...pStyles.fraunces, fontSize:24, marginBottom:4 }}>Your {roomType} · {layout || 'custom'}</div>
           <div style={{ fontSize:12, color:pMute }}>Room {room.W} × {room.D} × {room.H} mm · {finish}</div>
         </div>
         <div style={{ padding:'16px 28px', borderBottom:`1px solid ${pLine}` }}>
-          {bom.map((b,i) => (
+          {bom.length === 0 ? (
+            <div style={{ fontSize:12, color:pMute, padding:'12px 0', textAlign:'center' }}>
+              No items placed yet — drag items from the catalog to generate a live BOQ.
+            </div>
+          ) : bom.map((b,i) => (
             <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderTop:i ? `1px solid ${pLine}` : 'none', fontSize:12 }}>
               <span>{b.category} <span style={{ color:pMute, fontSize:10 }}>×{b.qty} {b.unit}</span></span>
-              <span style={{ ...pStyles.mono, color:pMute }}>{fmt(b.amount)}</span>
+              <span style={{ ...pStyles.mono }}>{fmt(b.amount)}</span>
             </div>
           ))}
-          <div style={{ marginTop:6, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
-            {[['Studio margin', markup], ['GST (18%)', gst]].map(([l,v]) => (
-              <div key={l} style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
-                <span>{l}</span><span style={pStyles.mono}>{fmt(v)}</span>
+          {bom.length > 0 && (
+            <div style={{ marginTop:6, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
+                <span>GST (18%)</span><span style={pStyles.mono}>{fmt(bomGst)}</span>
               </div>
-            ))}
-            <div style={{ display:'flex', justifyContent:'space-between', marginTop:6, paddingTop:6, borderTop:`2px solid ${pInk}`, fontSize:14, fontWeight:700 }}>
-              <span>Total estimate</span><span style={pStyles.mono}>{fmt(total)}</span>
+              <div style={{ display:'flex', justifyContent:'space-between', marginTop:6, paddingTop:6, borderTop:`2px solid ${pInk}`, fontSize:14, fontWeight:700 }}>
+                <span>Total estimate</span><span style={pStyles.mono}>{fmt(bomTotal)}</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
         <div style={{ padding:'20px 28px' }}>
           {[
@@ -1314,7 +1700,7 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
               <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:6 }}>{label}</div>
               <input type={type} value={val} onChange={e => set(e.target.value)} placeholder={ph} style={{
                 display:'block', width:'100%', padding:'10px 12px', border:`1px solid ${pLine}`, borderRadius:6,
-                fontSize:13, fontFamily:'"Inter Tight",sans-serif', color:pInk, background:pBg, outline:'none', boxSizing:'border-box',
+                fontSize:13, fontFamily:'"Geist",sans-serif', color:pInk, background:pBg, outline:'none', boxSizing:'border-box',
               }} />
             </div>
           ))}
@@ -1322,7 +1708,7 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
             <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:6 }}>Notes</div>
             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Any special requirements…" style={{
               display:'block', width:'100%', padding:'10px 12px', border:`1px solid ${pLine}`, borderRadius:6,
-              fontSize:13, fontFamily:'"Inter Tight",sans-serif', color:pInk, background:pBg, outline:'none', resize:'vertical', boxSizing:'border-box',
+              fontSize:13, fontFamily:'"Geist",sans-serif', color:pInk, background:pBg, outline:'none', resize:'vertical', boxSizing:'border-box',
             }} />
           </div>
           {/* Confirmation options */}
@@ -1429,8 +1815,21 @@ function PlannerFrontend({ accent = pAccent }) {
   const [saveTs, setSaveTs]   = useS(null);
   const [editDim, setEditDim] = useS(false);
   const [roomType, setRoomType] = useS('kitchen'); // 'kitchen' | 'wardrobe' | 'office'
-  const [catalogTab, setCatalogTab] = useS('cabinets');
+  const [catalogTab, setCatalogTab] = useS('base');
   const [placedItems, setPlacedItems] = useS([]);
+  const [roomElements, setRoomElements] = useS([]);
+  const [selectedItemId, setSelectedItemId] = useS(null);
+
+  const handleItemUpdate = (id, updates) => {
+    setPlacedItems(prev => prev.map(it => it.id === id ? { ...it, ...updates } : it));
+  };
+  const handleItemDuplicate = (id) => {
+    const src = placedItems.find(it => it.id === id);
+    if (!src) return;
+    const newId = `item-${Date.now()}-dup`;
+    setPlacedItems(prev => [...prev, { ...src, id: newId, x: src.x + 200, y: src.y + 100 }]);
+    setSelectedItemId(newId);
+  };
 
   // roomItems is always derived from placedItems — single source of truth
   const roomItems = useM(() => {
@@ -1446,7 +1845,7 @@ function PlannerFrontend({ accent = pAccent }) {
   const handleRoomType = type => {
     setRoomType(type);
     setPlacedItems([]);
-    if (type === 'kitchen')  setCatalogTab('cabinets');
+    if (type === 'kitchen')  setCatalogTab('base');
     if (type === 'wardrobe') setCatalogTab('wardrobe');
     if (type === 'office')   setCatalogTab('office');
   };
@@ -1487,22 +1886,25 @@ function PlannerFrontend({ accent = pAccent }) {
     }
   }, []);
 
-  // Keep computeBOM for the formal quote modal
-  const { bom, subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal } = useM(
-    () => computeBOM(roomW, roomD, layout, finish),
-    [roomW, roomD, layout, finish]
-  );
-
-  // Live estimate from actual placed items
-  const { subtotal, markup, gst, total } = useM(() => {
-    if (roomItems.length === 0) return { subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal };
-    const s = KreoStore.getSettings();
-    const sub = roomItems.reduce((acc, r) => acc + estimateItemPrice(r.price) * r.qty, 0);
-    if (sub === 0) return { subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal };
-    const m = Math.round(sub * s.markup / 100);
-    const g = Math.round((sub + m) * s.gst / 100);
-    return { subtotal: sub, markup: m, gst: g, total: sub + m + g };
-  }, [roomItems, bomSub, bomMarkup, bomGst, bomTotal]);
+  // Real-time BOQ: always derived from what's actually placed on the canvas.
+  // Falls back to room-dimension estimate for kitchen when canvas is empty.
+  const { bom, liveSubtotal, liveGst, liveTotal } = useM(() => {
+    if (roomItems.length > 0) {
+      const liveBom = roomItems.map(r => {
+        const unitPrice = estimateItemPrice(r.price);
+        return { category: r.name, qty: r.qty, unit: 'units', unitPrice, amount: unitPrice * r.qty };
+      });
+      const sub = liveBom.reduce((s, b) => s + b.amount, 0);
+      const gstAmt = Math.round(sub * 0.18);
+      return { bom: liveBom, liveSubtotal: sub, liveGst: gstAmt, liveTotal: sub + gstAmt };
+    }
+    // No items placed — use dimension-based estimate only for kitchen
+    if (roomType === 'kitchen') {
+      const { bom: kb, subtotal: ks, gst: kg, total: kt } = computeBOM(roomW, roomD, layout, finish);
+      return { bom: kb, liveSubtotal: ks, liveGst: kg, liveTotal: kt };
+    }
+    return { bom: [], liveSubtotal: 0, liveGst: 0, liveTotal: 0 };
+  }, [roomItems, roomType, roomW, roomD, layout, finish]);
 
   const handleSave = () => {
     KreoStore.saveDraft({ room: { W:roomW, D:roomD, H:roomH, layout }, finish, hardware, ts: Date.now() });
@@ -1514,7 +1916,7 @@ function PlannerFrontend({ accent = pAccent }) {
       id: KreoStore.nextOrderId(), ts: Date.now(), status: 'new',
       ...customerData,
       room: { W:roomW, D:roomD, H:roomH, layout },
-      finish, hardware, roomItems, bom, subtotal, markup, gst, total,
+      finish, hardware, roomItems, bom, subtotal: liveSubtotal, gst: liveGst, total: liveTotal,
     };
     KreoStore.addOrder(order);
     setSubmitted(order);
@@ -1531,7 +1933,7 @@ function PlannerFrontend({ accent = pAccent }) {
   return (
     <div style={pStyles.shell}>
       {showModal && (
-        <QuoteModal bom={bom} subtotal={subtotal} markup={markup} gst={gst} total={total}
+        <QuoteModal bom={bom} roomType={roomType}
           room={{ W:roomW, D:roomD, H:roomH }} layout={layout} finish={finish}
           onSubmit={handleSubmit} onClose={() => setShowModal(false)} />
       )}
@@ -1592,7 +1994,7 @@ function PlannerFrontend({ accent = pAccent }) {
               {layout} · {(roomW/1000).toFixed(2)} × {(roomD/1000).toFixed(2)} m ✎
             </span>
             <span style={{ width:1, height:12, background:pLine }}/>
-            <span>{view === '3D walk' ? 'Perspective' : view === 'Elevation' ? 'Front elevation' : 'Scale 1:25'}</span>
+            <span>{view === '3D walk' ? 'Perspective' : view === 'Elevation' ? 'Front elevation' : view === 'Room setup' ? `${roomElements.length} elements placed` : 'Scale 1:25'}</span>
           </div>
 
           {/* Dimension editor popover */}
@@ -1651,15 +2053,29 @@ function PlannerFrontend({ accent = pAccent }) {
           )}
           <div style={{ flex:1, padding:24, display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setEditDim(false)}>
             <div style={{
-              width:'100%', maxWidth: view === '3D walk' ? 800 : 700,
-              aspectRatio: view === '3D walk' ? '620 / 440' : '480 / 380',
+              width:'100%', maxWidth: view === '3D walk' ? 800 : view === '2D plan' && selectedItemId ? 960 : 700,
+              aspectRatio: view === '3D walk' ? '620 / 440' : view === 'Room setup' ? '560 / 400' : '480 / 380',
               background: view === '3D walk' ? pBg : pPaper,
               borderRadius:12, border:`1px solid ${pLine}`,
               boxShadow:'0 30px 80px -30px rgba(0,0,0,0.18)', overflow:'hidden',
+              position:'relative',
             }}>
-              {view === '2D plan'   && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} roomW={roomW} roomD={roomD} />}
-              {view === 'Elevation' && <KitchenElevation accent={accent} items={placedItems} roomW={roomW} roomH={roomH} />}
-              {view === '3D walk'   && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH} onMoveItem={(idx, pos) => setPlacedItems(prev => prev.map((it, i) => i === idx ? { ...it, x: pos.x, y: pos.y } : it))} />}
+              {view === 'Room setup' && <RoomSetupView roomW={roomW} roomD={roomD} elements={roomElements} onAdd={el => setRoomElements(prev => [...prev, el])} onRemove={id => setRoomElements(prev => prev.filter(e => e.id !== id))} onMove={(id, x, y) => setRoomElements(prev => prev.map(e => e.id === id ? { ...e, x, y } : e))} />}
+              {view === '2D plan'    && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} roomElements={roomElements} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} onItemSelect={setSelectedItemId} selectedItemId={selectedItemId} roomW={roomW} roomD={roomD} />}
+              {view === '2D plan' && selectedItemId && (() => {
+                const item = placedItems.find(it => it.id === selectedItemId);
+                return item ? (
+                  <ItemModifyPanel
+                    item={item}
+                    onUpdate={u => handleItemUpdate(selectedItemId, u)}
+                    onDuplicate={() => handleItemDuplicate(selectedItemId)}
+                    onDelete={() => { handleItemDelete2D(selectedItemId); setSelectedItemId(null); }}
+                    onClose={() => setSelectedItemId(null)}
+                  />
+                ) : null;
+              })()}
+              {view === 'Elevation'  && <KitchenElevation accent={accent} items={placedItems} roomW={roomW} roomH={roomH} />}
+              {view === '3D walk'    && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH} onMoveItem={(idx, pos) => setPlacedItems(prev => prev.map((it, i) => i === idx ? { ...it, x: pos.x, y: pos.y } : it))} />}
             </div>
           </div>
 
@@ -1711,30 +2127,24 @@ function PlannerFrontend({ accent = pAccent }) {
 
           <div style={{ flex:1, overflowY:'auto', padding:'14px 20px' }}>
             <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600, marginBottom:10 }}>Live BOQ</div>
-            {roomItems.length === 0 ? (
+            {bom.length === 0 ? (
               <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'12px 0' }}>
                 Drag items to canvas to see cost
               </div>
-            ) : roomItems.map((r, i) => {
-              const unitPrice = estimateItemPrice(r.price);
-              const amount = unitPrice * r.qty;
-              return (
-                <div key={`${r.name}||${r.variant}`} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderTop:i?`1px solid ${pLine}`:'none', fontSize:12 }}>
-                  <div>
-                    <div style={{ fontWeight:500 }}>{r.name}</div>
-                    <div style={{ fontSize:10, color:pMute, ...pStyles.mono }}>×{r.qty} · {r.variant}</div>
-                  </div>
-                  <span style={{ ...pStyles.mono, color:pMute, fontSize:11, alignSelf:'center' }}>{amount > 0 ? fmt(amount) : r.price}</span>
+            ) : bom.map((b, i) => (
+              <div key={`${b.category}-${i}`} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderTop:i?`1px solid ${pLine}`:'none', fontSize:12 }}>
+                <div>
+                  <div style={{ fontWeight:500 }}>{b.category}</div>
+                  <div style={{ fontSize:10, color:pMute, ...pStyles.mono }}>×{b.qty} {b.unit}</div>
                 </div>
-              );
-            })}
-            {roomItems.length > 0 && (
+                <span style={{ ...pStyles.mono, fontSize:11, alignSelf:'center' }}>{b.amount > 0 ? fmt(b.amount) : '—'}</span>
+              </div>
+            ))}
+            {bom.length > 0 && (
               <div style={{ marginTop:8, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
-                {[['Studio margin', markup],['GST (18%)', gst]].map(([l,v]) => (
-                  <div key={l} style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
-                    <span>{l}</span><span style={pStyles.mono}>{fmt(v)}</span>
-                  </div>
-                ))}
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
+                  <span>GST (18%)</span><span style={pStyles.mono}>{fmt(liveGst)}</span>
+                </div>
               </div>
             )}
           </div>
@@ -1744,7 +2154,7 @@ function PlannerFrontend({ accent = pAccent }) {
               <span style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>Total estimate</span>
               <span style={{ fontSize:11, color:pMute }}>incl. GST</span>
             </div>
-            <div style={{ ...pStyles.fraunces, fontSize:30, marginTop:4 }}>{fmt(total)}</div>
+            <div style={{ ...pStyles.fraunces, fontSize:30, marginTop:4 }}>{liveTotal > 0 ? fmt(liveTotal) : '—'}</div>
             <div style={{ display:'flex', gap:8, marginTop:12 }}>
               <button onClick={() => setShowModal(true)} style={{ flex:1, ...pStyles.primaryBtn, textAlign:'center', padding:'11px', borderRadius:8, border:'none', cursor:'pointer', fontSize:12 }}>Send BOQ →</button>
               <button onClick={handleSave} style={{ ...pStyles.pillBtn, padding:'11px 14px', borderRadius:8, cursor:'pointer', fontSize:12 }}>Save</button>

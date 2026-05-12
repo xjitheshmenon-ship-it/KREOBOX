@@ -4,13 +4,14 @@
    workspaces: shop-floor production and studio administration.
    ============================================================ */
 
-const fInk = '#0e0d0b';
-const fBg = '#1f1c19';
-const fSub = '#27241f';
-const fSub2 = '#191613';
-const fLine = 'rgba(255,255,255,0.08)';
-const fMute = 'rgba(255,255,255,0.55)';
+const fBg = '#0f0e0c';
+const fInk = '#f5f3ed';
+const fSub = '#1c1a15';
+const fSub2 = '#16140f';
+const fLine = 'rgba(245,243,237,0.08)';
+const fMute = 'rgba(245,243,237,0.5)';
 const fAccent = '#c96442';
+const fMute2 = 'rgba(245,243,237,0.5)';
 const fOk = '#4cba85';
 const fWarn = '#d9a049';
 const fInfo = '#5b8def';
@@ -18,7 +19,7 @@ const fInfo = '#5b8def';
 const fS = {
   shell: {
     width: '100%', height: '100%', background: fBg, color: '#e8e6e1',
-    fontFamily: '"Inter Tight", sans-serif', display: 'flex', overflow: 'hidden',
+    fontFamily: '"Geist", sans-serif', display: 'flex', overflow: 'hidden',
   },
   sidebar: {
     width: 200, padding: '20px 14px', display: 'flex', flexDirection: 'column', gap: 1,
@@ -215,7 +216,7 @@ function DepotStockView() {
     <input value={val} onChange={e => set(e.target.value)} placeholder={ph}
       style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${fLine}`, borderRadius: 6,
         padding: '6px 10px', fontSize: 11, color: '#fff', outline: 'none', width: '100%',
-        fontFamily: '"Inter Tight", sans-serif' }} />
+        fontFamily: '"Geist", sans-serif' }} />
   );
 
   const chipRow = (opts, val, set) => (

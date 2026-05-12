@@ -10,13 +10,13 @@
      · bottom — fabrication queue table
    ============================================================ */
 
-const bInk = '#0e0d0b';
-const bPaper = '#fafaf7';
-const bBg = '#1f1c19';
-const bSub = '#27241f';
-const bMute = 'rgba(255,255,255,0.55)';
-const bLine = 'rgba(255,255,255,0.08)';
+const bBg = '#0f0e0c';
+const bPaper = '#f5f3ed';
 const bAccent = '#c96442';
+const bLine = 'rgba(245,243,237,0.08)';
+const bMute = 'rgba(245,243,237,0.5)';
+const bInk = '#f5f3ed';
+const bSub = '#1c1a15';
 
 // Vendor color tags
 const VTAGS = {
@@ -30,7 +30,7 @@ const bStyles = {
   shell: {
     width: '100%', height: '100%',
     background: bBg, color: '#e8e6e1',
-    fontFamily: '"Inter Tight", -apple-system, system-ui, sans-serif',
+    fontFamily: '"Geist", -apple-system, system-ui, sans-serif',
     display: 'flex', overflow: 'hidden',
   },
   sidebar: {
@@ -1018,7 +1018,7 @@ function PlannerBackend() {
                     <textarea value={studioNote} onChange={e => setStudioNote(e.target.value)} rows={3} style={{
                       width:'100%', padding:'8px 10px', background:'rgba(255,255,255,0.05)',
                       border:`1px solid ${bLine}`, borderRadius:6, color:'#fff', fontSize:11,
-                      fontFamily:'"Inter Tight",sans-serif', outline:'none', resize:'vertical', boxSizing:'border-box',
+                      fontFamily:'"Geist",sans-serif', outline:'none', resize:'vertical', boxSizing:'border-box',
                     }} placeholder="Special instructions for production…" />
                   </div>
                 </div>

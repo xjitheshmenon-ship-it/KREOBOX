@@ -6,24 +6,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:     #f0eee9;
-    --paper:  #fafaf7;
-    --ink:    #1a1815;
-    --mute:   rgba(26,24,21,0.5);
-    --line:   rgba(26,24,21,0.09);
-    --accent: #c96442;
+    --bg:         #ece9e2;
+    --paper:      #f5f3ed;
+    --ink:        #16140f;
+    --ink-soft:   #4a463d;
+    --mute:       rgba(22,20,15,0.55);
+    --line:       rgba(22,20,15,0.10);
+    --line-2:     rgba(22,20,15,0.20);
+    --sienna:     #c96442;
+    --sienna-2:   #e0795a;
+    --sienna-deep:#9c4928;
+    --status:     #4ea25a;
+    --grid:       rgba(22,20,15,0.04);
+    --accent:     #c96442;
   }
 
   html, body {
     height: 100%;
     background: var(--bg);
     color: var(--ink);
-    font-family: "Inter Tight", -apple-system, system-ui, sans-serif;
+    font-family: "Geist", -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -32,77 +39,220 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 32px 20px;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 56px 56px;
+    background-position: -1px -1px;
   }
 
-  /* ── logo ── */
-  .logo {
+  /* ── NAV ── */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    background: rgba(236,233,226,0.88);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+    padding: 0 32px;
+    height: 60px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 8px;
+    gap: 16px;
   }
-  .wordmark {
-    font-family: "Fraunces", Georgia, serif;
-    font-size: 22px;
-    font-weight: 500;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
     color: var(--ink);
   }
-  .tagline {
-    font-size: 13px;
+  .nav-wordmark {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .nav-tagline {
+    font-size: 11px;
     color: var(--mute);
     letter-spacing: 0.04em;
-    margin-bottom: 48px;
-    text-align: center;
+    padding-left: 16px;
+    border-left: 1px solid var(--line-2);
+  }
+  .nav-spacer { flex: 1; }
+  .nav-ghost {
+    padding: 8px 16px;
+    border: 1px solid var(--line-2);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color 0.15s;
+  }
+  .nav-ghost:hover { border-color: var(--ink); }
+  .nav-cta {
+    padding: 8px 16px;
+    background: var(--sienna);
+    color: var(--paper);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .nav-cta:hover { opacity: 0.88; }
+
+  /* ── TICKER ── */
+  .ticker-wrap {
+    width: 100%;
+    overflow: hidden;
+    background: var(--ink);
+    color: var(--paper);
+    height: 32px;
+    display: flex;
+    align-items: center;
+  }
+  .ticker-track {
+    display: flex;
+    gap: 0;
+    animation: ticker 34s linear infinite;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .ticker-track:hover { animation-play-state: paused; }
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  .ticker-item {
+    font-size: 10px;
+    font-family: "JetBrains Mono", monospace;
+    letter-spacing: 0.04em;
+    color: rgba(245,243,237,0.65);
+    padding: 0 28px;
+  }
+  .ticker-item strong { color: var(--paper); }
+  .ticker-dot {
+    color: var(--sienna);
+    font-size: 8px;
+    padding: 0 8px;
   }
 
-  /* ── cards grid ── */
+  /* ── HERO ── */
+  .hero {
+    padding: 80px 32px 60px;
+    max-width: 1040px;
+    width: 100%;
+    text-align: center;
+  }
+  .hero-section {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--mute);
+    font-family: "JetBrains Mono", monospace;
+    margin-bottom: 20px;
+  }
+  .hero-h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: clamp(40px, 6vw, 68px);
+    font-weight: 400;
+    line-height: 1.08;
+    margin-bottom: 20px;
+    color: var(--ink);
+  }
+  .hero-h1 em { font-style: italic; color: var(--sienna); }
+  .hero-sub {
+    font-size: 15px;
+    color: var(--mute);
+    line-height: 1.65;
+    max-width: 480px;
+    margin: 0 auto 36px;
+  }
+  .hero-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 64px;
+  }
+  .btn-sienna {
+    padding: 13px 24px;
+    background: var(--sienna);
+    color: var(--paper);
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+  .btn-sienna:hover { transform: translateY(-1px); opacity: 0.92; }
+  .btn-ghost {
+    padding: 13px 24px;
+    border: 1px solid var(--line-2);
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    transition: border-color 0.15s;
+  }
+  .btn-ghost:hover { border-color: var(--ink); }
+
+  /* ── CARDS GRID ── */
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
     width: 100%;
     max-width: 1040px;
+    padding: 0 32px;
   }
 
   .card {
     background: var(--paper);
     border: 1px solid var(--line);
     border-radius: 14px;
-    padding: 28px 28px 24px;
+    padding: 0;
     text-decoration: none;
     color: var(--ink);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    overflow: hidden;
     transition: box-shadow 0.18s, border-color 0.18s, transform 0.14s;
     cursor: pointer;
   }
   .card:hover {
     box-shadow: 0 12px 40px rgba(0,0,0,0.11);
-    border-color: var(--accent);
-    transform: translateY(-2px);
+    border-color: var(--sienna);
+    transform: translateY(-3px);
   }
 
-  .card-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 12px;
+  .card-top {
+    height: 96px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
-    margin-bottom: 4px;
+    font-size: 30px;
   }
-  .card-icon.warm  { background: rgba(201,100,66,0.10); }
-  .card-icon.dark  { background: rgba(26,24,21,0.07); }
-  .card-icon.green { background: rgba(76,160,100,0.10); }
+  .card-top.warm  { background: rgba(201,100,66,0.10); }
+  .card-top.dark  { background: rgba(22,20,15,0.07); }
+  .card-top.green { background: rgba(78,162,90,0.10); }
+
+  .card-body { padding: 22px 24px 20px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 
   .card-label {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -111,7 +261,7 @@
   }
   .card-title {
     font-family: "Fraunces", Georgia, serif;
-    font-size: 22px;
+    font-size: 21px;
     font-weight: 400;
     line-height: 1.2;
   }
@@ -127,20 +277,18 @@
     gap: 6px;
     font-size: 12px;
     font-weight: 600;
-    color: var(--accent);
-    margin-top: 4px;
+    color: var(--sienna);
+    margin-top: 6px;
   }
 
-  .card.primary {
-    background: linear-gradient(135deg, #fdfcf8 0%, rgba(201,100,66,0.04) 100%);
-    border-color: rgba(201,100,66,0.25);
-  }
-
-  /* ── footer ── */
+  /* ── FOOTER ── */
   .footer {
-    margin-top: 52px;
+    width: 100%;
+    margin-top: 72px;
+    padding: 24px 32px;
+    border-top: 1px solid var(--line);
     font-size: 11px;
-    color: rgba(26,24,21,0.3);
+    color: rgba(22,20,15,0.3);
     font-family: "JetBrains Mono", monospace;
     letter-spacing: 0.06em;
     text-align: center;
@@ -149,52 +297,109 @@
 </head>
 <body>
 
-  <div class="logo">
-    <!-- Kreobox mark: open box with tilted lid -->
-    <svg width="30" height="30" viewBox="0 0 100 100">
-      <path fill-rule="evenodd" clip-rule="evenodd"
-        d="M10 32 H90 V90 Q90 97 83 97 H17 Q10 97 10 90 Z M24 46 H76 V82 H24 Z"
-        fill="#c96442"/>
-      <rect x="11" y="10" width="80" height="17" rx="3"
-        transform="rotate(-7 51 18)" fill="#c96442" fill-opacity="0.72"/>
-    </svg>
-    <span class="wordmark">Kreobox</span>
+  <!-- NAV -->
+  <nav class="nav">
+    <a class="nav-logo" href="index.html">
+      <svg width="26" height="26" viewBox="0 0 100 100">
+        <path fill-rule="evenodd" clip-rule="evenodd"
+          d="M10 32 H90 V90 Q90 97 83 97 H17 Q10 97 10 90 Z M24 46 H76 V82 H24 Z"
+          fill="#c96442"/>
+        <rect x="11" y="10" width="80" height="17" rx="3"
+          transform="rotate(-7 51 18)" fill="#c96442" fill-opacity="0.72"/>
+      </svg>
+      <span class="nav-wordmark">Kreobox</span>
+    </a>
+    <span class="nav-tagline">India's execution engine</span>
+    <div class="nav-spacer"></div>
+    <a class="nav-ghost" href="catalog.html">Studio →</a>
+    <a class="nav-cta" href="planner.html">Build BOQ →</a>
+  </nav>
+
+  <!-- ACTIVITY TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker-track">
+      <span class="ticker-item"><strong>Live activity:</strong></span>
+      <span class="ticker-item">Priya Sharma, Mumbai · L-shape kitchen confirmed</span>
+      <span class="ticker-dot">●</span>
+      <span class="ticker-item">Raj Mehta, Bengaluru · Wardrobe kit dispatched</span>
+      <span class="ticker-dot">●</span>
+      <span class="ticker-item">Anita Verma, Delhi NCR · Site install complete</span>
+      <span class="ticker-dot">●</span>
+      <span class="ticker-item">Suresh Pillai, Chennai · BOQ signed — ₹8.4L</span>
+      <span class="ticker-dot">●</span>
+      <span class="ticker-item">Kavitha Nair, Hyderabad · U-shape kitchen cut-list sent</span>
+      <span class="ticker-dot">●</span>
+      <span class="ticker-item">Amit Joshi, Pune · Depot pick-up confirmed</span>
+      <span class="ticker-dot">●</span>
+      <!-- duplicate for seamless loop -->
+      <span class="ticker-item"><strong>Live activity:</strong></span>
+      <span class="ticker-item">Priya Sharma, Mumbai · L-shape kitchen confirmed</span>
+      <span class="ticker-dot">●</span>
+      <span class="ticker-item">Raj Mehta, Bengaluru · Wardrobe kit dispatched</span>
+      <span class="ticker-dot">●</span>
+      <span class="ticker-item">Anita Verma, Delhi NCR · Site install complete</span>
+      <span class="ticker-dot">●</span>
+      <span class="ticker-item">Suresh Pillai, Chennai · BOQ signed — ₹8.4L</span>
+      <span class="ticker-dot">●</span>
+      <span class="ticker-item">Kavitha Nair, Hyderabad · U-shape kitchen cut-list sent</span>
+      <span class="ticker-dot">●</span>
+      <span class="ticker-item">Amit Joshi, Pune · Depot pick-up confirmed</span>
+      <span class="ticker-dot">●</span>
+    </div>
   </div>
 
-  <p class="tagline">India's execution engine for interior contractors.</p>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-section">KREOBOX · EXECUTION ENGINE</div>
+    <h1 class="hero-h1">India's modular standard,<br/><em>installed.</em></h1>
+    <p class="hero-sub">100-SKU system. 48-hour installation. Pre-cut kits at city depots.</p>
+    <div class="hero-actions">
+      <a class="btn-sienna" href="planner.html">Build client BOQ →</a>
+      <a class="btn-ghost" href="catalog.html">Browse 100 SKUs →</a>
+    </div>
+  </section>
 
+  <!-- CARDS -->
   <div class="grid">
 
     <a class="card" href="catalog.html">
-      <div class="card-icon warm">🛍️</div>
-      <span class="card-label">SKU Catalog · 100 modules</span>
-      <div class="card-title">100-SKU Catalog</div>
-      <p class="card-desc">India's first standardised modular SKU system — kitchens, wardrobes, office. Every module maps to a panel size, laminate code and hardware spec.</p>
-      <span class="card-cta">Browse SKUs →</span>
+      <div class="card-top warm">🛍️</div>
+      <div class="card-body">
+        <span class="card-label">SKU Catalog · 100 modules</span>
+        <div class="card-title">100-SKU Catalog</div>
+        <p class="card-desc">India's first standardised modular SKU system — kitchens, wardrobes, office. Every module maps to a panel size, laminate code and hardware spec.</p>
+        <span class="card-cta">Browse SKUs →</span>
+      </div>
     </a>
 
-    <a class="card primary" href="planner.html">
-      <div class="card-icon warm">🪵</div>
-      <span class="card-label">BOQ Builder · Execution engine</span>
-      <div class="card-title">Build client BOQ</div>
-      <p class="card-desc">Configure SKU modules for any room. Auto-generates full BOQ with panel sizes, laminate codes and hardware specs. 30 minutes from brief to cut-list.</p>
-      <span class="card-cta">Build BOQ →</span>
+    <a class="card" href="planner.html">
+      <div class="card-top warm">🪵</div>
+      <div class="card-body">
+        <span class="card-label">BOQ Builder · Execution engine</span>
+        <div class="card-title">Build client BOQ</div>
+        <p class="card-desc">Configure SKU modules for any room. Auto-generates full BOQ with panel sizes, laminate codes and hardware specs. 30 minutes from brief to cut-list.</p>
+        <span class="card-cta">Build BOQ →</span>
+      </div>
     </a>
 
     <a class="card" href="designos.html">
-      <div class="card-icon dark">📐</div>
-      <span class="card-label">Contractor · DesignOS</span>
-      <div class="card-title">DesignOS</div>
-      <p class="card-desc">The contractor's command centre. Manage orders, BOQs, factory jobs and depot dispatch — the full workflow from client brief to 48-hour install.</p>
-      <span class="card-cta">Open DesignOS →</span>
+      <div class="card-top dark">📐</div>
+      <div class="card-body">
+        <span class="card-label">Contractor · DesignOS</span>
+        <div class="card-title">DesignOS</div>
+        <p class="card-desc">The contractor's command centre. Manage orders, BOQs, factory jobs and depot dispatch — the full workflow from client brief to 48-hour install.</p>
+        <span class="card-cta">Open DesignOS →</span>
+      </div>
     </a>
 
     <a class="card" href="designos.html#factory">
-      <div class="card-icon green">🏭</div>
-      <span class="card-label">Pre-cut · Depot network</span>
-      <div class="card-title">Factory & Depot</div>
-      <p class="card-desc">Pre-cut panels laminated, CNC-cut and edge-banded at factory. Finished module kits stocked at every city depot — ready for 48-hour site installation.</p>
-      <span class="card-cta">Open factory →</span>
+      <div class="card-top green">🏭</div>
+      <div class="card-body">
+        <span class="card-label">Pre-cut · Depot network</span>
+        <div class="card-title">Factory & Depot</div>
+        <p class="card-desc">Pre-cut panels laminated, CNC-cut and edge-banded at factory. Finished module kits stocked at every city depot — ready for 48-hour site installation.</p>
+        <span class="card-cta">Open factory →</span>
+      </div>
     </a>
 
   </div>
