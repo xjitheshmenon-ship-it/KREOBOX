@@ -836,7 +836,10 @@ function getCabColor(name) {
 /* ── Catalog tabs per room type ────────────────────────────── */
 const CATALOG_TABS_BY_ROOM = {
   kitchen:  [
-    { id:'cabinets',   label:'Kitchen',     icon:'▦' },
+    { id:'base',       label:'Base',        icon:'▬' },
+    { id:'wall',       label:'Wall',        icon:'▭' },
+    { id:'high',       label:'High',        icon:'▮' },
+    { id:'fronts',     label:'Fronts',      icon:'▱' },
     { id:'appliances', label:'Appliances',  icon:'⊡' },
     { id:'dining',     label:'Dining',      icon:'⊞' },
     { id:'extras',     label:'Extras',      icon:'⊟' },
@@ -859,7 +862,7 @@ const KITCHEN_PRESETS = [
   { name:'Peninsula kitchen',           variants:['4×3m + peninsula'],                             price:'₹6.5–12L',   desc:'L-shape with attached peninsula · semi-open concept' },
 ];
 
-const CABINET_SECTIONS = [
+const BASE_SECTIONS = [
   {
     title: 'Base cabinets · METOD frame',
     code: 'KBX-BC',
@@ -876,6 +879,9 @@ const CABINET_SECTIONS = [
       { name:'Filler & end panel',        variants:['50mm','100mm','200mm'],          price:'₹2–6k'   },
     ],
   },
+];
+
+const WALL_SECTIONS = [
   {
     title: 'Wall cabinets · METOD frame',
     code: 'KBX-WC',
@@ -890,6 +896,9 @@ const CABINET_SECTIONS = [
       { name:'Filler & end panel',        variants:['50mm','100mm'],                  price:'₹1–5k'   },
     ],
   },
+];
+
+const HIGH_SECTIONS = [
   {
     title: 'High cabinets · METOD frame',
     code: 'KBX-HC',
@@ -902,6 +911,9 @@ const CABINET_SECTIONS = [
       { name:'Filler & end panel',        variants:['50mm','100mm'],                  price:'₹3–7k'   },
     ],
   },
+];
+
+const DOOR_SECTIONS = [
   {
     title: 'Door fronts',
     code: 'KBX-DF',
@@ -916,6 +928,8 @@ const CABINET_SECTIONS = [
     ],
   },
 ];
+
+const CABINET_SECTIONS = [...BASE_SECTIONS, ...WALL_SECTIONS, ...HIGH_SECTIONS, ...DOOR_SECTIONS];
 
 const APPLIANCE_SECTIONS = [
   {
@@ -1160,6 +1174,10 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
 
   const tab = validActiveTab;
   let sections = [];
+  if (tab === 'base')       sections = BASE_SECTIONS;
+  if (tab === 'wall')       sections = WALL_SECTIONS;
+  if (tab === 'high')       sections = HIGH_SECTIONS;
+  if (tab === 'fronts')     sections = DOOR_SECTIONS;
   if (tab === 'cabinets')   sections = CABINET_SECTIONS;
   if (tab === 'appliances') sections = APPLIANCE_SECTIONS;
   if (tab === 'dining')     sections = DINING_SECTIONS;
@@ -1613,7 +1631,7 @@ function PlannerFrontend({ accent = pAccent }) {
   const [saveTs, setSaveTs]   = useS(null);
   const [editDim, setEditDim] = useS(false);
   const [roomType, setRoomType] = useS('kitchen'); // 'kitchen' | 'wardrobe' | 'office'
-  const [catalogTab, setCatalogTab] = useS('cabinets');
+  const [catalogTab, setCatalogTab] = useS('base');
   const [placedItems, setPlacedItems] = useS([]);
   const [roomElements, setRoomElements] = useS([]);
 
@@ -1631,7 +1649,7 @@ function PlannerFrontend({ accent = pAccent }) {
   const handleRoomType = type => {
     setRoomType(type);
     setPlacedItems([]);
-    if (type === 'kitchen')  setCatalogTab('cabinets');
+    if (type === 'kitchen')  setCatalogTab('base');
     if (type === 'wardrobe') setCatalogTab('wardrobe');
     if (type === 'office')   setCatalogTab('office');
   };
