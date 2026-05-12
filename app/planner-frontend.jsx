@@ -1644,7 +1644,7 @@ function computeBOM(roomW, roomD, layout, finish) {
 }
 
 /* ─── QUOTE MODAL ──────────────────────────────────────────── */
-function QuoteModal({ bom, room, layout, finish, onSubmit, onClose }) {
+function QuoteModal({ bom, roomType = 'kitchen', room, layout, finish, onSubmit, onClose }) {
   const { useState: useS } = React;
   const [name, setName]     = useS('');
   const [phone, setPhone]   = useS('');
@@ -1665,24 +1665,30 @@ function QuoteModal({ bom, room, layout, finish, onSubmit, onClose }) {
       <div style={{ background:pPaper, borderRadius:12, width:480, maxHeight:'88vh', overflow:'auto', boxShadow:'0 40px 120px rgba(0,0,0,0.35)' }}>
         <div style={{ padding:'24px 28px 0' }}>
           <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:4 }}>Submit BOQ to Studio</div>
-          <div style={{ ...pStyles.fraunces, fontSize:24, marginBottom:4 }}>Your kitchen · {layout}</div>
+          <div style={{ ...pStyles.fraunces, fontSize:24, marginBottom:4 }}>Your {roomType} · {layout || 'custom'}</div>
           <div style={{ fontSize:12, color:pMute }}>Room {room.W} × {room.D} × {room.H} mm · {finish}</div>
         </div>
         <div style={{ padding:'16px 28px', borderBottom:`1px solid ${pLine}` }}>
-          {bom.map((b,i) => (
+          {bom.length === 0 ? (
+            <div style={{ fontSize:12, color:pMute, padding:'12px 0', textAlign:'center' }}>
+              No items placed yet — drag items from the catalog to generate a live BOQ.
+            </div>
+          ) : bom.map((b,i) => (
             <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderTop:i ? `1px solid ${pLine}` : 'none', fontSize:12 }}>
               <span>{b.category} <span style={{ color:pMute, fontSize:10 }}>×{b.qty} {b.unit}</span></span>
               <span style={{ ...pStyles.mono }}>{fmt(b.amount)}</span>
             </div>
           ))}
-          <div style={{ marginTop:6, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
-            <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
-              <span>GST (18%)</span><span style={pStyles.mono}>{fmt(bomGst)}</span>
+          {bom.length > 0 && (
+            <div style={{ marginTop:6, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
+              <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
+                <span>GST (18%)</span><span style={pStyles.mono}>{fmt(bomGst)}</span>
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', marginTop:6, paddingTop:6, borderTop:`2px solid ${pInk}`, fontSize:14, fontWeight:700 }}>
+                <span>Total estimate</span><span style={pStyles.mono}>{fmt(bomTotal)}</span>
+              </div>
             </div>
-            <div style={{ display:'flex', justifyContent:'space-between', marginTop:6, paddingTop:6, borderTop:`2px solid ${pInk}`, fontSize:14, fontWeight:700 }}>
-              <span>Total estimate</span><span style={pStyles.mono}>{fmt(bomTotal)}</span>
-            </div>
-          </div>
+          )}
         </div>
         <div style={{ padding:'20px 28px' }}>
           {[
@@ -1880,16 +1886,25 @@ function PlannerFrontend({ accent = pAccent }) {
     }
   }, []);
 
-  // Keep computeBOM for the formal quote modal
-  const { bom, subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal } = useM(
-    () => computeBOM(roomW, roomD, layout, finish),
-    [roomW, roomD, layout, finish]
-  );
-
-  // Live estimate not used for modal total (bom-derived) but kept for sidebar item list
-  const { subtotal, gst, total } = useM(() => {
-    return { subtotal: bomSub, gst: bomGst, total: bomTotal };
-  }, [bomSub, bomGst, bomTotal]);
+  // Real-time BOQ: always derived from what's actually placed on the canvas.
+  // Falls back to room-dimension estimate for kitchen when canvas is empty.
+  const { bom, liveSubtotal, liveGst, liveTotal } = useM(() => {
+    if (roomItems.length > 0) {
+      const liveBom = roomItems.map(r => {
+        const unitPrice = estimateItemPrice(r.price);
+        return { category: r.name, qty: r.qty, unit: 'units', unitPrice, amount: unitPrice * r.qty };
+      });
+      const sub = liveBom.reduce((s, b) => s + b.amount, 0);
+      const gstAmt = Math.round(sub * 0.18);
+      return { bom: liveBom, liveSubtotal: sub, liveGst: gstAmt, liveTotal: sub + gstAmt };
+    }
+    // No items placed — use dimension-based estimate only for kitchen
+    if (roomType === 'kitchen') {
+      const { bom: kb, subtotal: ks, gst: kg, total: kt } = computeBOM(roomW, roomD, layout, finish);
+      return { bom: kb, liveSubtotal: ks, liveGst: kg, liveTotal: kt };
+    }
+    return { bom: [], liveSubtotal: 0, liveGst: 0, liveTotal: 0 };
+  }, [roomItems, roomType, roomW, roomD, layout, finish]);
 
   const handleSave = () => {
     KreoStore.saveDraft({ room: { W:roomW, D:roomD, H:roomH, layout }, finish, hardware, ts: Date.now() });
@@ -1901,7 +1916,7 @@ function PlannerFrontend({ accent = pAccent }) {
       id: KreoStore.nextOrderId(), ts: Date.now(), status: 'new',
       ...customerData,
       room: { W:roomW, D:roomD, H:roomH, layout },
-      finish, hardware, roomItems, bom, subtotal, gst, total,
+      finish, hardware, roomItems, bom, subtotal: liveSubtotal, gst: liveGst, total: liveTotal,
     };
     KreoStore.addOrder(order);
     setSubmitted(order);
@@ -1918,7 +1933,7 @@ function PlannerFrontend({ accent = pAccent }) {
   return (
     <div style={pStyles.shell}>
       {showModal && (
-        <QuoteModal bom={bom}
+        <QuoteModal bom={bom} roomType={roomType}
           room={{ W:roomW, D:roomD, H:roomH }} layout={layout} finish={finish}
           onSubmit={handleSubmit} onClose={() => setShowModal(false)} />
       )}
@@ -2112,27 +2127,23 @@ function PlannerFrontend({ accent = pAccent }) {
 
           <div style={{ flex:1, overflowY:'auto', padding:'14px 20px' }}>
             <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600, marginBottom:10 }}>Live BOQ</div>
-            {roomItems.length === 0 ? (
+            {bom.length === 0 ? (
               <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'12px 0' }}>
                 Drag items to canvas to see cost
               </div>
-            ) : roomItems.map((r, i) => {
-              const unitPrice = estimateItemPrice(r.price);
-              const amount = unitPrice * r.qty;
-              return (
-                <div key={`${r.name}||${r.variant}`} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderTop:i?`1px solid ${pLine}`:'none', fontSize:12 }}>
-                  <div>
-                    <div style={{ fontWeight:500 }}>{r.name}</div>
-                    <div style={{ fontSize:10, color:pMute, ...pStyles.mono }}>×{r.qty} · {r.variant}</div>
-                  </div>
-                  <span style={{ ...pStyles.mono, color:pMute, fontSize:11, alignSelf:'center' }}>{amount > 0 ? fmt(amount) : r.price}</span>
+            ) : bom.map((b, i) => (
+              <div key={`${b.category}-${i}`} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderTop:i?`1px solid ${pLine}`:'none', fontSize:12 }}>
+                <div>
+                  <div style={{ fontWeight:500 }}>{b.category}</div>
+                  <div style={{ fontSize:10, color:pMute, ...pStyles.mono }}>×{b.qty} {b.unit}</div>
                 </div>
-              );
-            })}
-            {roomItems.length > 0 && (
+                <span style={{ ...pStyles.mono, fontSize:11, alignSelf:'center' }}>{b.amount > 0 ? fmt(b.amount) : '—'}</span>
+              </div>
+            ))}
+            {bom.length > 0 && (
               <div style={{ marginTop:8, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
                 <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
-                  <span>GST (18%)</span><span style={pStyles.mono}>{fmt(bomGst)}</span>
+                  <span>GST (18%)</span><span style={pStyles.mono}>{fmt(liveGst)}</span>
                 </div>
               </div>
             )}
@@ -2143,7 +2154,7 @@ function PlannerFrontend({ accent = pAccent }) {
               <span style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>Total estimate</span>
               <span style={{ fontSize:11, color:pMute }}>incl. GST</span>
             </div>
-            <div style={{ ...pStyles.fraunces, fontSize:30, marginTop:4 }}>{fmt(bomTotal)}</div>
+            <div style={{ ...pStyles.fraunces, fontSize:30, marginTop:4 }}>{liveTotal > 0 ? fmt(liveTotal) : '—'}</div>
             <div style={{ display:'flex', gap:8, marginTop:12 }}>
               <button onClick={() => setShowModal(true)} style={{ flex:1, ...pStyles.primaryBtn, textAlign:'center', padding:'11px', borderRadius:8, border:'none', cursor:'pointer', fontSize:12 }}>Send BOQ →</button>
               <button onClick={handleSave} style={{ ...pStyles.pillBtn, padding:'11px 14px', borderRadius:8, cursor:'pointer', fontSize:12 }}>Save</button>
