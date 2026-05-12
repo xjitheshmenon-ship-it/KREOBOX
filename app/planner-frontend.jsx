@@ -888,15 +888,14 @@ function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRem
 function ViewToggle({ value, onChange }) {
   const opts = ['Room setup', '2D plan', 'Elevation', '3D walk'];
   return (
-    <div style={{ display:'flex', background:'rgba(26,24,21,0.05)', borderRadius:8, padding:3 }}>
+    <div style={{ display:'inline-flex', gap:3, padding:3, background:pPaper, border:`1px solid ${pLine}`, borderRadius:100 }}>
       {opts.map(o => {
         const active = value === o;
         return (
           <span key={o} onClick={() => onChange(o)} style={{
-            padding:'6px 14px', fontSize:12, fontWeight:600, borderRadius:6, cursor:'pointer',
-            background: active ? pPaper : 'transparent',
-            color: active ? pInk : pMute,
-            boxShadow: active ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+            padding:'6px 14px', fontSize:12, fontWeight:500, borderRadius:100, cursor:'pointer',
+            background: active ? pInk : 'transparent',
+            color: active ? pPaper : pMute,
           }}>{o}</span>
         );
       })}
@@ -1458,15 +1457,15 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
       </div>
 
       {/* Content */}
-      <div style={{ flex:1, overflowY:'auto', padding:'8px' }}>
+      <div style={{ flex:1, overflowY:'auto', padding:'12px 22px 24px' }}>
 
         {allItems.length === 0 && (
           <div style={{ padding:'24px', fontSize:12, color:pMute, textAlign:'center' }}>No results for "{search}"</div>
         )}
 
         {catalogView === 'grid' ? (
-          /* ── E-commerce grid ── */
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          /* ── Reference-style cards: 2-col thumbnail + info ── */
+          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
             {allItems.map(({ item, idx }) => {
               const name = typeof item === 'string' ? item : item.name;
               const variants = typeof item === 'object' ? (item.variants || []) : [];
@@ -1474,42 +1473,47 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
               const material = typeof item === 'object' ? (item.material || '') : '';
               const selV = getSelVariant(item);
               const dims = getDefaultDims(name);
+              const sku = 'KBX-' + name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,5);
               return (
                 <div key={name} draggable
                   onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims }))}
                   style={{
-                  background:pPaper, border:`1px solid ${pLine}`, borderRadius:10, padding:'10px 8px',
-                  display:'flex', flexDirection:'column', gap:6,
-                  transition:'box-shadow 0.15s', cursor:'grab',
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow=`0 4px 16px rgba(0,0,0,0.10)`; e.currentTarget.style.borderColor=pAccent; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow='none'; e.currentTarget.style.borderColor=pLine; }}
+                    background:pPaper2, border:`1px solid ${pLine}`, borderRadius:12, padding:12,
+                    display:'grid', gridTemplateColumns:'70px 1fr', gap:14, alignItems:'center',
+                    cursor:'grab', transition:'transform 0.15s, border-color 0.15s, box-shadow 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.borderColor=pSienna; e.currentTarget.style.boxShadow='0 6px 16px -8px rgba(22,20,15,0.12)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.borderColor=pLine; e.currentTarget.style.boxShadow='none'; }}
                 >
-                  <div style={{ display:'flex', justifyContent:'center', padding:'6px 0', background:'rgba(26,24,21,0.02)', borderRadius:8 }}>
+                  {/* Thumbnail */}
+                  <div style={{ aspectRatio:1, borderRadius:8, background:pWarm, display:'flex', alignItems:'center', justifyContent:'center' }}>
                     <ProductIcon name={name} size={52} />
                   </div>
-                  <div>
-                    <div style={{ fontSize:11, fontWeight:600, lineHeight:1.3 }}>{name}</div>
-                    <StarRow seed={idx} />
-                    {material && <div style={{ fontSize:9, color:'#7a6a50', fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>🪵 {material}</div>}
-                    {price && <div style={{ fontSize:9, color:pMute, fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>{price}</div>}
-                  </div>
-                  {variants.length > 0 && (
-                    <div style={{ display:'flex', flexWrap:'wrap', gap:3 }}>
-                      {variants.map(v => (
-                        <span key={v} onClick={() => pickVariant(name, v)} style={{
-                          padding:'2px 6px', borderRadius:4, fontSize:9, fontWeight:600, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
-                          border:`1px solid ${v===selV ? pAccent : pLine}`,
-                          background: v===selV ? 'rgba(201,100,66,0.08)' : 'transparent',
-                          color: v===selV ? pAccent : pMute,
-                        }}>{v}</span>
-                      ))}
+                  {/* Info */}
+                  <div style={{ minWidth:0 }}>
+                    <h4 style={{ fontFamily:'"Fraunces",Georgia,serif', fontSize:15, lineHeight:1.15, letterSpacing:'-0.01em', margin:'0 0 3px' }}>{name}</h4>
+                    {(selV || material) && <p style={{ fontSize:12, color:pMute, margin:'0 0 6px' }}>{selV || material}</p>}
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
+                      <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pMute, letterSpacing:'0.1em' }}>{sku}</span>
+                      {price && <span style={{ fontFamily:'"Fraunces",Georgia,serif', fontSize:14, color:pSienna, fontWeight:500 }}>{price}</span>}
                     </div>
-                  )}
-                  <button onClick={() => onAdd && onAdd({ name, variant: selV, price })} style={{
-                    padding:'6px', borderRadius:6, fontSize:10, fontWeight:700, border:'none',
-                    background:pInk, color:pPaper, cursor:'pointer', marginTop:'auto',
-                  }}>+ Add to BOQ</button>
+                    {variants.length > 0 && (
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:6 }}>
+                        {variants.slice(0,3).map(v => (
+                          <span key={v} onClick={e => { e.stopPropagation(); pickVariant(name, v); }} style={{
+                            padding:'2px 7px', borderRadius:100, fontSize:9, fontWeight:500, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                            border:`1px solid ${v===selV ? pSienna : pLine}`,
+                            background: v===selV ? pSiennaSoft : 'transparent',
+                            color: v===selV ? pSienna : pMute,
+                          }}>{v}</span>
+                        ))}
+                      </div>
+                    )}
+                    <button onClick={e => { e.stopPropagation(); onAdd && onAdd({ name, variant: selV, price }); }} style={{
+                      marginTop:8, padding:'5px 10px', borderRadius:100, fontSize:10, fontWeight:600, border:'none',
+                      background:pInk, color:pPaper, cursor:'pointer',
+                    }}>+ Add</button>
+                  </div>
                 </div>
               );
             })}
@@ -1532,29 +1536,29 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
                     <div key={name} draggable
                       onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims2 }))}
                       style={{ padding:'8px 8px 10px', borderLeft:'2px solid transparent', borderRadius:6, transition:'background 0.1s', cursor:'grab' }}
-                      onMouseEnter={e => { e.currentTarget.style.background='rgba(26,24,21,0.04)'; e.currentTarget.style.borderLeftColor=pAccent; }}
+                      onMouseEnter={e => { e.currentTarget.style.background=pWarm; e.currentTarget.style.borderLeftColor=pSienna; }}
                       onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderLeftColor='transparent'; }}
                     >
-                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                        <div style={{ width:36, height:36, borderRadius:6, background:'#ede8e0', border:`1px solid ${pLine}`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                          <ProductIcon name={name} size={30} />
+                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        <div style={{ width:44, height:44, borderRadius:8, background:pWarm, border:`1px solid ${pLine}`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          <ProductIcon name={name} size={32} />
                         </div>
                         <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontWeight:500, fontSize:12, lineHeight:1.3 }}>{name}</div>
-                          {price && <div style={{ fontSize:9, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>{price}</div>}
+                          <div style={{ fontFamily:'"Fraunces",Georgia,serif', fontSize:14, lineHeight:1.2, letterSpacing:'-0.01em' }}>{name}</div>
+                          {price && <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pSienna, fontWeight:500, marginTop:2 }}>{price}</div>}
                         </div>
                         <button onClick={() => onAdd && onAdd({ name, variant: selV, price })} style={{
-                          padding:'4px 8px', borderRadius:5, fontSize:10, fontWeight:700, border:'none', background:pInk, color:pPaper, cursor:'pointer', flexShrink:0,
+                          padding:'5px 10px', borderRadius:100, fontSize:10, fontWeight:600, border:'none', background:pInk, color:pPaper, cursor:'pointer', flexShrink:0,
                         }}>+</button>
                       </div>
                       {variants.length > 0 && (
-                        <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:6, paddingLeft:44 }}>
+                        <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:6, paddingLeft:54 }}>
                           {variants.map(v => (
                             <span key={v} onClick={() => pickVariant(name, v)} style={{
-                              padding:'2px 7px', borderRadius:4, fontSize:9, fontWeight:600, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
-                              border:`1px solid ${v===selV ? pAccent : pLine}`,
-                              background: v===selV ? 'rgba(201,100,66,0.08)' : 'transparent',
-                              color: v===selV ? pAccent : pMute,
+                              padding:'2px 8px', borderRadius:100, fontSize:9, fontWeight:500, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                              border:`1px solid ${v===selV ? pSienna : pLine}`,
+                              background: v===selV ? pSiennaSoft : 'transparent',
+                              color: v===selV ? pSienna : pMute,
                             }}>{v}</span>
                           ))}
                         </div>
@@ -1569,8 +1573,8 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
 
         {/* Finishes swatch (kitchen cabinets only) */}
         {tab === 'cabinets' && !search && (
-          <div style={{ padding:'12px 8px', borderTop:`1px solid ${pLine}`, marginTop:8 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>Finishes</div>
+          <div style={{ paddingTop:12, borderTop:`1px solid ${pLine}`, marginTop:8 }}>
+            <div style={{ fontSize:10, fontWeight:600, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>Finishes</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:6 }}>
               {[
                 { tone:['#d4ccbe','#b8a995'], label:'Bali oak' },
@@ -1581,13 +1585,22 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
                 { tone:['#8c7660','#6e5c48'], label:'Smoked teak' },
               ].map(sw => (
                 <div key={sw.label} style={{ cursor:'pointer' }}>
-                  <div style={{ height:36, borderRadius:6, marginBottom:4, border:`1px solid ${pLine}`, backgroundImage:`linear-gradient(45deg,rgba(255,255,255,0.18) 25%,transparent 25%,transparent 50%,rgba(255,255,255,0.18) 50%,rgba(255,255,255,0.18) 75%,transparent 75%),linear-gradient(135deg,${sw.tone[0]},${sw.tone[1]})`, backgroundSize:'8px 8px,100% 100%' }}/>
+                  <div style={{ height:36, borderRadius:8, marginBottom:4, border:`1px solid ${pLine}`, backgroundImage:`linear-gradient(135deg,${sw.tone[0]},${sw.tone[1]})` }}/>
                   <div style={{ fontSize:9, fontWeight:500, color:pInk }}>{sw.label}</div>
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* Custom module CTA */}
+        <button style={{ marginTop:16, width:'100%', padding:14, borderRadius:12, background:pSiennaSoft, border:`1px dashed ${pSienna}`, display:'flex', alignItems:'center', gap:12, textAlign:'left', cursor:'pointer' }}>
+          <span style={{ fontSize:18, color:pSienna, flexShrink:0 }}>+</span>
+          <div>
+            <p style={{ fontSize:13, fontWeight:500, color:pInk, margin:0, lineHeight:1.3 }}>Need something custom?</p>
+            <p style={{ fontSize:11, color:pMute, margin:'2px 0 0' }}>Talk to a Studio designer.</p>
+          </div>
+        </button>
       </div>
     </div>
   );
