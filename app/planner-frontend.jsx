@@ -50,7 +50,7 @@ function KreoboxWordmark({ size = 18, color = pInk }) {
 }
 
 /* ── 2D top-down kitchen plan (blank canvas, drag-and-drop) ── */
-function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onDrop, onItemMove, onItemDelete, roomW: ROOM_W = 3800, roomD: ROOM_D = 2840 }) {
+function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], roomElements = [], onDrop, onItemMove, onItemDelete, roomW: ROOM_W = 3800, roomD: ROOM_D = 2840 }) {
   const { useState: useS, useRef } = React;
   const svgRef = useRef(null);
   const [drag, setDrag] = useS(null); // { id, startSX, startSY, origX, origY }
@@ -204,6 +204,47 @@ function KitchenPlan2D({ accent = pAccent, roomType = 'kitchen', items = [], onD
                 onClick={e => { e.stopPropagation(); onItemDelete && onItemDelete(item.id); }}>×</text>
             </g>
           );
+        })}
+
+        {/* Room elements overlay */}
+        {roomElements.map(el => {
+          const sp = r2s(el.x, el.y);
+          const sw = r2sw(el.w || 800), sh = r2sh(60);
+          if (el.type === 'door') return (
+            <g key={el.id}>
+              <rect x={sp.x} y={sp.y-sh/2} width={sw} height={sh} fill="#fff" stroke="#333" strokeWidth="2"/>
+              <path d={`M${sp.x} ${sp.y} A${sw} ${sw} 0 0 1 ${sp.x+sw} ${sp.y-sw}`} fill="none" stroke="#333" strokeWidth="1" strokeDasharray="3 2"/>
+            </g>
+          );
+          if (el.type === 'window') return (
+            <g key={el.id}>
+              <rect x={sp.x} y={sp.y-sh/2} width={sw} height={sh} fill="#bde" stroke="#36a" strokeWidth="2"/>
+              <line x1={sp.x+sw*0.33} y1={sp.y-sh/2} x2={sp.x+sw*0.33} y2={sp.y+sh/2} stroke="#36a" strokeWidth="1"/>
+              <line x1={sp.x+sw*0.66} y1={sp.y-sh/2} x2={sp.x+sw*0.66} y2={sp.y+sh/2} stroke="#36a" strokeWidth="1"/>
+            </g>
+          );
+          if (el.type === 'pillar') return (
+            <g key={el.id}>
+              <rect x={sp.x-8} y={sp.y-8} width={16} height={16} fill="#888" stroke="#444" strokeWidth="1.5"/>
+              <line x1={sp.x-8} y1={sp.y-8} x2={sp.x+8} y2={sp.y+8} stroke="#444" strokeWidth="1"/>
+              <line x1={sp.x+8} y1={sp.y-8} x2={sp.x-8} y2={sp.y+8} stroke="#444" strokeWidth="1"/>
+            </g>
+          );
+          if (el.type === 'electrical') return (
+            <g key={el.id}>
+              <circle cx={sp.x} cy={sp.y} r={8} fill="#fff9c4" stroke="#e6b800" strokeWidth="2"/>
+              <text x={sp.x} y={sp.y+3} textAnchor="middle" fontSize="8" fontWeight="700" fill="#b38600" style={{pointerEvents:'none'}}>⚡</text>
+            </g>
+          );
+          if (el.type === 'ventilation') return (
+            <g key={el.id}>
+              <circle cx={sp.x} cy={sp.y} r={9} fill="#e8f5e9" stroke="#388e3c" strokeWidth="2"/>
+              <line x1={sp.x-6} y1={sp.y} x2={sp.x+6} y2={sp.y} stroke="#388e3c" strokeWidth="1.5"/>
+              <line x1={sp.x} y1={sp.y-6} x2={sp.x} y2={sp.y+6} stroke="#388e3c" strokeWidth="1.5"/>
+              <circle cx={sp.x} cy={sp.y} r={3} fill="#388e3c"/>
+            </g>
+          );
+          return null;
         })}
 
         {/* Scale label */}
@@ -517,9 +558,152 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
   );
 }
 
+/* ── Room Setup View ───────────────────────────────────────── */
+function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRemove }) {
+  const { useState: useS, useRef } = React;
+  const [tool, setTool] = useS('door');
+  const svgRef = useRef(null);
+
+  const TOOLS = [
+    { id: 'door',        label: 'Door',        color: '#c96442', icon: 'D' },
+    { id: 'window',      label: 'Window',      color: '#5b8def', icon: 'W' },
+    { id: 'pillar',      label: 'Pillar',      color: '#888',    icon: 'P' },
+    { id: 'electrical',  label: 'Electrical',  color: '#f0c040', icon: 'E' },
+    { id: 'ventilation', label: 'Ventilation', color: '#4cba85', icon: 'V' },
+  ];
+
+  const PAD = 40, VW = 560, VH = 400;
+  const scaleX = (VW - PAD * 2) / roomW;
+  const scaleY = (VH - PAD * 2) / roomD;
+  const sc = Math.min(scaleX, scaleY);
+  const ox = (VW - roomW * sc) / 2;
+  const oy = (VH - roomD * sc) / 2;
+
+  const handleSvgClick = (e) => {
+    const rect = svgRef.current.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / rect.width * VW;
+    const my = (e.clientY - rect.top)  / rect.height * VH;
+    const rx = (mx - ox) / sc;
+    const ry = (my - oy) / sc;
+    if (rx < 0 || ry < 0 || rx > roomW || ry > roomD) return;
+    const newEl = { id: `el-${Date.now()}`, type: tool, x: rx, y: ry, w: tool === 'window' ? 800 : tool === 'door' ? 700 : 300, d: tool === 'pillar' ? 300 : 200 };
+    onAdd && onAdd(newEl);
+  };
+
+  const renderEl = (el) => {
+    const x = ox + el.x * sc, y = oy + el.y * sc;
+    const w = el.w * sc, d = (el.d || 200) * sc;
+    if (el.type === 'door') {
+      const r = el.w * sc;
+      return (
+        <g key={el.id} onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
+          <rect x={x} y={y - d/2} width={w} height={d} fill="rgba(201,100,66,0.15)" stroke="#c96442" strokeWidth={1.5} />
+          <path d={`M ${x} ${y} A ${r*0.6} ${r*0.6} 0 0 1 ${x + r*0.6} ${y}`} fill="none" stroke="#c96442" strokeWidth={1} strokeDasharray="3 2" />
+          <text x={x + w/2} y={y + 4} textAnchor="middle" fontSize={8} fill="#c96442" fontFamily="JetBrains Mono,monospace">DOOR</text>
+        </g>
+      );
+    }
+    if (el.type === 'window') {
+      return (
+        <g key={el.id} onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
+          <rect x={x} y={y - d/2} width={w} height={d} fill="rgba(91,141,239,0.18)" stroke="#5b8def" strokeWidth={1.5} />
+          <line x1={x + w/3} y1={y - d/2} x2={x + w/3} y2={y + d/2} stroke="#5b8def" strokeWidth={1} />
+          <line x1={x + 2*w/3} y1={y - d/2} x2={x + 2*w/3} y2={y + d/2} stroke="#5b8def" strokeWidth={1} />
+          <text x={x + w/2} y={y + 4} textAnchor="middle" fontSize={8} fill="#5b8def" fontFamily="JetBrains Mono,monospace">WIN</text>
+        </g>
+      );
+    }
+    if (el.type === 'pillar') {
+      return (
+        <g key={el.id} onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
+          <rect x={x - w/2} y={y - d/2} width={w} height={d} fill="rgba(136,136,136,0.25)" stroke="#888" strokeWidth={1.5} />
+          <line x1={x - w/2} y1={y - d/2} x2={x + w/2} y2={y + d/2} stroke="#888" strokeWidth={1} />
+          <line x1={x + w/2} y1={y - d/2} x2={x - w/2} y2={y + d/2} stroke="#888" strokeWidth={1} />
+        </g>
+      );
+    }
+    if (el.type === 'electrical') {
+      return (
+        <g key={el.id} onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
+          <circle cx={x} cy={y} r={10} fill="rgba(240,192,64,0.2)" stroke="#f0c040" strokeWidth={1.5} />
+          <text x={x} y={y+4} textAnchor="middle" fontSize={10} fill="#f0c040">E</text>
+        </g>
+      );
+    }
+    if (el.type === 'ventilation') {
+      return (
+        <g key={el.id} onClick={e => { e.stopPropagation(); onRemove && onRemove(el.id); }} style={{ cursor:'pointer' }}>
+          <circle cx={x} cy={y} r={10} fill="rgba(76,186,133,0.2)" stroke="#4cba85" strokeWidth={1.5} />
+          <line x1={x-8} y1={y} x2={x+8} y2={y} stroke="#4cba85" strokeWidth={1} />
+          <line x1={x} y1={y-8} x2={x} y2={y+8} stroke="#4cba85" strokeWidth={1} />
+          <circle cx={x} cy={y} r={2} fill="#4cba85" />
+        </g>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div style={{ display:'flex', height:'100%', background:pPaper }}>
+      {/* Toolbar */}
+      <div style={{ width:160, borderRight:`1px solid ${pLine}`, padding:'16px 12px', display:'flex', flexDirection:'column', gap:8 }}>
+        <div style={{ fontSize:9, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:4 }}>Place elements</div>
+        {TOOLS.map(t => (
+          <button key={t.id} onClick={() => setTool(t.id)} style={{
+            padding:'8px 12px', borderRadius:8, border:`1.5px solid ${tool === t.id ? t.color : pLine}`,
+            background: tool === t.id ? `${t.color}18` : 'transparent',
+            color: tool === t.id ? t.color : pMute,
+            fontSize:12, fontWeight:600, cursor:'pointer', textAlign:'left',
+            display:'flex', alignItems:'center', gap:8,
+          }}>
+            <span style={{ width:22, height:22, borderRadius:5, background:`${t.color}22`, border:`1px solid ${t.color}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, color:t.color }}>{t.icon}</span>
+            {t.label}
+          </button>
+        ))}
+        <div style={{ marginTop:'auto', fontSize:10, color:pMute, lineHeight:1.5 }}>
+          Click on the floor plan to place.<br/>Click element to remove.
+        </div>
+        {elements.length > 0 && (
+          <button onClick={() => elements.forEach(el => onRemove && onRemove(el.id))} style={{
+            padding:'7px', borderRadius:6, border:`1px solid ${pLine}`, background:'transparent',
+            color:pMute, fontSize:11, cursor:'pointer',
+          }}>Clear all</button>
+        )}
+      </div>
+
+      {/* SVG canvas */}
+      <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}>
+        <svg ref={svgRef} viewBox={`0 0 ${VW} ${VH}`}
+          style={{ width:'100%', height:'100%', display:'block', cursor:'crosshair', maxWidth:560 }}
+          onClick={handleSvgClick}>
+          <rect width={VW} height={VH} fill={pPaper} />
+          {/* Room outline */}
+          <rect x={ox} y={oy} width={roomW*sc} height={roomD*sc} fill="rgba(26,24,21,0.03)" stroke={pInk} strokeWidth={2} />
+          {/* Grid */}
+          {Array.from({length: Math.floor(roomW/500)+1}, (_,i) => (
+            <line key={`gx${i}`} x1={ox+i*500*sc} y1={oy} x2={ox+i*500*sc} y2={oy+roomD*sc} stroke={pLine} strokeWidth={0.5} />
+          ))}
+          {Array.from({length: Math.floor(roomD/500)+1}, (_,i) => (
+            <line key={`gy${i}`} x1={ox} y1={oy+i*500*sc} x2={ox+roomW*sc} y2={oy+i*500*sc} stroke={pLine} strokeWidth={0.5} />
+          ))}
+          {/* Dimension labels */}
+          <text x={ox + roomW*sc/2} y={oy + roomD*sc + 18} textAnchor="middle" fontSize={10} fill={pMute} fontFamily="JetBrains Mono,monospace">{(roomW/1000).toFixed(2)} m</text>
+          <text x={ox - 14} y={oy + roomD*sc/2} textAnchor="middle" fontSize={10} fill={pMute} fontFamily="JetBrains Mono,monospace" transform={`rotate(-90,${ox-14},${oy+roomD*sc/2})`}>{(roomD/1000).toFixed(2)} m</text>
+          {/* Room elements */}
+          {elements.map(renderEl)}
+          {/* Active tool cursor hint */}
+          <text x={VW-8} y={VH-8} textAnchor="end" fontSize={9} fill={pMute} fontFamily="JetBrains Mono,monospace">
+            {`Tool: ${tool.toUpperCase()} · click to place`}
+          </text>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 /* ── View toggle ───────────────────────────────────────────── */
 function ViewToggle({ value, onChange }) {
-  const opts = ['2D plan', 'Elevation', '3D walk'];
+  const opts = ['Room setup', '2D plan', 'Elevation', '3D walk'];
   return (
     <div style={{ display:'flex', background:'rgba(26,24,21,0.05)', borderRadius:8, padding:3 }}>
       {opts.map(o => {
@@ -1431,6 +1615,7 @@ function PlannerFrontend({ accent = pAccent }) {
   const [roomType, setRoomType] = useS('kitchen'); // 'kitchen' | 'wardrobe' | 'office'
   const [catalogTab, setCatalogTab] = useS('cabinets');
   const [placedItems, setPlacedItems] = useS([]);
+  const [roomElements, setRoomElements] = useS([]);
 
   // roomItems is always derived from placedItems — single source of truth
   const roomItems = useM(() => {
@@ -1592,7 +1777,7 @@ function PlannerFrontend({ accent = pAccent }) {
               {layout} · {(roomW/1000).toFixed(2)} × {(roomD/1000).toFixed(2)} m ✎
             </span>
             <span style={{ width:1, height:12, background:pLine }}/>
-            <span>{view === '3D walk' ? 'Perspective' : view === 'Elevation' ? 'Front elevation' : 'Scale 1:25'}</span>
+            <span>{view === '3D walk' ? 'Perspective' : view === 'Elevation' ? 'Front elevation' : view === 'Room setup' ? `${roomElements.length} elements placed` : 'Scale 1:25'}</span>
           </div>
 
           {/* Dimension editor popover */}
@@ -1652,14 +1837,15 @@ function PlannerFrontend({ accent = pAccent }) {
           <div style={{ flex:1, padding:24, display:'flex', alignItems:'center', justifyContent:'center' }} onClick={() => setEditDim(false)}>
             <div style={{
               width:'100%', maxWidth: view === '3D walk' ? 800 : 700,
-              aspectRatio: view === '3D walk' ? '620 / 440' : '480 / 380',
+              aspectRatio: view === '3D walk' ? '620 / 440' : view === 'Room setup' ? '560 / 400' : '480 / 380',
               background: view === '3D walk' ? pBg : pPaper,
               borderRadius:12, border:`1px solid ${pLine}`,
               boxShadow:'0 30px 80px -30px rgba(0,0,0,0.18)', overflow:'hidden',
             }}>
-              {view === '2D plan'   && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} roomW={roomW} roomD={roomD} />}
-              {view === 'Elevation' && <KitchenElevation accent={accent} items={placedItems} roomW={roomW} roomH={roomH} />}
-              {view === '3D walk'   && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH} onMoveItem={(idx, pos) => setPlacedItems(prev => prev.map((it, i) => i === idx ? { ...it, x: pos.x, y: pos.y } : it))} />}
+              {view === 'Room setup' && <RoomSetupView roomW={roomW} roomD={roomD} elements={roomElements} onAdd={el => setRoomElements(prev => [...prev, el])} onRemove={id => setRoomElements(prev => prev.filter(e => e.id !== id))} />}
+              {view === '2D plan'    && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} roomElements={roomElements} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} roomW={roomW} roomD={roomD} />}
+              {view === 'Elevation'  && <KitchenElevation accent={accent} items={placedItems} roomW={roomW} roomH={roomH} />}
+              {view === '3D walk'    && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH} onMoveItem={(idx, pos) => setPlacedItems(prev => prev.map((it, i) => i === idx ? { ...it, x: pos.x, y: pos.y } : it))} />}
             </div>
           </div>
 
