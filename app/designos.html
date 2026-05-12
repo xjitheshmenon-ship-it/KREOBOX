@@ -6,11 +6,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg:#1f1c19; --paper:#fafaf7; --ink:#e8e6e1; --line:rgba(255,255,255,0.08); --accent:#c96442; }
-  html,body,#root { margin:0; height:100%; background:var(--bg); color:var(--ink); }
-  body { font-family:"Inter Tight",-apple-system,BlinkMacSystemFont,sans-serif; }
+  :root {
+    --bg:#0f0e0c; --surface:#16140f; --surface-2:#1c1a15; --surface-3:#24211b; --surface-4:#2d2920;
+    --paper:#f5f3ed; --mute:rgba(245,243,237,0.5); --line:rgba(245,243,237,0.08); --line-2:rgba(245,243,237,0.16);
+    --sienna:#c96442; --green:#6fbf7a; --amber:#d4a44a; --blue:#6b9dbd; --accent:#c96442;
+  }
+  html,body,#root { margin:0; height:100%; background:var(--bg); color:var(--paper); }
+  body { font-family:"Geist",-apple-system,BlinkMacSystemFont,sans-serif; }
   * { box-sizing:border-box; }
 </style>
 </head>
@@ -42,7 +46,7 @@ function TabBar({ active, onChange }) {
       {tabs.map(t => (
         <button key={t.id} onClick={() => onChange(t.id)} style={{
           padding: '7px 16px', borderRadius: 6, border: 'none', cursor: 'pointer',
-          fontSize: 12, fontWeight: 600, fontFamily: '"Inter Tight", sans-serif',
+          fontSize: 12, fontWeight: 600, fontFamily: '"Geist", sans-serif',
           background: active === t.id ? 'rgba(201,100,66,0.18)' : 'transparent',
           color: active === t.id ? bAccent : 'rgba(255,255,255,0.45)',
           display: 'flex', alignItems: 'center', gap: 7,

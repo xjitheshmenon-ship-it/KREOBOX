@@ -3,15 +3,15 @@
    Audience: interior contractors. Execution engine — every module = real SKU, BOQ auto-generated.
    ============================================================ */
 
-const pInk    = '#1a1815';
-const pPaper  = '#fafaf7';
-const pBg     = '#f0eee9';
-const pMute   = 'rgba(26,24,21,0.55)';
-const pLine   = 'rgba(26,24,21,0.09)';
+const pInk    = '#16140f';
+const pPaper  = '#f5f3ed';
+const pBg     = '#ece9e2';
+const pMute   = 'rgba(22,20,15,0.55)';
+const pLine   = 'rgba(22,20,15,0.10)';
 const pAccent = '#c96442';
 
 const pStyles = {
-  shell:      { width:'100%', height:'100%', background:pBg, color:pInk, fontFamily:'"Inter Tight",-apple-system,system-ui,sans-serif', display:'flex', flexDirection:'column', overflow:'hidden' },
+  shell:      { width:'100%', height:'100%', background:pBg, color:pInk, fontFamily:'"Geist",-apple-system,system-ui,sans-serif', display:'flex', flexDirection:'column', overflow:'hidden' },
   topbar:     { height:60, padding:'0 24px', background:pPaper, borderBottom:`1px solid ${pLine}`, display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 },
   body:       { flex:1, display:'flex', minHeight:0 },
   panel:      { background:pPaper, borderRight:`1px solid ${pLine}`, display:'flex', flexDirection:'column' },
@@ -1403,7 +1403,7 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
         <div style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', background:'rgba(26,24,21,0.04)', borderRadius:8, fontSize:12, color:pMute, marginBottom:8 }}>
           <span>⌕</span>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${roomType}…`}
-            style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Inter Tight",sans-serif' }} />
+            style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Geist",sans-serif' }} />
           {search && <span onClick={() => setSearch('')} style={{ cursor:'pointer', fontSize:14, lineHeight:1 }}>×</span>}
         </div>
         <div style={{ display:'flex', gap:4 }}>
@@ -1700,7 +1700,7 @@ function QuoteModal({ bom, roomType = 'kitchen', room, layout, finish, onSubmit,
               <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:6 }}>{label}</div>
               <input type={type} value={val} onChange={e => set(e.target.value)} placeholder={ph} style={{
                 display:'block', width:'100%', padding:'10px 12px', border:`1px solid ${pLine}`, borderRadius:6,
-                fontSize:13, fontFamily:'"Inter Tight",sans-serif', color:pInk, background:pBg, outline:'none', boxSizing:'border-box',
+                fontSize:13, fontFamily:'"Geist",sans-serif', color:pInk, background:pBg, outline:'none', boxSizing:'border-box',
               }} />
             </div>
           ))}
@@ -1708,7 +1708,7 @@ function QuoteModal({ bom, roomType = 'kitchen', room, layout, finish, onSubmit,
             <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:6 }}>Notes</div>
             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Any special requirements…" style={{
               display:'block', width:'100%', padding:'10px 12px', border:`1px solid ${pLine}`, borderRadius:6,
-              fontSize:13, fontFamily:'"Inter Tight",sans-serif', color:pInk, background:pBg, outline:'none', resize:'vertical', boxSizing:'border-box',
+              fontSize:13, fontFamily:'"Geist",sans-serif', color:pInk, background:pBg, outline:'none', resize:'vertical', boxSizing:'border-box',
             }} />
           </div>
           {/* Confirmation options */}
