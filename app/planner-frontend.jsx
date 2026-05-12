@@ -1233,14 +1233,33 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
               fontSize:13, fontFamily:'"Inter Tight",sans-serif', color:pInk, background:pBg, outline:'none', resize:'vertical', boxSizing:'border-box',
             }} />
           </div>
+          {/* Payment option */}
+          <div style={{ marginBottom:20, padding:'14px 16px', border:`1px solid ${pLine}`, borderRadius:8, background:'#fafaf7' }}>
+            <div style={{ fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontWeight:700, marginBottom:10 }}>Booking fee</div>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+              <div>
+                <div style={{ fontSize:13, fontWeight:600, color:pInk }}>Designer site visit</div>
+                <div style={{ fontSize:11, color:pMute }}>Refundable on order confirmation</div>
+              </div>
+              <div style={{ fontSize:15, fontWeight:700, color:pInk }}>₹ 999</div>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+              {['Pay online (UPI / Card / Net banking)', 'Pay on visit (cash / UPI)'].map((opt, i) => (
+                <label key={i} style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:pInk, cursor:'pointer' }}>
+                  <input type="radio" name="paymode" defaultChecked={i===0} style={{ accentColor:'#c96442' }} />
+                  {opt}
+                </label>
+              ))}
+            </div>
+          </div>
           <div style={{ display:'flex', gap:10 }}>
             <button disabled={!ok} onClick={() => ok && onSubmit({ customerName:name, customerPhone:phone, customerCity:city, notes })} style={{
               flex:1, ...pStyles.primaryBtn, padding:'13px', borderRadius:8, border:'none',
               opacity:ok?1:0.4, cursor:ok?'pointer':'not-allowed', fontSize:13,
-            }}>Send BOQ to DesignOS →</button>
+            }}>Confirm &amp; Book Designer →</button>
             <button onClick={onClose} style={{ ...pStyles.pillBtn, padding:'13px 16px', borderRadius:8, cursor:'pointer', fontSize:13 }}>Cancel</button>
           </div>
-          <div style={{ fontSize:11, color:pMute, marginTop:10, textAlign:'center' }}>Studio designer will contact you within 24 hours.</div>
+          <div style={{ fontSize:11, color:pMute, marginTop:10, textAlign:'center' }}>Our designer will visit your premises within 24 hours of booking.</div>
         </div>
       </div>
     </div>
