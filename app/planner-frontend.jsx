@@ -3,20 +3,29 @@
    Audience: interior contractors. Execution engine — every module = real SKU, BOQ auto-generated.
    ============================================================ */
 
-const pInk    = '#16140f';
-const pPaper  = '#f5f3ed';
-const pBg     = '#ece9e2';
-const pMute   = 'rgba(22,20,15,0.55)';
-const pLine   = 'rgba(22,20,15,0.10)';
-const pAccent = '#c96442';
+const pInk      = '#16140f';
+const pPaper    = '#f5f3ed';
+const pPaper2   = '#fbf9f3';
+const pWarm     = '#f0ece2';
+const pBg       = '#ece9e2';
+const pInkSoft  = '#4a463d';
+const pMute     = 'rgba(22,20,15,0.55)';
+const pMute2    = 'rgba(22,20,15,0.35)';
+const pLine     = 'rgba(22,20,15,0.08)';
+const pLine2    = 'rgba(22,20,15,0.16)';
+const pAccent   = '#c96442';
+const pSienna   = '#c96442';
+const pSienna2  = '#e0795a';
+const pSiennaSoft = 'rgba(201,100,66,0.08)';
+const pGreen    = '#4ea25a';
 
 const pStyles = {
   shell:      { width:'100%', height:'100%', background:pBg, color:pInk, fontFamily:'"Geist",-apple-system,system-ui,sans-serif', display:'flex', flexDirection:'column', overflow:'hidden' },
   topbar:     { height:60, padding:'0 24px', background:pPaper, borderBottom:`1px solid ${pLine}`, display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 },
   body:       { flex:1, display:'flex', minHeight:0 },
   panel:      { background:pPaper, borderRight:`1px solid ${pLine}`, display:'flex', flexDirection:'column' },
-  pillBtn:    { padding:'8px 14px', borderRadius:8, fontSize:12, fontWeight:600, border:`1px solid ${pLine}`, background:'transparent', cursor:'pointer' },
-  primaryBtn: { padding:'8px 14px', borderRadius:8, fontSize:12, fontWeight:600, background:pInk, color:pPaper, cursor:'pointer' },
+  pillBtn:    { padding:'8px 14px', borderRadius:100, fontSize:13, fontWeight:500, border:`1px solid ${pLine2}`, background:'transparent', cursor:'pointer', color:pInk },
+  primaryBtn: { padding:'8px 14px', borderRadius:100, fontSize:13, fontWeight:600, background:pInk, color:pPaper, cursor:'pointer' },
   fraunces:   { fontFamily:'"Fraunces",Georgia,serif' },
   mono:       { fontFamily:'JetBrains Mono,monospace' },
 };
@@ -1377,67 +1386,76 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
   const allItems = filtered.flatMap((sec, si) => sec.items.map((item, ii) => ({ item, idx: si * 20 + ii })));
 
   return (
-    <div style={{ ...pStyles.panel, width:300, flexShrink:0 }}>
-      {/* Tab bar — only shows tabs relevant to current room type */}
-      <div style={{ display:'flex', overflowX:'auto', borderBottom:`1px solid ${pLine}`, scrollbarWidth:'none', flexShrink:0 }}>
+    <div style={{ background:pPaper, borderRight:`1px solid ${pLine}`, width:320, flexShrink:0, display:'flex', flexDirection:'column', overflowY:'auto' }}>
+      {/* Library header */}
+      <div style={{ padding:'20px 22px 16px', flexShrink:0 }}>
+        <h2 style={{ fontFamily:'"Fraunces",Georgia,serif', fontWeight:400, fontSize:26, lineHeight:1.05, letterSpacing:'-0.02em', margin:'0 0 4px' }}>
+          Pick your <span style={{ fontStyle:'italic', color:pSienna }}>modules.</span>
+        </h2>
+        <p style={{ fontSize:13, color:pMute, margin:0 }}>Drag any module into the room. Adjust later.</p>
+      </div>
+
+      {/* Pill search bar */}
+      <div style={{ margin:'0 22px 0', padding:'10px 14px', borderRadius:100, background:pWarm, border:`1px solid ${pLine}`, display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
+        <span style={{ color:pMute, fontSize:14 }}>⌕</span>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${roomType}…`}
+          style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:13, color:pInk, fontFamily:'"Geist",sans-serif' }} />
+        {search && <span onClick={() => setSearch('')} style={{ cursor:'pointer', fontSize:14, lineHeight:1, color:pMute }}>×</span>}
+        <kbd style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, padding:'2px 6px', borderRadius:4, background:pPaper, border:`1px solid ${pLine2}`, color:pMute }}>⌘K</kbd>
+      </div>
+
+      {/* Category tab pills */}
+      <div style={{ display:'flex', gap:4, padding:'14px 22px 4px', overflowX:'auto', scrollbarWidth:'none', flexShrink:0 }}>
         {catalogTabs.map(tab => {
           const active = tab.id === validActiveTab;
           return (
             <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSearch(''); }} style={{
-              display:'flex', flexDirection:'column', alignItems:'center', gap:4,
-              padding:'10px 16px', border:'none', background:'transparent', cursor:'pointer',
-              borderBottom: active ? `2px solid ${pAccent}` : '2px solid transparent',
-              color: active ? pAccent : pMute,
-              fontSize:9, fontWeight:700, fontFamily:'JetBrains Mono,monospace',
-              letterSpacing:'0.06em', textTransform:'uppercase', whiteSpace:'nowrap', flexShrink:0,
-            }}>
-              <span style={{ fontSize:15 }}>{tab.icon}</span>
+              padding:'6px 12px', borderRadius:100, fontSize:12, fontWeight:500, cursor:'pointer', whiteSpace:'nowrap',
+              border:'none', background: active ? pInk : 'transparent',
+              color: active ? pPaper : pMute,
+              transition:'background 0.15s, color 0.15s',
+            }}
+            onMouseEnter={e => { if (!active) { e.currentTarget.style.background=pWarm; e.currentTarget.style.color=pInk; } }}
+            onMouseLeave={e => { if (!active) { e.currentTarget.style.background='transparent'; e.currentTarget.style.color=pMute; } }}
+            >
               {tab.label}
             </button>
           );
         })}
       </div>
 
-      {/* Search + view toggle */}
-      <div style={{ padding:'8px 12px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 10px', background:'rgba(26,24,21,0.04)', borderRadius:8, fontSize:12, color:pMute, marginBottom:8 }}>
-          <span>⌕</span>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${roomType}…`}
-            style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:12, color:pInk, fontFamily:'"Geist",sans-serif' }} />
-          {search && <span onClick={() => setSearch('')} style={{ cursor:'pointer', fontSize:14, lineHeight:1 }}>×</span>}
-        </div>
-        <div style={{ display:'flex', gap:4 }}>
-          {[['grid','⊞ Grid'],['list','≡ List']].map(([v,l]) => (
+      {/* View toggle + Room size selector */}
+      <div style={{ padding:'8px 22px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
+        <div style={{ display:'flex', gap:4, marginBottom: (!search && roomSizes.length > 0) ? 10 : 0 }}>
+          {[['grid','Grid'],['list','List']].map(([v,l]) => (
             <button key={v} onClick={() => setCatalogView(v)} style={{
-              flex:1, padding:'5px', border:`1px solid ${v===catalogView?pAccent:pLine}`,
-              borderRadius:6, fontSize:10, fontWeight:700, cursor:'pointer',
-              background: v===catalogView ? 'rgba(201,100,66,0.08)' : 'transparent',
-              color: v===catalogView ? pAccent : pMute,
+              padding:'5px 12px', border:`1px solid ${v===catalogView?pSienna:pLine}`,
+              borderRadius:100, fontSize:11, fontWeight:500, cursor:'pointer',
+              background: v===catalogView ? pSiennaSoft : 'transparent',
+              color: v===catalogView ? pSienna : pMute,
             }}>{l}</button>
           ))}
         </div>
-      </div>
-
-      {/* Room size selector */}
-      {!search && roomSizes.length > 0 && (
-        <div style={{ padding:'8px 12px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
-          <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:6 }}>Room size</div>
-          <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
-            {roomSizes.map(rs => {
-              const active = currentSizeLabel === rs.label;
-              return (
-                <span key={rs.label} onClick={() => onSizePreset && onSizePreset(rs)} style={{
-                  padding:'4px 8px', borderRadius:5, fontSize:10, fontWeight:600,
-                  fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
-                  border:`1px solid ${active ? pAccent : pLine}`,
-                  background: active ? 'rgba(201,100,66,0.1)' : 'rgba(26,24,21,0.03)',
-                  color: active ? pAccent : pMute,
-                }}>{rs.label}</span>
-              );
-            })}
+        {!search && roomSizes.length > 0 && (
+          <div>
+            <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:6 }}>Room size</div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
+              {roomSizes.map(rs => {
+                const active = currentSizeLabel === rs.label;
+                return (
+                  <span key={rs.label} onClick={() => onSizePreset && onSizePreset(rs)} style={{
+                    padding:'4px 10px', borderRadius:100, fontSize:10, fontWeight:500,
+                    fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                    border:`1px solid ${active ? pSienna : pLine}`,
+                    background: active ? pSiennaSoft : 'rgba(22,20,15,0.03)',
+                    color: active ? pSienna : pMute,
+                  }}>{rs.label}</span>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Content */}
       <div style={{ flex:1, overflowY:'auto', padding:'8px' }}>
@@ -1940,40 +1958,97 @@ function PlannerFrontend({ accent = pAccent }) {
 
       {/* Top bar */}
       <div style={pStyles.topbar}>
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <KreoboxMark size={28} color={accent} />
-          <KreoboxWordmark size={16} />
-          <div style={{ width:1, height:22, background:pLine }}/>
-          {/* Room type selector */}
-          <div style={{ display:'flex', gap:4 }}>
-            {[['kitchen','🍳 Kitchen'],['wardrobe','🚪 Wardrobe'],['office','💼 Office']].map(([t,l]) => (
-              <button key={t} onClick={() => handleRoomType(t)} style={{
-                padding:'5px 10px', borderRadius:6, fontSize:11, fontWeight:600, cursor:'pointer',
-                border:`1px solid ${t===roomType ? pAccent : pLine}`,
-                background: t===roomType ? 'rgba(201,100,66,0.08)' : 'transparent',
-                color: t===roomType ? pAccent : pMute,
-              }}>{l}</button>
-            ))}
+        {/* LEFT: brand + project name */}
+        <div style={{ display:'flex', alignItems:'center', gap:18, minWidth:0 }}>
+          {/* Brand breadcrumb */}
+          <div style={{ display:'flex', alignItems:'center', gap:10, paddingRight:18, borderRight:`1px solid ${pLine}`, flexShrink:0 }}>
+            <KreoboxMark size={24} color={pSienna} />
+            <span style={{ fontFamily:'"Fraunces",serif', fontWeight:400, fontSize:16, letterSpacing:'0.06em', textTransform:'uppercase', color:pInk }}>Kreobox</span>
+            <span style={{ color:pMute2, fontSize:14 }}>/</span>
+            <span style={{ fontFamily:'"Fraunces",serif', fontStyle:'italic', fontWeight:500, fontSize:17, color:pSienna, letterSpacing:'-0.01em' }}>Planner</span>
           </div>
-          <div style={{ width:1, height:22, background:pLine }}/>
-          <div style={{ fontSize:12, color:pMute }}>
-            {roomType === 'kitchen' && <span>{layout} / <strong>{finish}</strong></span>}
-            {roomType === 'wardrobe' && <span>Bedroom wardrobe plan</span>}
-            {roomType === 'office' && <span>Office / study plan</span>}
+          {/* Project name */}
+          <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0 }}>
+            {/* Room type selector (compact pills) */}
+            <div style={{ display:'flex', gap:4 }}>
+              {[['kitchen','Kitchen'],['wardrobe','Wardrobe'],['office','Office']].map(([t,l]) => (
+                <button key={t} onClick={() => handleRoomType(t)} style={{
+                  padding:'5px 10px', borderRadius:100, fontSize:11, fontWeight:500, cursor:'pointer',
+                  border:`1px solid ${t===roomType ? pSienna : 'transparent'}`,
+                  background: t===roomType ? pSiennaSoft : 'transparent',
+                  color: t===roomType ? pSienna : pMute,
+                }}>{l}</button>
+              ))}
+            </div>
+            <span style={{ color:pMute2, fontSize:14 }}>/</span>
+            <input
+              defaultValue={roomType === 'kitchen' ? `${layout} kitchen` : roomType === 'wardrobe' ? 'Bedroom wardrobe' : 'Office plan'}
+              style={{
+                fontSize:14, fontWeight:500, padding:'5px 8px', borderRadius:6,
+                border:'1px solid transparent', background:'transparent', color:pInk, outline:'none',
+                minWidth:140, maxWidth:240,
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = pWarm; e.currentTarget.style.borderColor = pLine; }}
+              onMouseLeave={e => { if (document.activeElement !== e.currentTarget) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; } }}
+              onFocus={e => { e.currentTarget.style.background = pWarm; e.currentTarget.style.borderColor = pLine; }}
+              onBlur={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
+            />
           </div>
         </div>
-        <ViewToggle value={view} onChange={setView} />
-        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-          <span style={{ fontSize:11, color:pMute, ...pStyles.mono }}>{saveLabel}</span>
-          <button onClick={handleSave} style={{ ...pStyles.pillBtn, border:`1px solid ${pLine}`, cursor:'pointer', fontSize:12 }}>Save draft</button>
-          <button onClick={() => setShowModal(true)} style={{ ...pStyles.primaryBtn, border:'none', cursor:'pointer', fontSize:12 }}>Send BOQ →</button>
-          <a href="designos.html" style={{
-            padding:'8px 14px', borderRadius:8, fontSize:12, fontWeight:600,
-            background:'rgba(26,24,21,0.06)', border:`1px solid ${pLine}`,
-            color:pMute, textDecoration:'none', display:'flex', alignItems:'center', gap:6,
-          }}>Studio <span style={{ opacity:0.5 }}>→</span></a>
+        {/* CENTER: save state */}
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <span style={{ display:'inline-flex', alignItems:'center', gap:7, fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pGreen, letterSpacing:'0.14em', textTransform:'uppercase' }}>
+            <span style={{ width:6, height:6, borderRadius:'50%', background:pGreen, display:'inline-block' }} />
+            {saveLabel}
+          </span>
+        </div>
+        {/* RIGHT: actions */}
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <ViewToggle value={view} onChange={setView} />
+          <button onClick={handleSave} style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'8px 14px', borderRadius:100, fontSize:13, fontWeight:500, color:pInk, border:'1px solid transparent', background:'transparent', cursor:'pointer' }}>↩ Undo</button>
+          <button style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'8px 14px', borderRadius:100, fontSize:13, fontWeight:500, color:pInk, border:'1px solid transparent', background:'transparent', cursor:'pointer' }}>⤴ Share</button>
+          <button onClick={() => setShowModal(true)} style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'8px 14px', borderRadius:100, fontSize:13, fontWeight:500, color:pInk, border:`1px solid ${pLine2}`, background:'transparent', cursor:'pointer' }}>⊡ Render in 3D</button>
         </div>
       </div>
+
+      {/* Step progress strip */}
+      {(() => {
+        const STEPS = ['Room', 'Modules', 'Materials', 'Hardware', 'Review & order'];
+        // Determine active step based on view and roomItems
+        const activeStep = view === 'Room setup' ? 0 : roomItems.length > 0 ? 1 : 1;
+        return (
+          <div style={{ height:56, display:'flex', alignItems:'center', justifyContent:'center', background:pWarm, borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
+            {STEPS.map((label, i) => {
+              const isDone   = i < activeStep;
+              const isActive = i === activeStep;
+              return (
+                <React.Fragment key={label}>
+                  {i > 0 && (
+                    <div style={{ width:36, height:1, background: isDone ? pGreen : pLine2, opacity: isDone ? 0.4 : 1, margin:'0 4px' }} />
+                  )}
+                  <div style={{
+                    display:'flex', alignItems:'center', gap:10, padding:'8px 14px', borderRadius:100, cursor:'pointer',
+                    background: isActive ? pInk : 'transparent',
+                  }}>
+                    <span style={{
+                      width:22, height:22, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
+                      fontFamily:'JetBrains Mono,monospace', fontSize:11, fontWeight:700,
+                      background: isDone ? pGreen : isActive ? pSienna : 'rgba(22,20,15,0.06)',
+                      color: isDone || isActive ? pPaper : pMute,
+                    }}>
+                      {isDone ? '✓' : i + 1}
+                    </span>
+                    <span style={{
+                      fontSize:14, fontWeight: isActive ? 600 : 500,
+                      color: isActive ? pPaper : isDone ? pInk : pMute,
+                    }}>{label}</span>
+                  </div>
+                </React.Fragment>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       <div style={pStyles.body}>
         {/* LEFT — Catalog */}
@@ -2091,33 +2166,59 @@ function PlannerFrontend({ accent = pAccent }) {
           </div>
         </div>
 
-        {/* RIGHT — Cart + BOM + Actions */}
-        <div style={{ ...pStyles.panel, width:300, borderLeft:`1px solid ${pLine}`, borderRight:'none' }}>
-          {/* Room items (cart) */}
-          <div style={{ padding:'14px 18px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-              <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>
-                Room items
-              </div>
+        {/* RIGHT — Properties / Cart + BOM panel */}
+        <div style={{ background:pPaper, borderLeft:`1px solid ${pLine}`, width:320, flexShrink:0, display:'flex', flexDirection:'column', overflowY:'auto' }}>
+          {/* Panel eyebrow + heading */}
+          <div style={{ padding:'20px 22px 0', flexShrink:0 }}>
+            <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pSienna, letterSpacing:'0.16em', textTransform:'uppercase', fontWeight:600, marginBottom:4 }}>
+              {roomType === 'kitchen' ? 'Kitchen · ' + layout : roomType === 'wardrobe' ? 'Wardrobe plan' : 'Office plan'}
+            </div>
+            <h3 style={{ fontFamily:'"Fraunces",Georgia,serif', fontWeight:400, fontSize:26, lineHeight:1.05, letterSpacing:'-0.02em', margin:'0 0 6px' }}>
+              {roomItems.length > 0 ? `${roomItems.reduce((s,r) => s+r.qty,0)} modules` : 'Your plan'}
+            </h3>
+            <p style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pMute, letterSpacing:'0.14em', textTransform:'uppercase', margin:'0 0 16px' }}>
+              {(roomW/1000).toFixed(1)}M × {(roomD/1000).toFixed(1)}M × {(roomH/1000).toFixed(1)}M · {finish}
+            </p>
+          </div>
+
+          {/* Dimension chips */}
+          <div style={{ margin:'0 22px 18px' }}>
+            <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pMute, letterSpacing:'0.14em', textTransform:'uppercase', marginBottom:10 }}>Dimensions</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:6 }}>
+              {[['Width', roomW, 'mm'], ['Depth', roomD, 'mm'], ['Height', roomH, 'mm']].map(([l, v]) => (
+                <div key={l} style={{ padding:'8px 10px', borderRadius:8, background:pWarm, border:`1px solid ${pLine}`, textAlign:'center' }}>
+                  <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:9, color:pMute, letterSpacing:'0.14em', textTransform:'uppercase' }}>{l}</div>
+                  <div style={{ fontFamily:'"Fraunces",serif', fontSize:16, lineHeight:1, letterSpacing:'-0.01em', marginTop:4 }}>
+                    {Math.round(v/100)/10}<span style={{ fontSize:10, color:pMute, marginLeft:2 }}>m</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Room items list */}
+          <div style={{ padding:'0 22px', flexShrink:0 }}>
+            <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pMute, letterSpacing:'0.14em', textTransform:'uppercase', marginBottom:10, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <span>In room</span>
               {roomItems.length > 0 && (
-                <span style={{ background:pAccent, color:'#fff', fontSize:9, fontWeight:700, padding:'1px 7px', borderRadius:999 }}>
+                <span style={{ background:pSienna, color:pPaper, fontSize:9, fontWeight:700, padding:'1px 7px', borderRadius:999 }}>
                   {roomItems.reduce((s,r) => s+r.qty, 0)}
                 </span>
               )}
             </div>
             {roomItems.length === 0 ? (
-              <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'14px 0' }}>
-                Add items from the catalog →
+              <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'14px 0', fontFamily:'JetBrains Mono,monospace' }}>
+                Drag items from catalog →
               </div>
             ) : (
-              <div style={{ maxHeight:160, overflowY:'auto' }}>
+              <div style={{ maxHeight:140, overflowY:'auto', marginBottom:16 }}>
                 {roomItems.map(r => (
-                  <div key={`${r.name}||${r.variant}`} style={{ display:'flex', alignItems:'center', gap:8, padding:'5px 0', borderTop:`1px solid ${pLine}`, fontSize:11 }}>
+                  <div key={`${r.name}||${r.variant}`} style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 0', borderTop:`1px solid ${pLine}`, fontSize:11 }}>
                     <div style={{ flex:1, minWidth:0 }}>
                       <div style={{ fontWeight:500, lineHeight:1.3 }}>{r.name}</div>
                       {r.variant && <div style={{ fontSize:10, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>{r.variant}</div>}
                     </div>
-                    <span style={{ fontSize:12, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>×{r.qty}</span>
+                    <span style={{ fontSize:11, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>×{r.qty}</span>
                     <span onClick={() => removeFromCanvas(r.name, r.variant)} style={{ cursor:'pointer', color:pMute, fontSize:14, lineHeight:1 }}>×</span>
                   </div>
                 ))}
@@ -2125,8 +2226,25 @@ function PlannerFrontend({ accent = pAccent }) {
             )}
           </div>
 
-          <div style={{ flex:1, overflowY:'auto', padding:'14px 20px' }}>
-            <div style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600, marginBottom:10 }}>Live BOQ</div>
+          {/* Finish swatch block */}
+          <div style={{ margin:'0 22px 18px' }}>
+            <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pMute, letterSpacing:'0.14em', textTransform:'uppercase', marginBottom:10 }}>Finish</div>
+            <button style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'10px', borderRadius:10, background:pWarm, border:`1px solid ${pLine}`, cursor:'pointer', transition:'border-color 0.15s' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor=pSienna}
+              onMouseLeave={e => e.currentTarget.style.borderColor=pLine}
+            >
+              <div style={{ width:48, height:48, borderRadius:8, flexShrink:0, border:`2px solid ${pPaper}`, boxShadow:`0 0 0 1px ${pLine2}`, background:'linear-gradient(135deg,#c8b89a,#7a5a3a)' }} />
+              <div style={{ flex:1, minWidth:0, textAlign:'left' }}>
+                <div style={{ fontSize:13, fontWeight:500, color:pInk }}>{finish}</div>
+                <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pMute, letterSpacing:'0.1em', marginTop:2 }}>LAMINATE · IN STOCK</div>
+              </div>
+              <span style={{ color:pMute, fontSize:12 }}>→</span>
+            </button>
+          </div>
+
+          {/* Live BOQ */}
+          <div style={{ flex:1, overflowY:'auto', padding:'0 22px 24px' }}>
+            <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pMute, letterSpacing:'0.14em', textTransform:'uppercase', marginBottom:10 }}>Live BOQ</div>
             {bom.length === 0 ? (
               <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'12px 0' }}>
                 Drag items to canvas to see cost
@@ -2135,31 +2253,48 @@ function PlannerFrontend({ accent = pAccent }) {
               <div key={`${b.category}-${i}`} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderTop:i?`1px solid ${pLine}`:'none', fontSize:12 }}>
                 <div>
                   <div style={{ fontWeight:500 }}>{b.category}</div>
-                  <div style={{ fontSize:10, color:pMute, ...pStyles.mono }}>×{b.qty} {b.unit}</div>
+                  <div style={{ fontSize:10, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>×{b.qty} {b.unit}</div>
                 </div>
-                <span style={{ ...pStyles.mono, fontSize:11, alignSelf:'center' }}>{b.amount > 0 ? fmt(b.amount) : '—'}</span>
+                <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:11, alignSelf:'center' }}>{b.amount > 0 ? fmt(b.amount) : '—'}</span>
               </div>
             ))}
             {bom.length > 0 && (
               <div style={{ marginTop:8, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
                 <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
-                  <span>GST (18%)</span><span style={pStyles.mono}>{fmt(liveGst)}</span>
+                  <span>GST (18%)</span><span style={{ fontFamily:'JetBrains Mono,monospace' }}>{fmt(liveGst)}</span>
                 </div>
               </div>
             )}
           </div>
+        </div>
+      </div>
 
-          <div style={{ borderTop:`1px solid ${pLine}`, padding:'16px 20px', background:pPaper }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
-              <span style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>Total estimate</span>
-              <span style={{ fontSize:11, color:pMute }}>incl. GST</span>
-            </div>
-            <div style={{ ...pStyles.fraunces, fontSize:30, marginTop:4 }}>{liveTotal > 0 ? fmt(liveTotal) : '—'}</div>
-            <div style={{ display:'flex', gap:8, marginTop:12 }}>
-              <button onClick={() => setShowModal(true)} style={{ flex:1, ...pStyles.primaryBtn, textAlign:'center', padding:'11px', borderRadius:8, border:'none', cursor:'pointer', fontSize:12 }}>Send BOQ →</button>
-              <button onClick={handleSave} style={{ ...pStyles.pillBtn, padding:'11px 14px', borderRadius:8, cursor:'pointer', fontSize:12 }}>Save</button>
-            </div>
+      {/* Bottom bar */}
+      <div style={{ height:76, background:pInk, color:pPaper, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:28 }}>
+          {[
+            { l:'In room', v:`${roomItems.reduce((s,r) => s+r.qty,0) || 0} modules` },
+            { l:'Laminate', v:finish },
+            { l:'Install', v:'Est. 21 days' },
+            { l:'Ships from', v:'Studio BLR' },
+          ].map((m, i) => (
+            <React.Fragment key={m.l}>
+              {i > 0 && <div style={{ width:1, height:32, background:'rgba(245,243,237,0.14)' }} />}
+              <div style={{ display:'flex', flexDirection:'column' }}>
+                <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:'rgba(245,243,237,0.55)', letterSpacing:'0.14em', textTransform:'uppercase', marginBottom:2 }}>{m.l}</span>
+                <span style={{ fontFamily:'"Fraunces",Georgia,serif', fontSize:18, letterSpacing:'-0.01em' }}>{m.v}</span>
+              </div>
+            </React.Fragment>
+          ))}
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:18 }}>
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end' }}>
+            <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:'rgba(245,243,237,0.55)', letterSpacing:'0.14em', textTransform:'uppercase' }}>All-in total</span>
+            <span style={{ fontFamily:'"Fraunces",Georgia,serif', fontSize:32, letterSpacing:'-0.02em', lineHeight:1, color:pPaper, marginTop:2 }}>{liveTotal > 0 ? fmt(liveTotal) : '—'}</span>
           </div>
+          <button onClick={() => setShowModal(true)} style={{ display:'inline-flex', alignItems:'center', gap:10, padding:'14px 22px', borderRadius:100, background:pSienna, color:pPaper, fontSize:14, fontWeight:600, border:`1px solid ${pSienna}`, cursor:'pointer' }}>
+            Continue →
+          </button>
         </div>
       </div>
     </div>
