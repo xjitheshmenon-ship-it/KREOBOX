@@ -1458,15 +1458,15 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
       </div>
 
       {/* Content */}
-      <div style={{ flex:1, overflowY:'auto', padding:'8px' }}>
+      <div style={{ flex:1, overflowY:'auto', padding:'12px 22px 24px' }}>
 
         {allItems.length === 0 && (
           <div style={{ padding:'24px', fontSize:12, color:pMute, textAlign:'center' }}>No results for "{search}"</div>
         )}
 
         {catalogView === 'grid' ? (
-          /* ── E-commerce grid ── */
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
+          /* ── Reference-style cards: 2-col thumbnail + info ── */
+          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
             {allItems.map(({ item, idx }) => {
               const name = typeof item === 'string' ? item : item.name;
               const variants = typeof item === 'object' ? (item.variants || []) : [];
@@ -1474,42 +1474,47 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
               const material = typeof item === 'object' ? (item.material || '') : '';
               const selV = getSelVariant(item);
               const dims = getDefaultDims(name);
+              const sku = 'KBX-' + name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,5);
               return (
                 <div key={name} draggable
                   onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims }))}
                   style={{
-                  background:pPaper, border:`1px solid ${pLine}`, borderRadius:10, padding:'10px 8px',
-                  display:'flex', flexDirection:'column', gap:6,
-                  transition:'box-shadow 0.15s', cursor:'grab',
-                }}
-                  onMouseEnter={e => { e.currentTarget.style.boxShadow=`0 4px 16px rgba(0,0,0,0.10)`; e.currentTarget.style.borderColor=pAccent; }}
-                  onMouseLeave={e => { e.currentTarget.style.boxShadow='none'; e.currentTarget.style.borderColor=pLine; }}
+                    background:pPaper2, border:`1px solid ${pLine}`, borderRadius:12, padding:12,
+                    display:'grid', gridTemplateColumns:'70px 1fr', gap:14, alignItems:'center',
+                    cursor:'grab', transition:'transform 0.15s, border-color 0.15s, box-shadow 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.borderColor=pSienna; e.currentTarget.style.boxShadow='0 6px 16px -8px rgba(22,20,15,0.12)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.borderColor=pLine; e.currentTarget.style.boxShadow='none'; }}
                 >
-                  <div style={{ display:'flex', justifyContent:'center', padding:'6px 0', background:'rgba(26,24,21,0.02)', borderRadius:8 }}>
+                  {/* Thumbnail */}
+                  <div style={{ aspectRatio:1, borderRadius:8, background:pWarm, display:'flex', alignItems:'center', justifyContent:'center' }}>
                     <ProductIcon name={name} size={52} />
                   </div>
-                  <div>
-                    <div style={{ fontSize:11, fontWeight:600, lineHeight:1.3 }}>{name}</div>
-                    <StarRow seed={idx} />
-                    {material && <div style={{ fontSize:9, color:'#7a6a50', fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>🪵 {material}</div>}
-                    {price && <div style={{ fontSize:9, color:pMute, fontFamily:'JetBrains Mono,monospace', marginTop:1 }}>{price}</div>}
-                  </div>
-                  {variants.length > 0 && (
-                    <div style={{ display:'flex', flexWrap:'wrap', gap:3 }}>
-                      {variants.map(v => (
-                        <span key={v} onClick={() => pickVariant(name, v)} style={{
-                          padding:'2px 6px', borderRadius:4, fontSize:9, fontWeight:600, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
-                          border:`1px solid ${v===selV ? pAccent : pLine}`,
-                          background: v===selV ? 'rgba(201,100,66,0.08)' : 'transparent',
-                          color: v===selV ? pAccent : pMute,
-                        }}>{v}</span>
-                      ))}
+                  {/* Info */}
+                  <div style={{ minWidth:0 }}>
+                    <h4 style={{ fontFamily:'"Fraunces",Georgia,serif', fontSize:15, lineHeight:1.15, letterSpacing:'-0.01em', margin:'0 0 3px' }}>{name}</h4>
+                    {(selV || material) && <p style={{ fontSize:12, color:pMute, margin:'0 0 6px' }}>{selV || material}</p>}
+                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
+                      <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pMute, letterSpacing:'0.1em' }}>{sku}</span>
+                      {price && <span style={{ fontFamily:'"Fraunces",Georgia,serif', fontSize:14, color:pSienna, fontWeight:500 }}>{price}</span>}
                     </div>
-                  )}
-                  <button onClick={() => onAdd && onAdd({ name, variant: selV, price })} style={{
-                    padding:'6px', borderRadius:6, fontSize:10, fontWeight:700, border:'none',
-                    background:pInk, color:pPaper, cursor:'pointer', marginTop:'auto',
-                  }}>+ Add to BOQ</button>
+                    {variants.length > 0 && (
+                      <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:6 }}>
+                        {variants.slice(0,3).map(v => (
+                          <span key={v} onClick={e => { e.stopPropagation(); pickVariant(name, v); }} style={{
+                            padding:'2px 7px', borderRadius:100, fontSize:9, fontWeight:500, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                            border:`1px solid ${v===selV ? pSienna : pLine}`,
+                            background: v===selV ? pSiennaSoft : 'transparent',
+                            color: v===selV ? pSienna : pMute,
+                          }}>{v}</span>
+                        ))}
+                      </div>
+                    )}
+                    <button onClick={e => { e.stopPropagation(); onAdd && onAdd({ name, variant: selV, price }); }} style={{
+                      marginTop:8, padding:'5px 10px', borderRadius:100, fontSize:10, fontWeight:600, border:'none',
+                      background:pInk, color:pPaper, cursor:'pointer',
+                    }}>+ Add</button>
+                  </div>
                 </div>
               );
             })}
