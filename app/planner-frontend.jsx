@@ -888,15 +888,14 @@ function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRem
 function ViewToggle({ value, onChange }) {
   const opts = ['Room setup', '2D plan', 'Elevation', '3D walk'];
   return (
-    <div style={{ display:'flex', background:'rgba(26,24,21,0.05)', borderRadius:8, padding:3 }}>
+    <div style={{ display:'inline-flex', gap:3, padding:3, background:pPaper, border:`1px solid ${pLine}`, borderRadius:100 }}>
       {opts.map(o => {
         const active = value === o;
         return (
           <span key={o} onClick={() => onChange(o)} style={{
-            padding:'6px 14px', fontSize:12, fontWeight:600, borderRadius:6, cursor:'pointer',
-            background: active ? pPaper : 'transparent',
-            color: active ? pInk : pMute,
-            boxShadow: active ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+            padding:'6px 14px', fontSize:12, fontWeight:500, borderRadius:100, cursor:'pointer',
+            background: active ? pInk : 'transparent',
+            color: active ? pPaper : pMute,
           }}>{o}</span>
         );
       })}
@@ -1537,29 +1536,29 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
                     <div key={name} draggable
                       onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims2 }))}
                       style={{ padding:'8px 8px 10px', borderLeft:'2px solid transparent', borderRadius:6, transition:'background 0.1s', cursor:'grab' }}
-                      onMouseEnter={e => { e.currentTarget.style.background='rgba(26,24,21,0.04)'; e.currentTarget.style.borderLeftColor=pAccent; }}
+                      onMouseEnter={e => { e.currentTarget.style.background=pWarm; e.currentTarget.style.borderLeftColor=pSienna; }}
                       onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderLeftColor='transparent'; }}
                     >
-                      <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                        <div style={{ width:36, height:36, borderRadius:6, background:'#ede8e0', border:`1px solid ${pLine}`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                          <ProductIcon name={name} size={30} />
+                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                        <div style={{ width:44, height:44, borderRadius:8, background:pWarm, border:`1px solid ${pLine}`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          <ProductIcon name={name} size={32} />
                         </div>
                         <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontWeight:500, fontSize:12, lineHeight:1.3 }}>{name}</div>
-                          {price && <div style={{ fontSize:9, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>{price}</div>}
+                          <div style={{ fontFamily:'"Fraunces",Georgia,serif', fontSize:14, lineHeight:1.2, letterSpacing:'-0.01em' }}>{name}</div>
+                          {price && <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pSienna, fontWeight:500, marginTop:2 }}>{price}</div>}
                         </div>
                         <button onClick={() => onAdd && onAdd({ name, variant: selV, price })} style={{
-                          padding:'4px 8px', borderRadius:5, fontSize:10, fontWeight:700, border:'none', background:pInk, color:pPaper, cursor:'pointer', flexShrink:0,
+                          padding:'5px 10px', borderRadius:100, fontSize:10, fontWeight:600, border:'none', background:pInk, color:pPaper, cursor:'pointer', flexShrink:0,
                         }}>+</button>
                       </div>
                       {variants.length > 0 && (
-                        <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:6, paddingLeft:44 }}>
+                        <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:6, paddingLeft:54 }}>
                           {variants.map(v => (
                             <span key={v} onClick={() => pickVariant(name, v)} style={{
-                              padding:'2px 7px', borderRadius:4, fontSize:9, fontWeight:600, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
-                              border:`1px solid ${v===selV ? pAccent : pLine}`,
-                              background: v===selV ? 'rgba(201,100,66,0.08)' : 'transparent',
-                              color: v===selV ? pAccent : pMute,
+                              padding:'2px 8px', borderRadius:100, fontSize:9, fontWeight:500, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                              border:`1px solid ${v===selV ? pSienna : pLine}`,
+                              background: v===selV ? pSiennaSoft : 'transparent',
+                              color: v===selV ? pSienna : pMute,
                             }}>{v}</span>
                           ))}
                         </div>
@@ -1574,8 +1573,8 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
 
         {/* Finishes swatch (kitchen cabinets only) */}
         {tab === 'cabinets' && !search && (
-          <div style={{ padding:'12px 8px', borderTop:`1px solid ${pLine}`, marginTop:8 }}>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>Finishes</div>
+          <div style={{ paddingTop:12, borderTop:`1px solid ${pLine}`, marginTop:8 }}>
+            <div style={{ fontSize:10, fontWeight:600, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>Finishes</div>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:6 }}>
               {[
                 { tone:['#d4ccbe','#b8a995'], label:'Bali oak' },
@@ -1586,13 +1585,22 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
                 { tone:['#8c7660','#6e5c48'], label:'Smoked teak' },
               ].map(sw => (
                 <div key={sw.label} style={{ cursor:'pointer' }}>
-                  <div style={{ height:36, borderRadius:6, marginBottom:4, border:`1px solid ${pLine}`, backgroundImage:`linear-gradient(45deg,rgba(255,255,255,0.18) 25%,transparent 25%,transparent 50%,rgba(255,255,255,0.18) 50%,rgba(255,255,255,0.18) 75%,transparent 75%),linear-gradient(135deg,${sw.tone[0]},${sw.tone[1]})`, backgroundSize:'8px 8px,100% 100%' }}/>
+                  <div style={{ height:36, borderRadius:8, marginBottom:4, border:`1px solid ${pLine}`, backgroundImage:`linear-gradient(135deg,${sw.tone[0]},${sw.tone[1]})` }}/>
                   <div style={{ fontSize:9, fontWeight:500, color:pInk }}>{sw.label}</div>
                 </div>
               ))}
             </div>
           </div>
         )}
+
+        {/* Custom module CTA */}
+        <button style={{ marginTop:16, width:'100%', padding:14, borderRadius:12, background:pSiennaSoft, border:`1px dashed ${pSienna}`, display:'flex', alignItems:'center', gap:12, textAlign:'left', cursor:'pointer' }}>
+          <span style={{ fontSize:18, color:pSienna, flexShrink:0 }}>+</span>
+          <div>
+            <p style={{ fontSize:13, fontWeight:500, color:pInk, margin:0, lineHeight:1.3 }}>Need something custom?</p>
+            <p style={{ fontSize:11, color:pMute, margin:'2px 0 0' }}>Talk to a Studio designer.</p>
+          </div>
+        </button>
       </div>
     </div>
   );
