@@ -1,0 +1,1215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Kreobox · Certified Contractor Program</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="Join 200+ certified contractors fabricating and installing under the Kreobox guarantee. Software, inventory, leads, training — provided. You bring the hands and the relationships." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --bg: #ece9e2;
+    --paper: #f5f3ed;
+    --ink: #16140f;
+    --graphite: #1a1916;
+    --ink-soft: #4a463d;
+    --mute: rgba(22,20,15,0.55);
+    --line: rgba(22,20,15,0.10);
+    --line-2: rgba(22,20,15,0.20);
+    --sienna: #c96442;
+    --sienna-2: #e0795a;
+    --sienna-deep: #9c4928;
+    --status: #4ea25a;
+    --grid: rgba(22,20,15,0.04);
+
+    /* Dashboard surface */
+    --d-bg: #0f0e0c;
+    --d-surface: #16140f;
+    --d-surface-2: #1c1a15;
+    --d-surface-3: #24211b;
+    --d-line: rgba(245,243,237,0.08);
+    --d-line-2: rgba(245,243,237,0.16);
+    --d-mute: rgba(245,243,237,0.5);
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font-family: "Geist", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    font-size: 16px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 56px 56px;
+  }
+  a { color: inherit; text-decoration: none; }
+  img, svg { display: block; max-width: 100%; }
+  button { font: inherit; cursor: pointer; }
+
+  .fr { font-family: "Fraunces", Georgia, serif; font-weight: 400; letter-spacing: -0.02em; }
+  .mono { font-family: "JetBrains Mono", monospace; }
+  .it { font-style: italic; }
+  .sienna { color: var(--sienna); }
+
+  .tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--mute);
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 100px;
+    background: rgba(22,20,15,0.04); border: 1px solid var(--line);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink);
+  }
+  .pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--status); box-shadow: 0 0 0 0 rgba(78,162,90,0.55); animation: pulse 1.8s ease-out infinite; }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 8px rgba(78,162,90,0); } 100% { box-shadow: 0 0 0 0 rgba(78,162,90,0); } }
+
+  .container { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+  @media (max-width: 720px) { .container { padding: 0 20px; } }
+
+  /* ── NAV ── */
+  nav.top {
+    position: sticky; top: 0; z-index: 80;
+    background: rgba(236,233,226,0.78);
+    backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.top .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; gap: 24px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .wm { font-family: "Fraunces", Georgia, serif; font-weight: 400; font-size: 17px; letter-spacing: 0.06em; text-transform: uppercase; }
+  nav.top .center { display: flex; gap: 4px; }
+  nav.top .center a { padding: 8px 14px; border-radius: 100px; font-size: 14px; font-weight: 500; color: var(--ink-soft); }
+  nav.top .center a:hover { background: rgba(22,20,15,0.06); color: var(--ink); }
+  nav.top .center a.active { color: var(--ink); background: rgba(22,20,15,0.06); }
+  nav.top .right { display: flex; gap: 8px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 600; padding: 10px 18px;
+    border-radius: 100px; border: 1px solid var(--ink);
+    background: var(--ink); color: var(--paper);
+    transition: transform 0.15s, background 0.15s;
+    white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.sienna { background: var(--sienna); border-color: var(--sienna); }
+  .btn.sienna:hover { background: var(--sienna-deep); border-color: var(--sienna-deep); }
+  .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line-2); }
+  .btn.ghost:hover { border-color: var(--ink); background: rgba(22,20,15,0.04); }
+  .btn.paper { background: var(--paper); border-color: var(--paper); color: var(--ink); }
+  .btn.lg { font-size: 15px; padding: 13px 22px; }
+  .btn .ar { width: 14px; height: 14px; transition: transform 0.2s; }
+  .btn:hover .ar { transform: translateX(3px); }
+  @media (max-width: 980px) { nav.top .center { display: none; } }
+  @media (max-width: 560px) { nav.top .right .btn:not(.sienna) { display: none; } }
+
+  /* ── HERO ── */
+  .hero { padding: 64px 0 80px; }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; }
+  .hero-eyebrow { display: flex; gap: 10px; align-items: center; margin-bottom: 28px; flex-wrap: wrap; }
+  h1.hero-h {
+    font-family: "Fraunces", serif; font-weight: 400;
+    font-size: clamp(48px, 6.6vw, 96px);
+    line-height: 0.96; letter-spacing: -0.03em; margin: 0;
+  }
+  h1.hero-h .it { color: var(--sienna); font-style: italic; }
+  .hero-lede { font-size: 18px; line-height: 1.55; color: var(--ink-soft); max-width: 520px; margin: 28px 0 0; }
+  .hero-cta { display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
+
+  .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--line); }
+  .hs .k { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--mute); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 6px; }
+  .hs .v { font-family: "Fraunces", serif; font-size: 38px; line-height: 1; letter-spacing: -0.02em; }
+  .hs .v .unit { font-size: 14px; color: var(--mute); font-family: "Geist", sans-serif; margin-left: 4px; }
+
+  /* Hero visual — certificate stack */
+  .cert-stack {
+    position: relative; max-width: 480px; margin-left: auto; aspect-ratio: 1;
+  }
+  .cert-card {
+    position: absolute; inset: 0;
+    background: var(--paper); border: 1px solid var(--line-2); border-radius: 14px;
+    padding: 32px; display: flex; flex-direction: column; gap: 14px;
+    box-shadow: 0 18px 40px -16px rgba(22,20,15,0.25);
+  }
+  .cert-card.back-2 { transform: rotate(-4deg) translate(-30px, 20px); opacity: 0.35; }
+  .cert-card.back-1 { transform: rotate(-2deg) translate(-14px, 10px); opacity: 0.6; background: rgba(255,255,255,0.92); }
+  .cert-card.front {
+    background: var(--graphite); color: var(--paper); border-color: var(--graphite);
+  }
+  .cert-h { display: flex; justify-content: space-between; align-items: center; }
+  .cert-h .name { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.55); }
+  .cert-h .badge {
+    padding: 4px 10px; border-radius: 100px;
+    background: var(--sienna); color: var(--paper);
+    font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .cert-card.front .title {
+    font-family: "Fraunces", serif; font-size: 32px; line-height: 1.05; letter-spacing: -0.02em;
+    margin: 16px 0;
+  }
+  .cert-card.front .title .it { color: var(--sienna-2); font-style: italic; }
+  .cert-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto; }
+  .cm .k { font-family: "JetBrains Mono", monospace; font-size: 9px; color: rgba(255,255,255,0.5); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+  .cm .v { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--paper); }
+  .cert-id {
+    position: absolute; bottom: 28px; left: 32px; right: 32px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: "JetBrains Mono", monospace; font-size: 10px;
+    color: rgba(255,255,255,0.5); letter-spacing: 0.14em;
+  }
+
+  /* Hero signature shape — stamp */
+  .stamp {
+    position: absolute; right: -16px; top: 40%; transform: rotate(-12deg);
+    width: 110px; height: 110px; border-radius: 50%;
+    border: 2px solid var(--sienna); color: var(--sienna);
+    background: var(--paper);
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    font-family: "JetBrains Mono", monospace; text-align: center;
+    box-shadow: 0 10px 24px -8px rgba(22,20,15,0.15);
+    z-index: 3;
+  }
+  .stamp .big { font-family: "Fraunces", serif; font-size: 32px; line-height: 1; letter-spacing: -0.02em; font-style: italic; }
+  .stamp .sm { font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase; margin-top: 4px; }
+
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 48px; }
+    .cert-stack { margin: 0 auto; }
+  }
+
+  /* ── SECTIONS ── */
+  section.s { padding: 110px 0; position: relative; }
+  section.s.paper { background: var(--paper); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  section.s.dark { background: var(--graphite); color: var(--paper); border-top: 1px solid rgba(255,255,255,0.06); }
+  section.s.dark .tag { color: rgba(255,255,255,0.55); }
+  section.s.tile { background: var(--sienna); color: var(--paper); overflow: hidden; }
+
+  .s-head { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: end; margin-bottom: 52px; }
+  .s-head h2 {
+    font-family: "Fraunces", serif; font-weight: 400;
+    font-size: clamp(40px, 5.4vw, 76px); line-height: 1; letter-spacing: -0.03em;
+    margin: 14px 0 0;
+  }
+  .s-head h2 .it { color: var(--sienna); font-style: italic; }
+  section.s.dark .s-head h2 .it { color: var(--sienna-2); }
+  section.s.dark .s-head h2 { color: var(--paper); }
+  .s-head .right-col { justify-self: end; max-width: 460px; font-size: 16px; line-height: 1.55; color: var(--ink-soft); }
+  section.s.dark .s-head .right-col { color: rgba(255,255,255,0.7); }
+  @media (max-width: 820px) {
+    .s-head { grid-template-columns: 1fr; gap: 18px; margin-bottom: 36px; }
+    .s-head .right-col { justify-self: start; }
+  }
+
+  /* ── WHAT YOU GET ── */
+  .perks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; border: 1px solid var(--line-2); border-radius: 18px; overflow: hidden; background: var(--paper); }
+  .perk { padding: 32px 28px; border-right: 1px solid var(--line); }
+  .perk:last-child { border-right: 0; }
+  .perk .n { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--sienna); letter-spacing: 0.18em; margin-bottom: 14px; }
+  .perk .ico { width: 44px; height: 44px; margin-bottom: 22px; color: var(--ink); }
+  .perk h3 { font-family: "Fraunces", serif; font-weight: 400; font-size: 24px; line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 10px; }
+  .perk h3 .it { color: var(--sienna); font-style: italic; }
+  .perk p { font-size: 14px; line-height: 1.55; color: var(--ink-soft); margin: 0; }
+  @media (max-width: 980px) {
+    .perks { grid-template-columns: 1fr 1fr; }
+    .perk { border-bottom: 1px solid var(--line); }
+    .perk:nth-child(odd) { border-right: 1px solid var(--line); }
+    .perk:nth-child(2n) { border-right: 0; }
+    .perk:nth-last-child(-n+2) { border-bottom: 0; }
+  }
+  @media (max-width: 600px) {
+    .perks { grid-template-columns: 1fr; }
+    .perk, .perk:nth-child(odd) { border-right: 0; border-bottom: 1px solid var(--line); }
+    .perk:last-child { border-bottom: 0; }
+  }
+
+  /* ── EARNINGS CALCULATOR ── */
+  .calc {
+    background: var(--ink); color: var(--paper); border-radius: 22px;
+    padding: 56px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 56px;
+    position: relative; overflow: hidden;
+  }
+  .calc::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 36px 36px; pointer-events: none;
+  }
+  .calc > * { position: relative; z-index: 2; }
+  .calc h3 { font-family: "Fraunces", serif; font-weight: 400; font-size: clamp(34px, 4vw, 52px); line-height: 1.05; letter-spacing: -0.02em; margin: 8px 0 16px; }
+  .calc h3 .it { color: var(--sienna-2); font-style: italic; }
+  .calc-inputs { display: flex; flex-direction: column; gap: 22px; margin-top: 30px; }
+  .ci { }
+  .ci-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .ci-h .l { font-family: "JetBrains Mono", monospace; font-size: 11px; color: rgba(255,255,255,0.6); letter-spacing: 0.14em; text-transform: uppercase; }
+  .ci-h .v { font-family: "Fraunces", serif; font-size: 24px; letter-spacing: -0.02em; color: var(--paper); }
+  .ci .track {
+    height: 6px; background: rgba(255,255,255,0.1); border-radius: 100px; position: relative;
+  }
+  .ci .fill { height: 100%; background: var(--sienna); border-radius: 100px; }
+  .ci .knob {
+    position: absolute; top: 50%; transform: translate(-50%, -50%);
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--paper); border: 3px solid var(--sienna);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+  .ci-help { font-family: "JetBrains Mono", monospace; font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.12em; margin-top: 8px; }
+
+  .calc-output { display: flex; flex-direction: column; gap: 18px; }
+  .co-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 28px; }
+  .co-card.big { background: var(--sienna); border-color: var(--sienna); }
+  .co-card .l { font-family: "JetBrains Mono", monospace; font-size: 11px; color: rgba(255,255,255,0.6); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 8px; }
+  .co-card.big .l { color: rgba(255,255,255,0.85); }
+  .co-card .v { font-family: "Fraunces", serif; font-size: 52px; line-height: 1; letter-spacing: -0.03em; color: var(--paper); }
+  .co-card.big .v { font-size: 64px; }
+  .co-card .sub { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 8px; }
+  .co-card.big .sub { color: rgba(255,255,255,0.9); }
+  @media (max-width: 900px) {
+    .calc { grid-template-columns: 1fr; padding: 36px 28px; gap: 32px; }
+  }
+
+  /* ── 4-STEP CERTIFICATION PATH ── */
+  .path { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .path-card {
+    background: var(--paper); border: 1px solid var(--line);
+    border-radius: 14px; padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 14px;
+    position: relative;
+  }
+  section.s.dark .path-card { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); }
+  .path-card .n {
+    font-family: "Fraunces", serif; font-size: 64px; line-height: 0.9;
+    letter-spacing: -0.04em; color: var(--sienna); font-style: italic;
+  }
+  section.s.dark .path-card .n { color: var(--sienna-2); }
+  .path-card h4 { font-family: "Fraunces", serif; font-weight: 400; font-size: 22px; line-height: 1.1; letter-spacing: -0.02em; margin: 0; }
+  section.s.dark .path-card h4 { color: var(--paper); }
+  .path-card p { font-size: 14px; color: var(--ink-soft); line-height: 1.5; margin: 0; }
+  section.s.dark .path-card p { color: rgba(255,255,255,0.65); }
+  .path-card .time { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--mute); letter-spacing: 0.14em; text-transform: uppercase; padding-top: 12px; margin-top: auto; border-top: 1px dashed var(--line-2); }
+  section.s.dark .path-card .time { color: rgba(255,255,255,0.5); border-top-color: rgba(255,255,255,0.15); }
+  @media (max-width: 880px) { .path { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .path { grid-template-columns: 1fr; } }
+
+  /* ── CONTRACTOR DASHBOARD MOCKUP ── */
+  .dash-wrap {
+    background: var(--d-bg); color: var(--paper);
+    border-radius: 22px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 40px 80px -30px rgba(0,0,0,0.5);
+  }
+  .dash-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--d-line);
+    background: var(--d-surface);
+  }
+  .dash-bar .left { display: flex; align-items: center; gap: 14px; }
+  .dash-bar .brand-mini { display: flex; align-items: center; gap: 8px; padding-right: 14px; border-right: 1px solid var(--d-line); }
+  .dash-bar .brand-mini .nm { font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.16em; }
+  .dash-bar .crumb { font-size: 12px; color: var(--d-mute); }
+  .dash-bar .crumb strong { color: var(--paper); font-weight: 500; }
+  .dash-bar .right { display: flex; align-items: center; gap: 12px; }
+  .badge-tier {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 100px;
+    background: rgba(212,164,74,0.12); border: 1px solid rgba(212,164,74,0.3);
+    font-family: "JetBrains Mono", monospace; font-size: 10px; color: #e6b966;
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .badge-tier .star { width: 10px; height: 10px; }
+  .av {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--sienna) 0%, var(--sienna-deep) 100%);
+    color: var(--paper); display: flex; align-items: center; justify-content: center;
+    font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 600;
+  }
+
+  .dash-body { padding: 28px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+
+  .kpi {
+    background: var(--d-surface); border: 1px solid var(--d-line);
+    border-radius: 10px; padding: 18px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .kpi .l { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--d-mute); letter-spacing: 0.16em; text-transform: uppercase; }
+  .kpi .v { font-family: "Fraunces", serif; font-size: 36px; line-height: 1; letter-spacing: -0.02em; color: var(--paper); margin: 6px 0; }
+  .kpi .delta { font-family: "JetBrains Mono", monospace; font-size: 10px; }
+  .kpi .delta.up { color: #6fbf7a; }
+  .kpi .delta.down { color: var(--sienna-2); }
+
+  .panel {
+    background: var(--d-surface); border: 1px solid var(--d-line);
+    border-radius: 10px; padding: 20px;
+    grid-column: span 2;
+  }
+  .panel-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+  .panel-h .ti { font-family: "Fraunces", serif; font-size: 18px; letter-spacing: -0.01em; }
+  .panel-h .meta { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--d-mute); letter-spacing: 0.14em; text-transform: uppercase; }
+
+  /* Earnings chart */
+  .chart-area { height: 140px; position: relative; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 100%; padding-bottom: 22px; }
+  .chart-bar { flex: 1; background: rgba(245,243,237,0.08); border-radius: 3px; position: relative; }
+  .chart-bar.hi { background: var(--sienna); }
+  .chart-bar.med { background: var(--sienna-deep); }
+  .chart-labels { display: flex; gap: 6px; font-family: "JetBrains Mono", monospace; font-size: 9px; color: var(--d-mute); letter-spacing: 0.1em; text-transform: uppercase; }
+  .chart-labels span { flex: 1; text-align: center; }
+
+  /* Lead list */
+  .leads { display: flex; flex-direction: column; gap: 10px; }
+  .lead {
+    display: grid; grid-template-columns: 32px 1fr auto;
+    gap: 12px; align-items: center;
+    padding: 10px; border-radius: 7px;
+    background: rgba(245,243,237,0.025); border: 1px solid var(--d-line);
+  }
+  .lead-av {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--d-surface-3); display: flex; align-items: center; justify-content: center;
+    font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--paper);
+  }
+  .lead .nm { font-size: 13px; font-weight: 500; color: var(--paper); }
+  .lead .loc { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--d-mute); letter-spacing: 0.08em; margin-top: 2px; }
+  .lead .price { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--sienna-2); font-weight: 600; }
+  .lead .status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 100px; font-family: "JetBrains Mono", monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .lead .status.new { background: rgba(78,162,90,0.12); color: #6fbf7a; }
+  .lead .status.scheduled { background: rgba(107,157,189,0.12); color: #8bbcd9; }
+  .lead .status.progress { background: rgba(212,164,74,0.12); color: #e6b966; }
+
+  /* Jobs progress */
+  .jobs { display: flex; flex-direction: column; gap: 14px; }
+  .job { padding: 12px; border-radius: 7px; background: rgba(245,243,237,0.025); border: 1px solid var(--d-line); }
+  .job-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .job-h .nm { font-size: 13px; font-weight: 500; }
+  .job-h .pct { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--sienna-2); }
+  .job-track { height: 4px; background: rgba(245,243,237,0.08); border-radius: 100px; overflow: hidden; }
+  .job-fill { height: 100%; background: var(--sienna); border-radius: 100px; }
+  .job-meta { display: flex; justify-content: space-between; margin-top: 8px; font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--d-mute); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* Certification level panel */
+  .cert-pan {
+    background: linear-gradient(135deg, rgba(201,100,66,0.12) 0%, rgba(201,100,66,0.02) 100%);
+    border: 1px solid rgba(201,100,66,0.3);
+    border-radius: 10px; padding: 20px;
+  }
+  .cert-pan .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .cert-pan .label { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--d-mute); letter-spacing: 0.16em; text-transform: uppercase; }
+  .tier-name { font-family: "Fraunces", serif; font-size: 28px; letter-spacing: -0.02em; font-style: italic; color: var(--sienna-2); margin: 6px 0 12px; }
+  .tier-progress { display: flex; gap: 4px; margin-bottom: 14px; }
+  .tier-step { flex: 1; height: 4px; background: rgba(245,243,237,0.1); border-radius: 100px; }
+  .tier-step.done { background: var(--sienna); }
+  .tier-step.cur { background: var(--sienna); position: relative; }
+  .tier-pan-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 14px; border-top: 1px solid rgba(245,243,237,0.08); }
+  .tier-pan-meta .l { font-family: "JetBrains Mono", monospace; font-size: 10px; color: var(--d-mute); letter-spacing: 0.12em; text-transform: uppercase; }
+  .tier-pan-meta .v { font-family: "Fraunces", serif; font-size: 22px; letter-spacing: -0.02em; margin-top: 2px; }
+
+  @media (max-width: 980px) {
+    .dash-body { grid-template-columns: 1fr 1fr; }
+    .panel { grid-column: span 2; }
+  }
+  @media (max-width: 600px) {
+    .dash-body { grid-template-columns: 1fr; padding: 18px; }
+    .panel { grid-column: span 1; }
+  }
+
+  /* ── TESTIMONIALS ── */
+  .tg { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .tcard {
+    padding: 32px; border-radius: 14px;
+    background: var(--paper); border: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 16px;
+  }
+  .tcard.feat { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .tcard p.q {
+    font-family: "Fraunces", serif; font-style: italic; font-size: 20px;
+    line-height: 1.4; margin: 0; letter-spacing: -0.01em;
+  }
+  .tcard.feat p.q { font-size: 24px; }
+  .tcard .who { display: flex; gap: 12px; align-items: center; padding-top: 14px; border-top: 1px solid var(--line); margin-top: auto; }
+  .tcard.feat .who { border-top-color: rgba(255,255,255,0.16); }
+  .tcard .av {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--sienna); color: var(--paper);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "JetBrains Mono", monospace; font-size: 14px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .tcard.feat .av { background: var(--paper); color: var(--ink); }
+  .tcard .who .name { font-size: 14px; font-weight: 600; line-height: 1.2; }
+  .tcard .who .role { font-size: 12px; color: var(--mute); margin-top: 2px; }
+  .tcard.feat .who .role { color: rgba(255,255,255,0.6); }
+  .tcard .stat { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--sienna); letter-spacing: 0.14em; text-transform: uppercase; }
+  .tcard.feat .stat { color: var(--sienna-2); }
+  @media (max-width: 880px) { .tg { grid-template-columns: 1fr; } }
+
+  /* ── FAQ ── */
+  .faq { max-width: 880px; }
+  .faq-item { border-top: 1px solid var(--line); }
+  .faq-item:last-child { border-bottom: 1px solid var(--line); }
+  .faq-q {
+    padding: 22px 0; cursor: pointer; list-style: none;
+    display: flex; justify-content: space-between; align-items: center; gap: 24px;
+    font-family: "Fraunces", serif; font-size: 22px; line-height: 1.3; letter-spacing: -0.01em;
+  }
+  .faq-q::-webkit-details-marker { display: none; }
+  .faq-q .plus {
+    width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line-2);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: transform 0.2s, background 0.2s; flex-shrink: 0;
+  }
+  .faq-item[open] .faq-q .plus { background: var(--sienna); color: var(--paper); border-color: var(--sienna); transform: rotate(45deg); }
+  .faq-a { font-size: 15px; color: var(--ink-soft); line-height: 1.6; margin: 0; padding-bottom: 22px; max-width: 720px; }
+
+  /* ── CLOSING TILE ── */
+  .tile-wrap {
+    position: relative; padding: 130px 0;
+    background: var(--ink); color: var(--paper); overflow: hidden;
+  }
+  .tile-wrap::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .tile-glow {
+    position: absolute; top: 50%; right: 0;
+    width: 600px; height: 600px; transform: translateY(-50%);
+    background: radial-gradient(circle, rgba(201,100,66,0.4) 0%, transparent 60%);
+    filter: blur(40px);
+  }
+  .tile-inner { position: relative; z-index: 2; display: grid; grid-template-columns: 1.5fr 1fr; gap: 56px; align-items: end; }
+  .tile-inner h2 { font-family: "Fraunces", serif; font-weight: 400; font-size: clamp(56px, 8vw, 132px); line-height: 0.96; letter-spacing: -0.03em; margin: 0; }
+  .tile-inner h2 .it { color: var(--sienna-2); font-style: italic; }
+  .tile-inner p { font-size: 17px; color: rgba(255,255,255,0.88); margin: 0 0 22px; max-width: 360px; }
+  @media (max-width: 880px) { .tile-inner { grid-template-columns: 1fr; gap: 32px; } }
+
+  /* ── FOOTER ── */
+  footer { background: var(--graphite); color: var(--paper); padding: 80px 0 28px; }
+  footer .colset { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr; gap: 40px; padding-bottom: 48px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+  footer .colhead { font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 16px; }
+  footer ul { list-style: none; margin: 0; padding: 0; }
+  footer li { margin-bottom: 9px; }
+  footer li a { font-size: 14px; color: rgba(255,255,255,0.75); }
+  footer li a:hover { color: var(--sienna-2); }
+  footer .meta { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding-top: 24px; font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.45); }
+  footer .meta .tag-fr { font-family: "Fraunces", serif; font-style: italic; font-size: 22px; letter-spacing: -0.01em; text-transform: none; color: var(--paper); }
+  @media (max-width: 920px) { footer .colset { grid-template-columns: 1fr 1fr; gap: 32px; } footer .meta { flex-direction: column; align-items: flex-start; gap: 14px; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="kbx" viewBox="0 0 100 100">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M14 30 H78 Q86 30 86 38 V82 Q86 90 78 90 H22 Q14 90 14 82 Z M30 46 V74 H70 V46 Z" fill="var(--sienna)"/>
+      <g transform="rotate(-9 54 18)">
+        <rect x="20" y="10" width="68" height="16" rx="3" fill="var(--sienna)"/>
+        <rect x="20" y="10" width="68" height="16" rx="3" fill="#000" fill-opacity="0.22"/>
+      </g>
+    </symbol>
+    <symbol id="i-arrow" viewBox="0 0 14 14"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 14 14"><path d="M3 7.5L6 10.5L11 4.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star" viewBox="0 0 14 14"><path d="M7 1.5l1.7 3.5 3.8.5-2.8 2.7.7 3.8L7 10.2 3.6 12l.7-3.8L1.5 5.5l3.8-.5z" fill="currentColor"/></symbol>
+    <!-- Perk icons -->
+    <symbol id="pk-leads" viewBox="0 0 44 44">
+      <circle cx="22" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M8 36 C 8 28 14 26 22 26 C 30 26 36 28 36 36" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="36" cy="14" r="3" fill="var(--sienna)"/>
+    </symbol>
+    <symbol id="pk-sw" viewBox="0 0 44 44">
+      <rect x="6" y="8" width="32" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <line x1="14" y1="34" x2="30" y2="34" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <line x1="12" y1="14" x2="20" y2="14" stroke="currentColor" stroke-width="1.4" opacity="0.5"/>
+      <line x1="12" y1="20" x2="32" y2="20" stroke="currentColor" stroke-width="1.4" opacity="0.5"/>
+      <line x1="12" y1="26" x2="26" y2="26" stroke="currentColor" stroke-width="1.4" opacity="0.5"/>
+    </symbol>
+    <symbol id="pk-inv" viewBox="0 0 44 44">
+      <rect x="6" y="14" width="32" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M22 14 V6 M16 10 L22 4 L28 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="12" y="22" width="6" height="10" fill="currentColor" opacity="0.25"/>
+      <rect x="20" y="22" width="6" height="10" fill="currentColor"/>
+      <rect x="28" y="22" width="6" height="10" fill="currentColor" opacity="0.4"/>
+    </symbol>
+    <symbol id="pk-warr" viewBox="0 0 44 44">
+      <path d="M22 4 L36 10 V22 C 36 30 22 38 22 38 C 22 38 8 30 8 22 V10 Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M15 22 L20 27 L29 16" fill="none" stroke="var(--sienna)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ── NAV ── -->
+<nav class="top">
+  <div class="container row">
+    <a href="index.html" class="brand">
+      <svg width="32" height="32"><use href="#kbx"/></svg>
+      <span class="wm">Kreobox</span>
+    </a>
+    <div class="center">
+      <a href="index.html#how">How it works</a>
+      <a href="index.html#catalog">Catalog</a>
+      <a href="planner.html">Planner</a>
+      <a href="#" class="active">For contractors</a>
+      <a href="index.html#faq">FAQ</a>
+    </div>
+    <div class="right">
+      <a href="designos.html" class="btn ghost">Sign in · DesignOS</a>
+      <a href="#apply" class="btn sienna">
+        Apply to certify
+        <svg class="ar"><use href="#i-arrow"/></svg>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow">
+          <span class="pill"><span class="pulse"></span> Now accepting · Tier-2 cities</span>
+          <span class="tag">For interior contractors · India</span>
+        </div>
+        <h1 class="hero-h">
+          We bring the<br/>
+          <span class="it">platform.</span><br/>
+          You bring the<br/>
+          <span class="it">hands.</span>
+        </h1>
+        <p class="hero-lede">
+          Stop quoting from scratch, sourcing plywood by the sheet, and chasing
+          carpenters. Get certified, install Kreobox SKUs under the brand
+          warranty, and earn on every project — with software, inventory and
+          leads provided.
+        </p>
+        <div class="hero-cta">
+          <a href="#apply" class="btn sienna lg">
+            Apply to certify
+            <svg class="ar"><use href="#i-arrow"/></svg>
+          </a>
+          <a href="#dash" class="btn ghost lg">See the dashboard</a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="hs">
+            <div class="k">Certified contractors</div>
+            <div class="v">212</div>
+          </div>
+          <div class="hs">
+            <div class="k">Avg monthly earning</div>
+            <div class="v">₹1.84<span class="unit">L</span></div>
+          </div>
+          <div class="hs">
+            <div class="k">Lead conversion</div>
+            <div class="v">68<span class="unit">%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Certificate visual -->
+      <div style="position: relative;">
+        <div class="cert-stack">
+          <div class="cert-card back-2"></div>
+          <div class="cert-card back-1"></div>
+          <div class="cert-card front">
+            <div class="cert-h">
+              <span class="name">Kreobox · Certified Contractor</span>
+              <span class="badge">Tier · GOLD</span>
+            </div>
+            <div class="title">
+              Suresh<br/><span class="it">Kalyanaraman</span>
+            </div>
+            <div class="cert-meta">
+              <div class="cm">
+                <div class="k">Issued</div>
+                <div class="v">12 Jan 2026</div>
+              </div>
+              <div class="cm">
+                <div class="k">Valid through</div>
+                <div class="v">12 Jan 2028</div>
+              </div>
+              <div class="cm">
+                <div class="k">Region</div>
+                <div class="v">Bengaluru · South</div>
+              </div>
+              <div class="cm">
+                <div class="k">Modules certified</div>
+                <div class="v">87 of 100</div>
+              </div>
+            </div>
+            <div class="cert-id">
+              <span>KBX-CC-04812 · IN</span>
+              <span>v2.1</span>
+            </div>
+          </div>
+        </div>
+        <div class="stamp">
+          <span class="big">A+</span>
+          <span class="sm">Install score</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── WHAT YOU GET ── -->
+<section class="s paper">
+  <div class="container">
+    <div class="s-head">
+      <div>
+        <span class="tag">01 — What you get</span>
+        <h2>Four things, day one:<br/>everything <span class="it">else stays yours.</span></h2>
+      </div>
+      <div class="right-col">
+        Kreobox provides the system. You keep your team, your client relationships,
+        your local knowledge. We standardize what should be standardized — and
+        get out of the way for the rest.
+      </div>
+    </div>
+
+    <div class="perks">
+      <div class="perk">
+        <div class="n">01</div>
+        <svg class="ico"><use href="#pk-leads"/></svg>
+        <h3>Qualified <span class="it">leads</span></h3>
+        <p>Homeowners and designers route to certified contractors by region. No cold-calling, no broker fees, no bid wars.</p>
+      </div>
+      <div class="perk">
+        <div class="n">02</div>
+        <svg class="ico"><use href="#pk-sw"/></svg>
+        <h3>DesignOS <span class="it">workflow</span></h3>
+        <p>Customers self-configure on the Planner. Their orders land in your DesignOS — cut-list, BOQ, factory assignment, install slot — all in one screen.</p>
+      </div>
+      <div class="perk">
+        <div class="n">03</div>
+        <svg class="ico"><use href="#pk-inv"/></svg>
+        <h3>Depot <span class="it">inventory</span></h3>
+        <p>Pre-cut, pre-laminated panels held at the city depot. Lift the kit, install it, return defective panels under warranty — done.</p>
+      </div>
+      <div class="perk">
+        <div class="n">04</div>
+        <svg class="ico"><use href="#pk-warr"/></svg>
+        <h3>The Kreobox <span class="it">warranty</span></h3>
+        <p>You install under our 10-year guarantee. We back claims, replace parts, and absorb defect risk on every panel you ship.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── EARNINGS CALCULATOR ── -->
+<section class="s">
+  <div class="container">
+    <div class="s-head">
+      <div>
+        <span class="tag">02 — Real economics</span>
+        <h2>What you'll<br/>actually <span class="it">earn.</span></h2>
+      </div>
+      <div class="right-col">
+        Indicative monthly economics for a Gold-tier contractor in a Tier-1
+        Indian city. Numbers move with your install volume, your tier, and the
+        module mix you specialize in.
+      </div>
+    </div>
+
+    <div class="calc">
+      <div>
+        <span class="tag" style="color: rgba(255,255,255,0.5);">Inputs</span>
+        <h3>Adjust three things.<br/>See <span class="it">your number.</span></h3>
+
+        <div class="calc-inputs">
+          <div class="ci">
+            <div class="ci-h">
+              <span class="l">Installs per month</span>
+              <span class="v">14</span>
+            </div>
+            <div class="track">
+              <div class="fill" style="width: 56%;"></div>
+              <div class="knob" style="left: 56%;"></div>
+            </div>
+            <div class="ci-help">Most Gold-tier contractors run 12–18 installs/month</div>
+          </div>
+
+          <div class="ci">
+            <div class="ci-h">
+              <span class="l">Avg ticket size</span>
+              <span class="v">₹1.42L</span>
+            </div>
+            <div class="track">
+              <div class="fill" style="width: 42%;"></div>
+              <div class="knob" style="left: 42%;"></div>
+            </div>
+            <div class="ci-help">Master bedroom set · across all SKUs</div>
+          </div>
+
+          <div class="ci">
+            <div class="ci-h">
+              <span class="l">Your tier</span>
+              <span class="v">GOLD · 18%</span>
+            </div>
+            <div class="track">
+              <div class="fill" style="width: 68%;"></div>
+              <div class="knob" style="left: 68%;"></div>
+            </div>
+            <div class="ci-help">Silver 12% · Gold 18% · Platinum 24%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="calc-output">
+        <div class="co-card big">
+          <div class="l">Net monthly · indicative</div>
+          <div class="v">₹3,57,840</div>
+          <div class="sub">After Kreobox margin, before tax · paid weekly via UPI</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="co-card">
+            <div class="l">Per install · avg</div>
+            <div class="v">₹25,560</div>
+          </div>
+          <div class="co-card">
+            <div class="l">Repeat / referral</div>
+            <div class="v">+32%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CERTIFICATION PATH ── -->
+<section class="s paper">
+  <div class="container">
+    <div class="s-head">
+      <div>
+        <span class="tag">03 — Get certified</span>
+        <h2>Four weeks.<br/>From applicant <span class="it">to active.</span></h2>
+      </div>
+      <div class="right-col">
+        Certification is structured but fast. We're not gatekeeping — we're
+        standardizing. Most applicants who finish the program are installing
+        paid Kreobox jobs by week five.
+      </div>
+    </div>
+
+    <div class="path">
+      <div class="path-card">
+        <div class="n">01</div>
+        <h4>Apply &amp; assess</h4>
+        <p>Form, 2 references, photos of 3 past projects. We assess against the Kreobox install standard.</p>
+        <div class="time">Week 1 · async</div>
+      </div>
+      <div class="path-card">
+        <div class="n">02</div>
+        <h4>Training sprint</h4>
+        <p>3-day intensive at the depot: DesignOS, flat-pack assembly, snag-handling, the 100-SKU catalog.</p>
+        <div class="time">Week 2 · in-person</div>
+      </div>
+      <div class="path-card">
+        <div class="n">03</div>
+        <h4>Supervised install</h4>
+        <p>You run two installs alongside a senior Kreobox installer. Both rated against the install rubric.</p>
+        <div class="time">Week 3 · live projects</div>
+      </div>
+      <div class="path-card">
+        <div class="n">04</div>
+        <h4>Certify &amp; go live</h4>
+        <p>Tier assigned (Silver / Gold / Platinum). DesignOS access activated. Leads start routing.</p>
+        <div class="time">Week 4 · live</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── DASHBOARD MOCKUP ── -->
+<section class="s" id="dash">
+  <div class="container">
+    <div class="s-head">
+      <div>
+        <span class="tag">04 — The contractor portal</span>
+        <h2>Run your business<br/>from one <span class="it">screen.</span></h2>
+      </div>
+      <div class="right-col">
+        Every certified contractor gets the portal: leads, jobs, earnings,
+        certification status. No spreadsheets, no WhatsApp groups, no
+        end-of-month reconciliation.
+      </div>
+    </div>
+
+    <div class="dash-wrap">
+      <div class="dash-bar">
+        <div class="left">
+          <div class="brand-mini" style="color: var(--sienna);">
+            <svg width="22" height="22"><use href="#kbx"/></svg>
+            <span class="nm" style="color: var(--paper);">CONTRACTOR · PORTAL</span>
+          </div>
+          <div class="crumb"><strong>Suresh K.</strong> · Bengaluru South · May 2026</div>
+        </div>
+        <div class="right">
+          <span class="badge-tier">
+            <svg class="star"><use href="#i-star"/></svg> Tier · Gold
+          </span>
+          <div class="av">SK</div>
+        </div>
+      </div>
+
+      <div class="dash-body">
+
+        <!-- KPI strip (4 across) -->
+        <div class="kpi">
+          <span class="l">Earnings · MTD</span>
+          <span class="v">₹2.84L</span>
+          <span class="delta up">▲ 18% vs Apr</span>
+        </div>
+        <div class="kpi">
+          <span class="l">Active jobs</span>
+          <span class="v">7</span>
+          <span class="delta">3 installing · 4 queued</span>
+        </div>
+        <div class="kpi">
+          <span class="l">Open leads</span>
+          <span class="v">12</span>
+          <span class="delta up">▲ 4 new today</span>
+        </div>
+        <div class="kpi">
+          <span class="l">Install score</span>
+          <span class="v">A+</span>
+          <span class="delta up">96 / 100 · ▲ 2pts</span>
+        </div>
+
+        <!-- Earnings chart (spans 2) -->
+        <div class="panel">
+          <div class="panel-h">
+            <span class="ti">Earnings · last 9 months</span>
+            <span class="meta">INR · paid weekly</span>
+          </div>
+          <div class="chart-area">
+            <div class="chart-bars">
+              <div class="chart-bar" style="height: 32%;"></div>
+              <div class="chart-bar" style="height: 44%;"></div>
+              <div class="chart-bar med" style="height: 56%;"></div>
+              <div class="chart-bar med" style="height: 52%;"></div>
+              <div class="chart-bar med" style="height: 64%;"></div>
+              <div class="chart-bar hi" style="height: 76%;"></div>
+              <div class="chart-bar hi" style="height: 82%;"></div>
+              <div class="chart-bar hi" style="height: 88%;"></div>
+              <div class="chart-bar hi" style="height: 72%;"></div>
+            </div>
+            <div class="chart-labels">
+              <span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May*</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Certification level (spans 2) -->
+        <div class="cert-pan panel" style="background: linear-gradient(135deg, rgba(201,100,66,0.12) 0%, rgba(201,100,66,0.02) 100%); border-color: rgba(201,100,66,0.3);">
+          <div class="top">
+            <span class="label">Current tier</span>
+            <span class="badge-tier">Gold</span>
+          </div>
+          <div class="tier-name">Gold</div>
+          <div class="tier-progress">
+            <div class="tier-step done"></div>
+            <div class="tier-step done"></div>
+            <div class="tier-step cur"></div>
+            <div class="tier-step"></div>
+          </div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--d-mute); letter-spacing: 0.12em;">
+            16 INSTALLS TO PLATINUM · UNLOCK +6% RATE
+          </div>
+          <div class="tier-pan-meta">
+            <div>
+              <div class="l">Modules certified</div>
+              <div class="v">87 / 100</div>
+            </div>
+            <div>
+              <div class="l">Lifetime installs</div>
+              <div class="v">142</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Open leads (spans 2) -->
+        <div class="panel">
+          <div class="panel-h">
+            <span class="ti">Open leads</span>
+            <span class="meta">12 · 4 new today</span>
+          </div>
+          <div class="leads">
+            <div class="lead">
+              <div class="lead-av">PM</div>
+              <div>
+                <div class="nm">Pooja M. · Master bedroom set</div>
+                <div class="loc">HSR LAYOUT · 4.2 KM</div>
+              </div>
+              <div style="text-align: right;">
+                <div class="price">₹1.42L</div>
+                <div class="status new">New · 14 min</div>
+              </div>
+            </div>
+            <div class="lead">
+              <div class="lead-av">VR</div>
+              <div>
+                <div class="nm">Vikram R. · 4-door wardrobe</div>
+                <div class="loc">INDIRANAGAR · 8.7 KM</div>
+              </div>
+              <div style="text-align: right;">
+                <div class="price">₹1.18L</div>
+                <div class="status scheduled">Site visit · Wed</div>
+              </div>
+            </div>
+            <div class="lead">
+              <div class="lead-av">SN</div>
+              <div>
+                <div class="nm">Sneha N. · L-shape kitchen</div>
+                <div class="loc">KORAMANGALA · 2.1 KM</div>
+              </div>
+              <div style="text-align: right;">
+                <div class="price">₹2.68L</div>
+                <div class="status new">New · 2 hr</div>
+              </div>
+            </div>
+            <div class="lead">
+              <div class="lead-av">DG</div>
+              <div>
+                <div class="nm">Deepak G. · Parallel kitchen</div>
+                <div class="loc">BTM 2ND STAGE · 5.4 KM</div>
+              </div>
+              <div style="text-align: right;">
+                <div class="price">₹2.24L</div>
+                <div class="status progress">Quoted · 2d</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Jobs in progress (spans 2) -->
+        <div class="panel">
+          <div class="panel-h">
+            <span class="ti">Active installs</span>
+            <span class="meta">3 in progress</span>
+          </div>
+          <div class="jobs">
+            <div class="job">
+              <div class="job-h">
+                <span class="nm">Aishwarya M. · 4-door wardrobe</span>
+                <span class="pct">84%</span>
+              </div>
+              <div class="job-track"><div class="job-fill" style="width: 84%;"></div></div>
+              <div class="job-meta"><span>WHITEFIELD · DAY 1 OF 1</span><span>FINISH BY 18:30</span></div>
+            </div>
+            <div class="job">
+              <div class="job-h">
+                <span class="nm">Rohit B. · Parallel kitchen</span>
+                <span class="pct">42%</span>
+              </div>
+              <div class="job-track"><div class="job-fill" style="width: 42%;"></div></div>
+              <div class="job-meta"><span>JP NAGAR · DAY 1 OF 2</span><span>HARDWARE PENDING</span></div>
+            </div>
+            <div class="job">
+              <div class="job-h">
+                <span class="nm">Priya A. · Studio wardrobe</span>
+                <span class="pct">12%</span>
+              </div>
+              <div class="job-track"><div class="job-fill" style="width: 12%;"></div></div>
+              <div class="job-meta"><span>BELLANDUR · STARTING 14:00</span><span>FLAT-PACK STAGED</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="margin-top: 28px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+      <a href="#apply" class="btn sienna lg">
+        Apply to certify
+        <svg class="ar"><use href="#i-arrow"/></svg>
+      </a>
+      <a href="#" class="btn ghost lg">Download spec sheet · PDF</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ── -->
+<section class="s paper">
+  <div class="container">
+    <div class="s-head">
+      <div>
+        <span class="tag">05 — From the field</span>
+        <h2>Contractors<br/>who <span class="it">switched.</span></h2>
+      </div>
+      <div class="right-col">
+        Verified Kreobox certified contractors. Real numbers, real cities,
+        real before-and-afters.
+      </div>
+    </div>
+
+    <div class="tg">
+      <div class="tcard feat">
+        <span class="stat">↑ ₹62K → ₹3.4L · per month</span>
+        <p class="q">"I was running three carpenters and spending half my month chasing plywood and laminate. Now I install three days a week and earn 5×. The catalog is the entire business."</p>
+        <div class="who">
+          <div class="av">SK</div>
+          <div>
+            <div class="name">Suresh Kalyanaraman</div>
+            <div class="role">Gold · Bengaluru · since Jan '26</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <span class="stat">142 installs · Q1 alone</span>
+        <p class="q">"The planner is the unlock. Homeowners arrive having already decided. I just measure, install, hand over."</p>
+        <div class="who">
+          <div class="av" style="background: #4a382b;">RP</div>
+          <div>
+            <div class="name">Rajesh Patil</div>
+            <div class="role">Platinum · Pune · since Nov '25</div>
+          </div>
+        </div>
+      </div>
+      <div class="tcard">
+        <span class="stat">0 customer complaints · 8 mo.</span>
+        <p class="q">"Warranty on the brand, not on me. That changed how I sleep. If a hinge fails, Kreobox replaces it. I don't take the call."</p>
+        <div class="who">
+          <div class="av" style="background: #6e564a;">MA</div>
+          <div>
+            <div class="name">Mohammed Asif</div>
+            <div class="role">Gold · Hyderabad · since Feb '26</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section class="s">
+  <div class="container">
+    <div class="s-head" style="grid-template-columns: 1fr;">
+      <div>
+        <span class="tag">06 — Questions</span>
+        <h2>Common things<br/>contractors <span class="it">ask.</span></h2>
+      </div>
+    </div>
+
+    <div class="faq">
+      <details class="faq-item" open>
+        <summary class="faq-q">Do I keep my existing carpentry work? <span class="plus">+</span></summary>
+        <p class="faq-a">Yes. Kreobox certification doesn't restrict your other work. Most certified contractors run a hybrid book — Kreobox SKU installs as the volume layer, custom carpentry for edge cases. Many phase the legacy work out within the first year because the economics shift fast.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">What's the difference between Silver, Gold and Platinum? <span class="plus">+</span></summary>
+        <p class="faq-a">Tier reflects volume, install score (rated by the homeowner and Kreobox QA), and modules certified. Silver pays 12%, Gold 18%, Platinum 24% of project value. You move up by completing installs at A-or-above quality.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Do I need to buy inventory upfront? <span class="plus">+</span></summary>
+        <p class="faq-a">No. Inventory is held by Kreobox at the city depot. You pick up the kit on the morning of install, return any defective panels under warranty. Your only kit is your install toolkit — drill, level, soft-close jig.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">What if a homeowner is unhappy with an install I did? <span class="plus">+</span></summary>
+        <p class="faq-a">Kreobox handles the customer interface and runs a 30-day post-install audit. Genuine defects are replaced at our cost. Install-quality issues are debriefed with you 1:1 and fed into your install score. Repeat issues affect tier; isolated misses do not.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Can I bring my team? <span class="plus">+</span></summary>
+        <p class="faq-a">Yes. Your team installs under your certification once they pass the assembly assessment (1-day, at the depot). Most certified contractors run a crew of 2–4 installers.</p>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">When do payouts happen? <span class="plus">+</span></summary>
+        <p class="faq-a">Weekly UPI transfers, every Friday, for installs handed over and signed-off in the preceding week. Holds only apply if a customer complaint is active.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ── CLOSING TILE ── -->
+<section class="tile-wrap" id="apply">
+  <div class="tile-glow"></div>
+  <div class="container">
+    <div class="tile-inner">
+      <h2>Stop quoting.<br/>Start <span class="it">installing.</span></h2>
+      <div>
+        <p>
+          Application takes 8 minutes. Decisions in 5 business days. Training
+          starts the following Monday.
+        </p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <a href="#" class="btn sienna lg">
+            Apply now
+            <svg class="ar"><use href="#i-arrow"/></svg>
+          </a>
+          <a href="mailto:contractors@kreobox.in" class="btn lg" style="background: transparent; color: var(--paper); border-color: rgba(255,255,255,0.4);">
+            Talk to us
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="container">
+    <div class="colset">
+      <div>
+        <a href="index.html" class="brand" style="margin-bottom: 18px;">
+          <svg width="36" height="36"><use href="#kbx"/></svg>
+          <span class="wm" style="color: var(--paper);">Kreobox</span>
+        </a>
+        <p style="font-size: 14px; color: rgba(255,255,255,0.6); max-width: 320px; line-height: 1.55; margin: 0;">
+          The operating system for India's interiors.<br/>Built in Bengaluru · running in three cities.
+        </p>
+      </div>
+      <div>
+        <div class="colhead">Product</div>
+        <ul>
+          <li><a href="planner.html">Planner</a></li>
+          <li><a href="index.html#catalog">Catalog</a></li>
+          <li><a href="index.html#pricing">Pricing</a></li>
+          <li><a href="#">Warranty</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="colhead">Partners</div>
+        <ul>
+          <li><a href="contractor.html">Become certified</a></li>
+          <li><a href="#">Studio access</a></li>
+          <li><a href="#">Franchise</a></li>
+          <li><a href="admin.html">Ops dashboard</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="colhead">Company</div>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Whitepaper</a></li>
+          <li><a href="#">Careers</a></li>
+          <li><a href="mailto:hello@kreobox.in">Contact</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="colhead">Legal</div>
+        <ul>
+          <li><a href="#">Terms</a></li>
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">SLA</a></li>
+          <li><a href="#">Cookies</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="meta">
+      <span>© 2026 · Kreobox · v2</span>
+      <span class="tag-fr">Fast. Modular. Repeatable.</span>
+      <span>contractors@kreobox.in</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
