@@ -170,7 +170,101 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.green{border-color:rgba(111,191,122,.4);color:var(--green);}
 
-@media(max-width:1200px){.app{grid-template-columns:1fr 320px;}}
+/* INTERNAL TEAM MODE */
+.app.internal-mode{grid-template-areas:"top top" "int-kpi int-kpi" "int-main int-main" "int-foot int-foot";}
+.app.internal-mode .job-h,.app.internal-mode .canvas-wrap,.app.internal-mode .detail,.app.internal-mode .checklist{display:none;}
+.app.internal-mode .int-kpi-bar{display:flex;}
+.app.internal-mode .internal-view{display:flex;}
+.app.internal-mode .int-footer{display:flex;}
+
+.int-kpi-bar{grid-area:int-kpi;display:none;align-items:stretch;background:var(--surface);border-bottom:1px solid var(--line);}
+.int-kpi-bar .kpi{flex:1;padding:10px 20px;border-right:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;}
+.int-kpi-bar .kpi:last-child{border-right:0;}
+.int-kpi-bar .kpi .l{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.16em;text-transform:uppercase;margin-bottom:3px;}
+.int-kpi-bar .kpi .v{font-family:"Fraunces",serif;font-size:22px;letter-spacing:-.01em;line-height:1;}
+.int-kpi-bar .kpi .d{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--mute);letter-spacing:.08em;margin-top:3px;}
+.int-kpi-bar .kpi .d.up{color:var(--green);}
+.int-kpi-bar .kpi .d.warn{color:var(--amber);}
+
+.internal-view{grid-area:int-main;display:none;background:var(--bg);overflow:hidden;}
+
+/* Project list */
+.proj-list{width:340px;flex-shrink:0;border-right:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;}
+.proj-list-head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.proj-list-head .title{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--mute);letter-spacing:.16em;text-transform:uppercase;}
+.proj-list-head .cnt{font-family:"JetBrains Mono",monospace;font-size:10px;padding:2px 8px;border-radius:100px;background:var(--surface-3);color:var(--sienna-2);letter-spacing:.1em;}
+.proj-scroll{flex:1;overflow-y:auto;}
+.proj-scroll::-webkit-scrollbar{width:3px;} .proj-scroll::-webkit-scrollbar-thumb{background:var(--surface-4);}
+.proj-item{padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .15s;}
+.proj-item:hover{background:var(--surface-2);}
+.proj-item.active{background:rgba(201,100,66,.07);border-left:2px solid var(--sienna);padding-left:14px;}
+.proj-item .pi-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;}
+.proj-item .pi-id{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--sienna-2);letter-spacing:.12em;}
+.proj-item .pi-status{font-family:"JetBrains Mono",monospace;font-size:9px;padding:2px 7px;border-radius:100px;letter-spacing:.1em;text-transform:uppercase;}
+.pi-status.install{background:rgba(201,100,66,.15);color:var(--sienna-2);}
+.pi-status.ready{background:rgba(111,191,122,.12);color:var(--green);}
+.pi-status.prod{background:rgba(212,164,74,.12);color:var(--amber);}
+.pi-status.design{background:rgba(107,157,189,.12);color:var(--blue);}
+.proj-item .pi-name{font-size:13px;font-weight:500;color:var(--paper);line-height:1.2;}
+.proj-item .pi-desc{font-family:"JetBrains Mono",monospace;font-size:9.5px;color:var(--mute);letter-spacing:.08em;margin-top:2px;}
+.proj-item .pi-meta{display:flex;align-items:center;justify-content:space-between;margin-top:6px;}
+.proj-item .pi-val{font-family:"Fraunces",serif;font-size:14px;color:var(--paper);}
+.proj-item .pi-bar-wrap{display:flex;align-items:center;gap:6px;}
+.proj-item .pi-bar{width:60px;height:3px;background:rgba(245,243,237,.08);border-radius:100px;overflow:hidden;}
+.proj-item .pi-bar-fill{height:100%;border-radius:100px;}
+.proj-item .pi-pct{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.08em;}
+
+/* Project detail panel */
+.proj-detail{flex:1;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);}
+.proj-detail-head{padding:14px 20px;border-bottom:1px solid var(--line);background:var(--surface);flex-shrink:0;}
+.proj-detail-head .pdh-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;}
+.proj-detail-head .pdh-id{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--sienna-2);letter-spacing:.14em;}
+.proj-detail-head .pdh-name{font-family:"Fraunces",serif;font-size:20px;letter-spacing:-.01em;line-height:1.1;}
+.proj-detail-head .pdh-name .it{font-style:italic;color:var(--sienna-2);}
+.proj-detail-head .pdh-meta{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--mute);letter-spacing:.1em;display:flex;gap:16px;flex-wrap:wrap;}
+.proj-detail-head .pdh-meta span b{color:var(--paper);font-weight:500;}
+.pdh-actions{display:flex;gap:7px;align-items:center;}
+.pdh-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:100px;background:var(--surface-3);border:1px solid var(--line);font-size:11px;font-weight:500;color:var(--paper);cursor:pointer;transition:background .15s;}
+.pdh-btn.primary{background:var(--sienna);border-color:var(--sienna);}
+
+.proj-detail-body{flex:1;overflow-y:auto;padding:16px 20px;}
+.proj-detail-body::-webkit-scrollbar{width:3px;} .proj-detail-body::-webkit-scrollbar-thumb{background:var(--surface-4);}
+
+/* Item rows in project detail */
+.item-section-h{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--mute);letter-spacing:.16em;text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between;}
+.item-section-h .cnt{color:var(--sienna-2);}
+.item-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;overflow:hidden;cursor:pointer;transition:border-color .15s;}
+.item-card:hover{border-color:var(--line-2);}
+.item-card.expanded{border-color:var(--sienna);}
+.item-card-h{display:grid;grid-template-columns:44px 1fr auto auto auto;gap:12px;align-items:center;padding:12px 14px;}
+.item-thumb{width:44px;height:44px;border-radius:7px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;color:var(--mute);}
+.item-thumb svg{width:60%;height:60%;}
+.item-name{font-size:13px;font-weight:500;color:var(--paper);line-height:1.1;}
+.item-dims{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--mute);letter-spacing:.08em;margin-top:2px;}
+.item-sku{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--sienna-2);letter-spacing:.1em;white-space:nowrap;}
+.item-status{font-family:"JetBrains Mono",monospace;font-size:9px;padding:3px 9px;border-radius:100px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;}
+.item-status.ready{background:rgba(111,191,122,.14);color:var(--green);}
+.item-status.in-prod{background:rgba(212,164,74,.14);color:var(--amber);}
+.item-status.design{background:rgba(107,157,189,.14);color:var(--blue);}
+.item-val{font-family:"Fraunces",serif;font-size:15px;color:var(--paper);white-space:nowrap;}
+.item-expand{display:none;padding:0 14px 12px;border-top:1px dashed var(--line);background:rgba(201,100,66,.03);}
+.item-card.expanded .item-expand{display:block;}
+.item-expand-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-top:10px;}
+.item-expand-grid .e-row{display:flex;justify-content:space-between;font-family:"JetBrains Mono",monospace;font-size:10.5px;padding:2px 0;border-bottom:1px solid var(--line);}
+.item-expand-grid .e-row .k{color:var(--mute);letter-spacing:.06em;}
+.item-expand-grid .e-row .v{color:var(--paper);}
+.item-mat{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 10px;border-radius:7px;background:var(--surface-2);}
+.item-mat .sw{width:28px;height:28px;border-radius:5px;flex-shrink:0;}
+.item-mat .mat-txt{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--mute);letter-spacing:.1em;}
+.item-mat .mat-txt strong{color:var(--paper);display:block;letter-spacing:.08em;}
+.item-factory{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:100px;background:var(--surface-2);border:1px solid var(--line);font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.12em;text-transform:uppercase;margin-top:8px;}
+
+/* Internal footer */
+.int-footer{grid-area:int-foot;display:none;background:var(--surface);border-top:1px solid var(--line);align-items:center;padding:0 20px;gap:24px;}
+.int-footer .f-stat{display:flex;align-items:center;gap:8px;font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--mute);letter-spacing:.12em;text-transform:uppercase;}
+.int-footer .f-stat .dot{width:6px;height:6px;border-radius:50%;}
+
+@media(max-width:1200px){.app{grid-template-columns:1fr 320px;} .proj-list{width:300px;}}
 @media(max-width:980px){.app{grid-template-columns:1fr;grid-template-areas:"top" "job" "canvas" "detail" "checklist";grid-template-rows:56px 64px 60vh auto 56px;} .canvas-wrap{border-right:0;border-bottom:1px solid var(--line);}}
 </style>
 </head>
@@ -824,6 +918,174 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
   </div>
 </div>
 
+<!-- INTERNAL KPI BAR -->
+<div class="int-kpi-bar">
+  <div class="kpi"><span class="l">Active orders</span><span class="v">7</span><span class="d up">↑ 2 this week</span></div>
+  <div class="kpi"><span class="l">Items in production</span><span class="v">23</span><span class="d warn">4 behind schedule</span></div>
+  <div class="kpi"><span class="l">Installs this week</span><span class="v">3</span><span class="d">MON · WED · FRI</span></div>
+  <div class="kpi"><span class="l">Pipeline value</span><span class="v">₹12.8L</span><span class="d up">↑ 18% vs last month</span></div>
+</div>
+
+<!-- INTERNAL TEAM VIEW -->
+<div class="internal-view" id="internalView">
+  <!-- Project List -->
+  <div class="proj-list">
+    <div class="proj-list-head">
+      <span class="title">All projects</span>
+      <span class="cnt">7 active</span>
+    </div>
+    <div class="proj-scroll" id="projScroll">
+
+      <div class="proj-item active" data-proj="KBX-04812">
+        <div class="pi-top">
+          <span class="pi-id">#KBX-04812</span>
+          <span class="pi-status install">T-19HRS</span>
+        </div>
+        <div class="pi-name">Aishwarya Menon</div>
+        <div class="pi-desc">Master bedroom set · 4 modules · BLR</div>
+        <div class="pi-meta">
+          <span class="pi-val">₹1,84,400</span>
+          <div class="pi-bar-wrap">
+            <div class="pi-bar"><div class="pi-bar-fill" style="width:44%;background:var(--sienna);"></div></div>
+            <span class="pi-pct">44%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="proj-item" data-proj="KBX-04798">
+        <div class="pi-top">
+          <span class="pi-id">#KBX-04798</span>
+          <span class="pi-status install">TUE 16 MAY</span>
+        </div>
+        <div class="pi-name">Rahul Verma</div>
+        <div class="pi-desc">Home office + study · 3 modules · MUM</div>
+        <div class="pi-meta">
+          <span class="pi-val">₹96,800</span>
+          <div class="pi-bar-wrap">
+            <div class="pi-bar"><div class="pi-bar-fill" style="width:30%;background:var(--sienna);"></div></div>
+            <span class="pi-pct">30%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="proj-item" data-proj="KBX-04811">
+        <div class="pi-top">
+          <span class="pi-id">#KBX-04811</span>
+          <span class="pi-status prod">IN PRODUCTION</span>
+        </div>
+        <div class="pi-name">Priya Sharma</div>
+        <div class="pi-desc">Kitchen + pantry · 8 modules · DEL</div>
+        <div class="pi-meta">
+          <span class="pi-val">₹3,20,000</span>
+          <div class="pi-bar-wrap">
+            <div class="pi-bar"><div class="pi-bar-fill" style="width:20%;background:var(--amber);"></div></div>
+            <span class="pi-pct">20%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="proj-item" data-proj="KBX-04807">
+        <div class="pi-top">
+          <span class="pi-id">#KBX-04807</span>
+          <span class="pi-status ready">KIT READY</span>
+        </div>
+        <div class="pi-name">Vikram Singh</div>
+        <div class="pi-desc">Living wall unit · 5 modules · BLR</div>
+        <div class="pi-meta">
+          <span class="pi-val">₹2,45,000</span>
+          <div class="pi-bar-wrap">
+            <div class="pi-bar"><div class="pi-bar-fill" style="width:75%;background:var(--green);"></div></div>
+            <span class="pi-pct">75%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="proj-item" data-proj="KBX-04803">
+        <div class="pi-top">
+          <span class="pi-id">#KBX-04803</span>
+          <span class="pi-status ready">KIT READY</span>
+        </div>
+        <div class="pi-name">Meera Nair</div>
+        <div class="pi-desc">Guest bedroom · 2 modules · PUN</div>
+        <div class="pi-meta">
+          <span class="pi-val">₹72,000</span>
+          <div class="pi-bar-wrap">
+            <div class="pi-bar"><div class="pi-bar-fill" style="width:65%;background:var(--green);"></div></div>
+            <span class="pi-pct">65%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="proj-item" data-proj="KBX-04799">
+        <div class="pi-top">
+          <span class="pi-id">#KBX-04799</span>
+          <span class="pi-status design">DESIGN</span>
+        </div>
+        <div class="pi-name">Ananya Reddy</div>
+        <div class="pi-desc">Kids room set · 4 modules · HYD</div>
+        <div class="pi-meta">
+          <span class="pi-val">₹1,12,000</span>
+          <div class="pi-bar-wrap">
+            <div class="pi-bar"><div class="pi-bar-fill" style="width:10%;background:var(--blue);"></div></div>
+            <span class="pi-pct">10%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="proj-item" data-proj="KBX-04795">
+        <div class="pi-top">
+          <span class="pi-id">#KBX-04795</span>
+          <span class="pi-status prod">IN PRODUCTION</span>
+        </div>
+        <div class="pi-name">Suresh Pillai</div>
+        <div class="pi-desc">Dining room unit · 3 modules · BLR</div>
+        <div class="pi-meta">
+          <span class="pi-val">₹88,500</span>
+          <div class="pi-bar-wrap">
+            <div class="pi-bar"><div class="pi-bar-fill" style="width:35%;background:var(--amber);"></div></div>
+            <span class="pi-pct">35%</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Project Detail -->
+  <div class="proj-detail" id="projDetail">
+    <div class="proj-detail-head">
+      <div class="pdh-top">
+        <div>
+          <div class="pdh-id" id="pdh-id">#KBX-04812 · WHITEFIELD · BLR</div>
+          <div class="pdh-name" id="pdh-name">Aishwarya Menon · <span class="it">Master bedroom set</span></div>
+          <div class="pdh-meta" style="margin-top:6px;" id="pdh-meta">
+            <span><b>4</b> modules</span>
+            <span><b>28</b> panels</span>
+            <span><b>Install:</b> Tue 14 May · 09:00</span>
+            <span><b>Factory:</b> F-01 · BLR</span>
+            <span><b>Contractor:</b> Suresh K.</span>
+          </div>
+        </div>
+        <div class="pdh-actions">
+          <button class="pdh-btn" onclick="showToast('OPENING BOM PDF…')">Export BOM</button>
+          <button class="pdh-btn primary" onclick="showToast('SCHEDULE UPDATED', 'green')">Schedule install</button>
+        </div>
+      </div>
+    </div>
+    <div class="proj-detail-body" id="projDetailBody">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- INTERNAL FOOTER -->
+<div class="int-footer">
+  <div class="f-stat"><span class="dot" style="background:var(--green);"></span> Factory F-01 BLR · ONLINE</div>
+  <div class="f-stat"><span class="dot" style="background:var(--green);"></span> Factory F-02 MUM · ONLINE</div>
+  <div class="f-stat"><span class="dot" style="background:var(--amber);"></span> Factory F-03 DEL · 2 ALERTS</div>
+  <div style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mute);letter-spacing:.12em;">SYNCED · 2 MIN AGO</div>
+</div>
+
 </div><!-- .app -->
 
 <div class="toast" id="toast"></div>
@@ -857,6 +1119,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
   }
+  window.showToast = showToast; // expose for inline onclick
 
   // ── MODULE SELECTION ──
   function selectModule(id) {
@@ -1015,12 +1278,200 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     }
   });
 
+  // ── INTERNAL TEAM MODE ──
+  const PROJECTS = {
+    'KBX-04812': {
+      id:'KBX-04812', customer:'Aishwarya Menon', desc:'Master bedroom set', city:'WHITEFIELD · BLR',
+      modules:4, panels:28, installDate:'Tue 14 May · 09:00', factory:'F-01 · BLR', contractor:'Suresh K.',
+      items:[
+        { sku:'W-2D', name:'2-door wardrobe', dims:'800 × 2400 × 600 MM', status:'ready', factory:'F-01', value:'₹38,200',
+          mat:{name:'Walnut Matt — L-09', sub:'MERINO 1MM', color:'linear-gradient(135deg,#8a6a52,#4d3527)'},
+          bom:[['Carcass panels','6 × 18mm ply'],['Shutters','2 × 400 × 2380 mm'],['Internal shelves','3 × adjustable'],['Soft-close mech','4 × Hettich Sensys'],['Edge banding','EB-09 · 5.6m']] },
+        { sku:'W-3D', name:'3-door wardrobe', dims:'1200 × 2400 × 600 MM', status:'ready', factory:'F-01', value:'₹52,400',
+          mat:{name:'Walnut Matt — L-09', sub:'MERINO 1MM', color:'linear-gradient(135deg,#8a6a52,#4d3527)'},
+          bom:[['Carcass panels','8 × 18mm ply'],['Shutters','3 × 400 × 2380 mm'],['Hanging rod','1 × 1132mm chrome'],['Drawer block','3 × Blum tandem 600mm'],['Soft-close mech','6 × Hettich Sensys'],['Edge banding','EB-09 · 8.2m']] },
+        { sku:'D-3S', name:'Drawer stack · 4 draws', dims:'600 × 2400 × 600 MM', status:'ready', factory:'F-01', value:'₹28,600',
+          mat:{name:'Walnut Matt — L-09', sub:'MERINO 1MM', color:'linear-gradient(135deg,#8a6a52,#4d3527)'},
+          bom:[['Drawer fronts','4 × 556 × 195 mm'],['Drawer slides','4pr Blum 562H 600mm'],['Carcass panels','4 × 18mm ply'],['Edge banding','EB-09 · 3.8m']] },
+        { sku:'W-MR', name:'Mirror unit', dims:'800 × 2400 × 400 MM', status:'ready', factory:'F-01', value:'₹22,400',
+          mat:{name:'Toughened mirror 5mm', sub:'FLOAT GLASS', color:'linear-gradient(135deg,#c8d8df,#869aa0)'},
+          bom:[['Mirror panel','1 × 736 × 2320 mm'],['Mirror clips','4 × chrome Ø10mm'],['Back panel','1 × 6mm HDF'],['Frame lam','Walnut Matt L-09']] },
+      ]
+    },
+    'KBX-04798': {
+      id:'KBX-04798', customer:'Rahul Verma', desc:'Home office + study', city:'BANDRA · MUM',
+      modules:3, panels:16, installDate:'Mon 16 May · 10:00', factory:'F-02 · MUM', contractor:'Deepak M.',
+      items:[
+        { sku:'OFC-01', name:'Study desk unit', dims:'1400 × 750 × 600 MM', status:'in-prod', factory:'F-02', value:'₹34,200',
+          mat:{name:'Oak Light — OL-04', sub:'GREENLAM 1MM', color:'linear-gradient(135deg,#c8aa7a,#a0834e)'},
+          bom:[['Top panel','1 × 1400 × 600 mm'],['Side panels','2 × 750 × 600 mm'],['Keyboard shelf','1 × 800mm drawer'],['Cable grommet','2 × Ø60mm brass']] },
+        { sku:'BOOK-01', name:'Bookshelf tower', dims:'900 × 2100 × 300 MM', status:'in-prod', factory:'F-02', value:'₹28,400',
+          mat:{name:'Oak Light — OL-04', sub:'GREENLAM 1MM', color:'linear-gradient(135deg,#c8aa7a,#a0834e)'},
+          bom:[['Shelves','6 × adjustable'],['Side panels','2 × 2100 × 300 mm'],['Back panel','1 × 6mm HDF']] },
+        { sku:'CAB-03', name:'Storage cabinet', dims:'600 × 1800 × 400 MM', status:'ready', factory:'F-02', value:'₹34,200',
+          mat:{name:'Oak Light — OL-04', sub:'GREENLAM 1MM', color:'linear-gradient(135deg,#c8aa7a,#a0834e)'},
+          bom:[['Doors','2 × 600 × 900 mm'],['Carcass panels','4 × 18mm ply'],['Hinges','4 × soft-close']] },
+      ]
+    },
+    'KBX-04811': {
+      id:'KBX-04811', customer:'Priya Sharma', desc:'Kitchen + pantry full set', city:'VASANT KUNJ · DEL',
+      modules:8, panels:56, installDate:'Fri 20 May · 08:30', factory:'F-03 · DEL', contractor:'Ajay R.',
+      items:[
+        { sku:'KIT-UPR-1', name:'Upper cabinet row · 3600mm', dims:'3600 × 700 × 350 MM', status:'in-prod', factory:'F-03', value:'₹88,000',
+          mat:{name:'Ivory Gloss — GL-02', sub:'ACRYLIC HIGH GLOSS', color:'linear-gradient(135deg,#f0ece2,#ddd8ce)'},
+          bom:[['Upper units','6 × 600mm modules'],['Doors','12 × hinged'],['Shelf pins','48 × Ø5mm']] },
+        { sku:'KIT-LWR-1', name:'Lower cabinet row · 3600mm', dims:'3600 × 850 × 600 MM', status:'in-prod', factory:'F-03', value:'₹1,12,000',
+          mat:{name:'Ivory Gloss — GL-02', sub:'ACRYLIC HIGH GLOSS', color:'linear-gradient(135deg,#f0ece2,#ddd8ce)'},
+          bom:[['Lower units','6 × 600mm modules'],['Drawers','6 × Blum tandem'],['Hinged doors','6 × soft-close']] },
+        { sku:'KIT-ISL-1', name:'Kitchen island', dims:'1200 × 900 × 900 MM', status:'in-prod', factory:'F-03', value:'₹65,000',
+          mat:{name:'Concrete Grey — CG-01', sub:'FENIX NTM MATTE', color:'linear-gradient(135deg,#888078,#5a544c)'},
+          bom:[['Island carcass','1 × custom 18mm ply'],['Waterfall sides','2 × matching lam'],['Leg brackets','4 × SS 150mm']] },
+        { sku:'KIT-PAN-1', name:'Pantry tower · tall', dims:'600 × 2200 × 600 MM', status:'design', factory:'F-03', value:'₹38,000',
+          mat:{name:'Ivory Gloss — GL-02', sub:'ACRYLIC HIGH GLOSS', color:'linear-gradient(135deg,#f0ece2,#ddd8ce)'},
+          bom:[['Pull-out shelves','4 × full extension'],['Doors','2 × floor-to-ceil'],['Hinges','6 × soft-close']] },
+      ]
+    },
+    'KBX-04807': {
+      id:'KBX-04807', customer:'Vikram Singh', desc:'Living room wall unit', city:'INDIRANAGAR · BLR',
+      modules:5, panels:32, installDate:'Wed 18 May · 09:00', factory:'F-01 · BLR', contractor:'Suresh K.',
+      items:[
+        { sku:'LIV-TV-1', name:'TV panel + shelving', dims:'2400 × 2200 × 350 MM', status:'ready', factory:'F-01', value:'₹72,000',
+          mat:{name:'Smoke Oak — SO-06', sub:'MERINO 1MM', color:'linear-gradient(135deg,#6e6256,#4a3e34)'},
+          bom:[['TV recess panel','1 × 1200mm centre'],['Floating shelves','6 × adjustable'],['Backlit recess','1 × LED strip channel']] },
+        { sku:'LIV-CAB-2', name:'Side cabinet pair', dims:'600 × 2200 × 400 MM', status:'ready', factory:'F-01', value:'₹58,000',
+          mat:{name:'Smoke Oak — SO-06', sub:'MERINO 1MM', color:'linear-gradient(135deg,#6e6256,#4a3e34)'},
+          bom:[['Doors','4 × hinged'],['Shelves','4 × fixed'],['Hinges','8 × soft-close']] },
+      ]
+    },
+    'KBX-04803': {
+      id:'KBX-04803', customer:'Meera Nair', desc:'Guest bedroom', city:'KOREGAON PARK · PUN',
+      modules:2, panels:12, installDate:'Thu 19 May · 09:30', factory:'F-02 · MUM', contractor:'Deepak M.',
+      items:[
+        { sku:'W-2D', name:'2-door wardrobe', dims:'800 × 2200 × 600 MM', status:'ready', factory:'F-02', value:'₹34,000',
+          mat:{name:'White Matt — WM-01', sub:'GREENLAM 0.8MM', color:'linear-gradient(135deg,#f5f3ed,#e0ddd6)'},
+          bom:[['Carcass panels','6 × 18mm ply'],['Shutters','2 × 400 × 2160 mm'],['Soft-close mech','4 × Hettich']] },
+        { sku:'BED-1', name:'Bed frame + headboard', dims:'1800 × 900 × 2100 MM', status:'ready', factory:'F-02', value:'₹38,000',
+          mat:{name:'White Matt — WM-01', sub:'GREENLAM 0.8MM', color:'linear-gradient(135deg,#f5f3ed,#e0ddd6)'},
+          bom:[['Headboard panel','1 × upholstered'],['Bed slats','14 × pine'],['Side rails','2 × 18mm ply']] },
+      ]
+    },
+    'KBX-04799': {
+      id:'KBX-04799', customer:'Ananya Reddy', desc:'Kids room set', city:'JUBILEE HILLS · HYD',
+      modules:4, panels:22, installDate:'TBD', factory:'F-03 · DEL', contractor:'TBD',
+      items:[
+        { sku:'KIDS-BED', name:'Bunk bed frame', dims:'2000 × 1600 × 1600 MM', status:'design', factory:'TBD', value:'₹48,000',
+          mat:{name:'Candy Blue — CB-03', sub:'MERINO 1MM', color:'linear-gradient(135deg,#7aaac8,#4a7898)'},
+          bom:[['Ladder','1 × 6-step'],['Guard rail','1 × upper bunk'],['Slats','28 × pine']] },
+        { sku:'KIDS-STU', name:'Study corner unit', dims:'1200 × 1400 × 550 MM', status:'design', factory:'TBD', value:'₹32,000',
+          mat:{name:'Candy Blue — CB-03', sub:'MERINO 1MM', color:'linear-gradient(135deg,#7aaac8,#4a7898)'},
+          bom:[['Desktop','1 × 1200 × 550 mm'],['Overhead shelf','2 × floating'],['Pin board','1 × 800 × 600 mm']] },
+      ]
+    },
+    'KBX-04795': {
+      id:'KBX-04795', customer:'Suresh Pillai', desc:'Dining room unit', city:'KORAMANGALA · BLR',
+      modules:3, panels:18, installDate:'Sat 21 May · 10:00', factory:'F-01 · BLR', contractor:'Suresh K.',
+      items:[
+        { sku:'DIN-BUF-1', name:'Buffet sideboard', dims:'1800 × 850 × 500 MM', status:'in-prod', factory:'F-01', value:'₹42,000',
+          mat:{name:'Teak Matt — TK-02', sub:'MERINO 1MM', color:'linear-gradient(135deg,#a07850,#6e4e2e)'},
+          bom:[['Doors','4 × hinged'],['Drawers','2 × full-ext'],['Top panel','1 × 18mm ply']] },
+        { sku:'DIN-WINE', name:'Wine rack unit', dims:'600 × 1800 × 400 MM', status:'in-prod', factory:'F-01', value:'₹26,500',
+          mat:{name:'Teak Matt — TK-02', sub:'MERINO 1MM', color:'linear-gradient(135deg,#a07850,#6e4e2e)'},
+          bom:[['Wine cubbies','12 × angled'],['Glass shelf','1 × 8mm toughened'],['Base cabinet','1 × hinged']] },
+      ]
+    }
+  };
+
+  const ITEM_THUMB_MAP = { 'W-2D':'m-w2d','W-3D':'m-w3d','D-3S':'m-dr','W-MR':'m-mr' };
+
+  let activeProject = 'KBX-04812';
+  let expandedItem = null;
+  let isInternalMode = false;
+
+  function getThumbId(sku) {
+    return ITEM_THUMB_MAP[sku] || 'm-w2d';
+  }
+
+  function renderProjectDetail(projId) {
+    activeProject = projId;
+    const proj = PROJECTS[projId];
+    if (!proj) return;
+
+    // Update header
+    document.getElementById('pdh-id').textContent = '#' + proj.id + ' · ' + proj.city;
+    document.getElementById('pdh-name').innerHTML = proj.customer + ' · <span class="it">' + proj.desc + '</span>';
+    document.getElementById('pdh-meta').innerHTML =
+      '<span><b>' + proj.modules + '</b> modules</span>' +
+      '<span><b>' + proj.panels + '</b> panels</span>' +
+      '<span><b>Install:</b> ' + proj.installDate + '</span>' +
+      '<span><b>Factory:</b> ' + proj.factory + '</span>' +
+      '<span><b>Contractor:</b> ' + proj.contractor + '</span>';
+
+    // Render items
+    expandedItem = null;
+    const body = document.getElementById('projDetailBody');
+    const statusLabels = { ready:'Ready', 'in-prod':'In production', design:'Design phase' };
+    body.innerHTML = '<div style="margin-bottom:10px" class="item-section-h"><span>' + proj.modules + ' items in order</span><span class="cnt">' + proj.panels + ' panels total</span></div>' +
+      proj.items.map((item, i) => {
+        const thumbId = getThumbId(item.sku);
+        return `<div class="item-card" data-item="${i}" id="icard-${projId}-${i}">
+          <div class="item-card-h">
+            <div class="item-thumb"><svg width="44" height="44"><use href="#${thumbId}"/></svg></div>
+            <div>
+              <div class="item-name">${item.name}</div>
+              <div class="item-dims">${item.sku} · ${item.dims}</div>
+            </div>
+            <span class="item-status ${item.status}">${statusLabels[item.status] || item.status}</span>
+            <span class="item-sku">${item.factory}</span>
+            <span class="item-val">${item.value}</span>
+          </div>
+          <div class="item-expand">
+            <div class="item-expand-grid">
+              ${item.bom.map(r => `<div class="e-row"><span class="k">${r[0]}</span><span class="v">${r[1]}</span></div>`).join('')}
+            </div>
+            <div class="item-mat">
+              <div class="sw" style="background:${item.mat.color};width:28px;height:28px;border-radius:5px;flex-shrink:0;"></div>
+              <div class="mat-txt"><strong>${item.mat.name}</strong>${item.mat.sub}</div>
+            </div>
+            <span class="item-factory">Factory · ${item.factory}</span>
+          </div>
+        </div>`;
+      }).join('');
+
+    // Add click handlers for expand/collapse
+    body.querySelectorAll('.item-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const idx = card.dataset.item;
+        const isExp = card.classList.contains('expanded');
+        body.querySelectorAll('.item-card').forEach(c => c.classList.remove('expanded'));
+        if (!isExp) card.classList.add('expanded');
+      });
+    });
+    // Auto-expand first item
+    const first = body.querySelector('.item-card');
+    if (first) first.classList.add('expanded');
+  }
+
+  function setInternalMode(on) {
+    isInternalMode = on;
+    document.querySelector('.app').classList.toggle('internal-mode', on);
+  }
+
   // Role switch
   document.getElementById('roleSwitch').addEventListener('click', e => {
     const btn = e.target.closest('button[data-role]');
     if (!btn) return;
     document.querySelectorAll('#roleSwitch button').forEach(b => b.classList.toggle('active', b === btn));
-    showToast('VIEW: ' + btn.dataset.role.toUpperCase());
+    setInternalMode(btn.dataset.role === 'internal');
+    if (btn.dataset.role === 'internal') renderProjectDetail(activeProject);
+  });
+
+  // Project list clicks
+  document.getElementById('projScroll').addEventListener('click', e => {
+    const item = e.target.closest('.proj-item[data-proj]');
+    if (!item) return;
+    document.querySelectorAll('.proj-item').forEach(el => el.classList.remove('active'));
+    item.classList.add('active');
+    renderProjectDetail(item.dataset.proj);
   });
 
   // Mark complete
