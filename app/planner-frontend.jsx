@@ -1627,9 +1627,9 @@ function computeBOM(roomW, roomD, layout, finish) {
   const appliances = s.applianceFlat;
   const hardware  = Math.round((baseCabs + wallCabs + highCabs) * s.hardwareRate / 100);
   const subtotal  = baseCabs + wallCabs + highCabs + worktop + appliances + hardware;
-  const markup    = Math.round(subtotal * s.markup / 100);
-  const gst       = Math.round((subtotal + markup) * s.gst / 100);
-  const total     = subtotal + markup + gst;
+  const gst       = Math.round(subtotal * s.gst / 100);
+  const total     = subtotal + gst;
+  const markup    = 0;
   return {
     bom: [
       { category: 'Base cabinets',     qty: baseCount,  unit: 'units', unitPrice: Math.round(s.cabinetRate * 0.6),       amount: baseCabs },
@@ -1644,7 +1644,7 @@ function computeBOM(roomW, roomD, layout, finish) {
 }
 
 /* ─── QUOTE MODAL ──────────────────────────────────────────── */
-function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, onSubmit, onClose }) {
+function QuoteModal({ bom, room, layout, finish, onSubmit, onClose }) {
   const { useState: useS } = React;
   const [name, setName]     = useS('');
   const [phone, setPhone]   = useS('');
@@ -1653,6 +1653,12 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
   const [payOpt, setPayOpt] = useS('visit');
   const fmt = n => '₹ ' + n.toLocaleString('en-IN');
   const ok  = name.trim().length > 0;
+
+  // Always derive from bom line items — no separate subtotal/markup/gst props
+  const bomSubtotal = bom.reduce((sum, b) => sum + b.amount, 0);
+  const bomGst      = Math.round(bomSubtotal * 0.18);
+  const bomTotal    = bomSubtotal + bomGst;
+
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.55)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -1666,17 +1672,15 @@ function QuoteModal({ bom, subtotal, markup, gst, total, room, layout, finish, o
           {bom.map((b,i) => (
             <div key={i} style={{ display:'flex', justifyContent:'space-between', padding:'6px 0', borderTop:i ? `1px solid ${pLine}` : 'none', fontSize:12 }}>
               <span>{b.category} <span style={{ color:pMute, fontSize:10 }}>×{b.qty} {b.unit}</span></span>
-              <span style={{ ...pStyles.mono, color:pMute }}>{fmt(b.amount)}</span>
+              <span style={{ ...pStyles.mono }}>{fmt(b.amount)}</span>
             </div>
           ))}
           <div style={{ marginTop:6, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
-            {[['Studio margin', markup], ['GST (18%)', gst]].map(([l,v]) => (
-              <div key={l} style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
-                <span>{l}</span><span style={pStyles.mono}>{fmt(v)}</span>
-              </div>
-            ))}
+            <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
+              <span>GST (18%)</span><span style={pStyles.mono}>{fmt(bomGst)}</span>
+            </div>
             <div style={{ display:'flex', justifyContent:'space-between', marginTop:6, paddingTop:6, borderTop:`2px solid ${pInk}`, fontSize:14, fontWeight:700 }}>
-              <span>Total estimate</span><span style={pStyles.mono}>{fmt(total)}</span>
+              <span>Total estimate</span><span style={pStyles.mono}>{fmt(bomTotal)}</span>
             </div>
           </div>
         </div>
@@ -1882,16 +1886,10 @@ function PlannerFrontend({ accent = pAccent }) {
     [roomW, roomD, layout, finish]
   );
 
-  // Live estimate from actual placed items
-  const { subtotal, markup, gst, total } = useM(() => {
-    if (roomItems.length === 0) return { subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal };
-    const s = KreoStore.getSettings();
-    const sub = roomItems.reduce((acc, r) => acc + estimateItemPrice(r.price) * r.qty, 0);
-    if (sub === 0) return { subtotal: bomSub, markup: bomMarkup, gst: bomGst, total: bomTotal };
-    const m = Math.round(sub * s.markup / 100);
-    const g = Math.round((sub + m) * s.gst / 100);
-    return { subtotal: sub, markup: m, gst: g, total: sub + m + g };
-  }, [roomItems, bomSub, bomMarkup, bomGst, bomTotal]);
+  // Live estimate not used for modal total (bom-derived) but kept for sidebar item list
+  const { subtotal, gst, total } = useM(() => {
+    return { subtotal: bomSub, gst: bomGst, total: bomTotal };
+  }, [bomSub, bomGst, bomTotal]);
 
   const handleSave = () => {
     KreoStore.saveDraft({ room: { W:roomW, D:roomD, H:roomH, layout }, finish, hardware, ts: Date.now() });
@@ -1903,7 +1901,7 @@ function PlannerFrontend({ accent = pAccent }) {
       id: KreoStore.nextOrderId(), ts: Date.now(), status: 'new',
       ...customerData,
       room: { W:roomW, D:roomD, H:roomH, layout },
-      finish, hardware, roomItems, bom, subtotal, markup, gst, total,
+      finish, hardware, roomItems, bom, subtotal, gst, total,
     };
     KreoStore.addOrder(order);
     setSubmitted(order);
@@ -1920,7 +1918,7 @@ function PlannerFrontend({ accent = pAccent }) {
   return (
     <div style={pStyles.shell}>
       {showModal && (
-        <QuoteModal bom={bom} subtotal={subtotal} markup={markup} gst={gst} total={total}
+        <QuoteModal bom={bom}
           room={{ W:roomW, D:roomD, H:roomH }} layout={layout} finish={finish}
           onSubmit={handleSubmit} onClose={() => setShowModal(false)} />
       )}
@@ -2133,11 +2131,9 @@ function PlannerFrontend({ accent = pAccent }) {
             })}
             {roomItems.length > 0 && (
               <div style={{ marginTop:8, paddingTop:8, borderTop:`1px solid ${pLine}` }}>
-                {[['Studio margin', markup],['GST (18%)', gst]].map(([l,v]) => (
-                  <div key={l} style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
-                    <span>{l}</span><span style={pStyles.mono}>{fmt(v)}</span>
-                  </div>
-                ))}
+                <div style={{ display:'flex', justifyContent:'space-between', fontSize:11, color:pMute, marginBottom:3 }}>
+                  <span>GST (18%)</span><span style={pStyles.mono}>{fmt(bomGst)}</span>
+                </div>
               </div>
             )}
           </div>
@@ -2147,7 +2143,7 @@ function PlannerFrontend({ accent = pAccent }) {
               <span style={{ fontSize:10, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontWeight:600 }}>Total estimate</span>
               <span style={{ fontSize:11, color:pMute }}>incl. GST</span>
             </div>
-            <div style={{ ...pStyles.fraunces, fontSize:30, marginTop:4 }}>{fmt(total)}</div>
+            <div style={{ ...pStyles.fraunces, fontSize:30, marginTop:4 }}>{fmt(bomTotal)}</div>
             <div style={{ display:'flex', gap:8, marginTop:12 }}>
               <button onClick={() => setShowModal(true)} style={{ flex:1, ...pStyles.primaryBtn, textAlign:'center', padding:'11px', borderRadius:8, border:'none', cursor:'pointer', fontSize:12 }}>Send BOQ →</button>
               <button onClick={handleSave} style={{ ...pStyles.pillBtn, padding:'11px 14px', borderRadius:8, cursor:'pointer', fontSize:12 }}>Save</button>
