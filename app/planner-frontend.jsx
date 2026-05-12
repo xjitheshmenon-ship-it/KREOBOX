@@ -342,7 +342,7 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
   const denom = Math.sqrt(RW * RW + RD * RD);
   const p = SVG_W * 0.65;
   const [yaw, setYaw]     = useS(-35);
-  const [pitch, setPitch] = useS(25);
+  const [pitch, setPitch] = useS(-45);
   const drag = useRef(null);
 
   const project = useCB((wx, wy, wz) => {
