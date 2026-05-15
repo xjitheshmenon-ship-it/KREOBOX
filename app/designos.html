@@ -1672,7 +1672,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
         holes += `<circle cx="${x}" cy="${y}" r="2" fill="#6b9dbd" opacity=".6"/>`;
       });
       // Safety film hatching
-      holes += `<rect x="${PX+4}" y="${PY+4}" width="${PW-8}" height="${PP-8}" fill="url(#mirror)" opacity=".4"/>`;
+      holes += `<rect x="${PX+4}" y="${PY+4}" width="${PW-8}" height="${PP-8}" fill="url(#mirror-hatch)" opacity=".6"/>`;
     } else if (panel.type === 'divider') {
       // Shelf pins both faces
       [PX + 8, PX + PW - 8].forEach(x => {
@@ -1714,6 +1714,11 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
       <text x="${PX + 13}" y="${PY + PP + 16}" fill="rgba(22,20,15,.7)" font-family="JetBrains Mono" font-size="8" text-anchor="middle" letter-spacing=".08em" font-weight="700">${panel.seq}</text>`;
 
     return `<svg class="pdc-svg" viewBox="0 0 ${W} ${SVG_H + 22}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="mirror-hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+          <line x1="0" y1="0" x2="0" y2="8" stroke="rgba(107,157,189,.35)" stroke-width="1"/>
+        </pattern>
+      </defs>
       <!-- Panel face -->
       <rect x="${PX}" y="${PY}" width="${PW}" height="${PP}" fill="#faf8f2" stroke="rgba(22,20,15,.55)" stroke-width="1"/>
       <!-- Edge thickness indicator -->
