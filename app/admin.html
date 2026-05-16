@@ -434,6 +434,95 @@
   /* mini sparkline inline */
   .mini-spark { height: 16px; width: 50px; display: inline-block; vertical-align: middle; }
 
+  /* ── DISPATCH OVERLAY ── */
+  .dispatch-overlay {
+    position: fixed; top: 0; right: 0; bottom: 0; width: 420px;
+    background: var(--surface-2); border-left: 1px solid var(--line-2);
+    z-index: 300; transform: translateX(100%); transition: transform .22s cubic-bezier(.4,0,.2,1);
+    display: flex; flex-direction: column;
+  }
+  .dispatch-overlay.open { transform: translateX(0); }
+  .dispatch-overlay .dov-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 20px 16px; border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .dispatch-overlay .dov-head h2 { font-family: "Fraunces",serif; font-size: 18px; letter-spacing: -0.01em; }
+  .dispatch-overlay .dov-close {
+    width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: var(--surface-3); border: 1px solid var(--line); color: var(--mute);
+    cursor: pointer; font-size: 16px; transition: color .12s;
+  }
+  .dispatch-overlay .dov-close:hover { color: var(--paper); }
+  .dispatch-overlay .dov-body { flex: 1; overflow-y: auto; padding: 20px; }
+  .dispatch-overlay .dov-foot {
+    padding: 16px 20px; border-top: 1px solid var(--line); flex-shrink: 0;
+    display: flex; gap: 10px;
+  }
+  .dov-field { margin-bottom: 16px; }
+  .dov-field label { display: block; font-family: "JetBrains Mono",monospace; font-size: 9.5px; color: var(--mute); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 6px; }
+  .dov-field input, .dov-field select {
+    width: 100%; padding: 9px 12px; border-radius: 7px;
+    background: var(--surface-3); border: 1px solid var(--line);
+    color: var(--paper); font: inherit; font-size: 12.5px;
+    transition: border-color .12s;
+  }
+  .dov-field input:focus, .dov-field select:focus { outline: none; border-color: var(--sienna); }
+  .dov-field select option { background: var(--surface-3); }
+  .dov-modules { background: var(--surface-3); border: 1px solid var(--line); border-radius: 7px; padding: 10px 12px; }
+  .dov-modules .mod-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-family: "JetBrains Mono",monospace; font-size: 10px; color: var(--mute); letter-spacing: .1em; border-bottom: 1px solid var(--line); }
+  .dov-modules .mod-row:last-child { border-bottom: 0; }
+  .dov-modules .mod-row .mn { color: var(--paper); }
+  .dov-btn-full { width: 100%; padding: 11px 16px; border-radius: 100px; background: var(--sienna); border: 0; color: var(--paper); font-family: "JetBrains Mono",monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; cursor: pointer; transition: background .12s; flex: 1; }
+  .dov-btn-full:hover { background: var(--sienna-2); }
+  .dov-btn-cancel { padding: 11px 16px; border-radius: 100px; background: var(--surface-3); border: 1px solid var(--line); color: var(--mute); font-family: "JetBrains Mono",monospace; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: color .12s; }
+  .dov-btn-cancel:hover { color: var(--paper); }
+
+  /* ── TRACKING TIMELINE ── */
+  .track-expand { display: none; background: var(--surface-3); }
+  .track-expand.open { display: table-row; }
+  .track-expand > td { padding: 0 !important; border-bottom: 1px solid var(--line) !important; }
+  .track-inner { padding: 16px 20px; display: grid; grid-template-columns: 1fr auto; gap: 16px; }
+  .track-timeline { display: flex; flex-direction: column; gap: 0; }
+  .track-step { display: flex; align-items: flex-start; gap: 12px; position: relative; padding-bottom: 14px; }
+  .track-step:last-child { padding-bottom: 0; }
+  .track-step::before {
+    content: ''; position: absolute; left: 7px; top: 18px; bottom: -4px; width: 1px;
+    background: var(--line-2);
+  }
+  .track-step:last-child::before { display: none; }
+  .track-step .ts-dot {
+    width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px;
+  }
+  .track-step .ts-dot.done { background: rgba(111,191,122,.2); border: 1.5px solid var(--green); color: var(--green); }
+  .track-step .ts-dot.active { background: rgba(212,164,74,.2); border: 1.5px solid var(--amber); color: var(--amber); }
+  .track-step .ts-dot.pending { background: var(--surface-4); border: 1.5px solid var(--line-2); color: var(--mute); }
+  .track-step .ts-body {}
+  .track-step .ts-evt { font-size: 12.5px; font-weight: 500; color: var(--paper); line-height: 1.2; }
+  .track-step .ts-evt.muted { color: var(--mute); }
+  .track-step .ts-meta { font-family: "JetBrains Mono",monospace; font-size: 9.5px; color: var(--mute); letter-spacing: .1em; margin-top: 3px; }
+  .track-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+  .dispatch-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  .dk { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .dk .dk-l { font-family: "JetBrains Mono",monospace; font-size: 9px; color: var(--mute); letter-spacing: .14em; text-transform: uppercase; margin-bottom: 6px; }
+  .dk .dk-v { font-family: "Fraunces",serif; font-size: 24px; letter-spacing: -0.02em; }
+  .dk .dk-sub { font-family: "JetBrains Mono",monospace; font-size: 9px; color: var(--mute); letter-spacing: .1em; margin-top: 2px; }
+  .dk.urgent .dk-v { color: var(--sienna-2); }
+  .dk.transit .dk-v { color: #a98ad8; }
+  .dk.done-kpi .dk-v { color: var(--green); }
+
+  /* pending dispatch section */
+  .sec-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+  .sec-head .sh-label { font-family: "JetBrains Mono",monospace; font-size: 9.5px; color: var(--mute); letter-spacing: .14em; text-transform: uppercase; }
+  .sec-head .sh-cnt { font-family: "JetBrains Mono",monospace; font-size: 9px; padding: 2px 8px; border-radius: 100px; background: var(--surface-3); color: var(--paper); }
+  .dsp-ready td { background: rgba(201,100,66,.04); }
+  .dsp-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 100px; font-family: "JetBrains Mono",monospace; font-size: 9px; letter-spacing: .12em; text-transform: uppercase; background: rgba(111,191,122,.12); color: var(--green); }
+  .dsp-chip.pending { background: rgba(212,164,74,.12); color: var(--amber); }
+  .overlay-backdrop { position: fixed; inset: 0; background: rgba(12,11,10,.5); z-index: 299; display: none; }
+  .overlay-backdrop.open { display: block; }
+
   /* Toast */
   .toast { position: fixed; bottom: 48px; left: 50%; transform: translateX(-50%) translateY(16px); background: var(--surface-4); border: 1px solid var(--line-2); border-radius: 100px; padding: 9px 18px; font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--paper); letter-spacing: .1em; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; z-index: 200; white-space: nowrap; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -1194,29 +1283,83 @@
   <div class="main-panel" id="panel-logistics">
     <div class="main-inner">
       <div class="page-h">
-        <div class="left"><div class="sub">14 in transit · 8 arriving today</div><h1>Logistics <span class="it">tracker</span></h1></div>
-        <div class="right"><button class="tbl-btn" onclick="toast('DISPATCH SCHEDULE OPENED')">View dispatch schedule</button></div>
+        <div class="left"><div class="sub">3 pending dispatch · 6 in transit · 5 delivered today</div><h1>Dispatch <span class="it">& tracking</span></h1></div>
+        <div class="right">
+          <button class="tbl-btn primary" onclick="openDispatch(null)">+ Dispatch Kit</button>
+        </div>
       </div>
+
+      <!-- KPI mini cards -->
+      <div class="dispatch-kpis">
+        <div class="dk urgent"><div class="dk-l">Pending dispatch</div><div class="dk-v">3</div><div class="dk-sub">kits ready at factory</div></div>
+        <div class="dk transit"><div class="dk-l">In transit</div><div class="dk-v">6</div><div class="dk-sub">on road now</div></div>
+        <div class="dk done-kpi"><div class="dk-l">Delivered today</div><div class="dk-v">5</div><div class="dk-sub">install starting</div></div>
+        <div class="dk"><div class="dk-l">Avg transit time</div><div class="dk-v">2.4h</div><div class="dk-sub">depot → site · 7D avg</div></div>
+      </div>
+
+      <!-- Filter tabs + table -->
       <div class="panel-wrap">
         <div class="panel-toolbar">
           <div class="filter-tabs" id="logisticsFilter">
-            <button class="active">All (14)</button>
-            <button>Arriving today (8)</button>
-            <button>In transit (6)</button>
+            <button class="active" data-lf="all">All (14)</button>
+            <button data-lf="pending">Pending dispatch (3)</button>
+            <button data-lf="transit">In transit (6)</button>
+            <button data-lf="delivered">Delivered (5)</button>
           </div>
+          <button class="tbl-btn" onclick="toast('EXPORTING DISPATCH LOG…','green')">Export</button>
         </div>
-        <table class="data-table">
-          <thead><tr><th>Shipment ID</th><th>From</th><th>To</th><th>Order</th><th>Items</th><th>ETA</th><th>Status</th><th>Driver</th></tr></thead>
-          <tbody>
-            <tr><td class="id-cell">SHP-2214</td><td class="mono-cell">F-01 · BLR</td><td class="mono-cell">WHITEFIELD STUDIO</td><td class="id-cell">#KBX-04812</td><td class="mono-cell">4 modules · 28 panels</td><td class="mono-cell" style="color:var(--green);">TODAY · 08:30</td><td><span class="status-chip ready">Arrived</span></td><td>Raju · KA01</td></tr>
-            <tr><td class="id-cell">SHP-2215</td><td class="mono-cell">F-01 · BLR</td><td class="mono-cell">INDIRANAGAR STUDIO</td><td class="id-cell">#KBX-04807</td><td class="mono-cell">5 modules · 32 panels</td><td class="mono-cell" style="color:var(--green);">TODAY · 09:15</td><td><span class="status-chip ready">Arrived</span></td><td>Suresh · KA02</td></tr>
-            <tr><td class="id-cell">SHP-2218</td><td class="mono-cell">F-02 · PUN</td><td class="mono-cell">KOREGAON STUDIO</td><td class="id-cell">#KBX-04803</td><td class="mono-cell">2 modules · 12 panels</td><td class="mono-cell" style="color:var(--amber);">TODAY · 14:00</td><td><span class="status-chip transit">In transit</span></td><td>Ravi · MH04</td></tr>
-            <tr><td class="id-cell">SHP-2219</td><td class="mono-cell">F-02 · PUN</td><td class="mono-cell">BANDRA STUDIO</td><td class="id-cell">#KBX-04798</td><td class="mono-cell">3 modules · 16 panels</td><td class="mono-cell" style="color:var(--amber);">TODAY · 16:30</td><td><span class="status-chip transit">In transit</span></td><td>Vijay · MH08</td></tr>
-            <tr><td class="id-cell">SHP-2221</td><td class="mono-cell">F-03 · HYD</td><td class="mono-cell">GACHIBOWLI STUDIO</td><td class="id-cell">#KBX-04814</td><td class="mono-cell">1 module · 6 panels</td><td class="mono-cell">TUE 13 · 10:00</td><td><span class="status-chip transit">In transit</span></td><td>Anand · TS02</td></tr>
-            <tr><td class="id-cell">SHP-2223</td><td class="mono-cell">F-01 · BLR</td><td class="mono-cell">JP NAGAR STUDIO</td><td class="id-cell">#KBX-04815</td><td class="mono-cell">5 modules · 36 panels</td><td class="mono-cell">TUE 13 · 11:00</td><td><span class="status-chip transit">In transit</span></td><td>Raju · KA01</td></tr>
-            <tr class="alert-row"><td class="id-cell">SHP-2210</td><td class="mono-cell">F-03 · HYD</td><td class="mono-cell">VIMAN NAGAR STUDIO</td><td class="id-cell">#KBX-04811</td><td class="mono-cell">8 modules · 56 panels</td><td class="mono-cell" style="color:var(--sienna-2);">DELAYED · 14 MAY</td><td><span class="status-chip urgent">Delayed</span></td><td>Deepak · TS05</td></tr>
-          </tbody>
-        </table>
+
+        <!-- PENDING DISPATCH section -->
+        <div id="pendingSection">
+          <div class="sec-head">
+            <span class="sh-label">Awaiting dispatch</span><span class="sh-cnt">3 kits</span>
+          </div>
+          <table class="data-table" id="pendingTable">
+            <thead><tr><th>Order</th><th>Customer</th><th>Site</th><th>Modules</th><th>Kit ready since</th><th>Factory</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr class="dsp-ready" data-lf="pending">
+                <td class="id-cell">#KBX-04809</td>
+                <td><strong>Priya Sharma</strong></td>
+                <td class="mono-cell">VASANT KUNJ · DEL</td>
+                <td class="mono-cell">4 modules · 26 panels</td>
+                <td class="mono-cell" style="color:var(--amber);">11 MAY · 17:30</td>
+                <td class="mono-cell">F-01 · BLR</td>
+                <td><button class="tbl-btn primary" style="padding:4px 12px;font-size:10px;" onclick="openDispatch('KBX-04809')">Dispatch</button></td>
+              </tr>
+              <tr class="dsp-ready" data-lf="pending">
+                <td class="id-cell">#KBX-04813</td>
+                <td><strong>Meera Nair</strong></td>
+                <td class="mono-cell">KOREGAON PK · PUN</td>
+                <td class="mono-cell">2 modules · 12 panels</td>
+                <td class="mono-cell" style="color:var(--amber);">12 MAY · 09:00</td>
+                <td class="mono-cell">F-02 · PUN</td>
+                <td><button class="tbl-btn primary" style="padding:4px 12px;font-size:10px;" onclick="openDispatch('KBX-04813')">Dispatch</button></td>
+              </tr>
+              <tr class="dsp-ready" data-lf="pending">
+                <td class="id-cell">#KBX-04816</td>
+                <td><strong>Ananya Reddy</strong></td>
+                <td class="mono-cell">JUBILEE HILLS · HYD</td>
+                <td class="mono-cell">3 modules · 18 panels</td>
+                <td class="mono-cell" style="color:var(--amber);">12 MAY · 11:45</td>
+                <td class="mono-cell">F-03 · HYD</td>
+                <td><button class="tbl-btn primary" style="padding:4px 12px;font-size:10px;" onclick="openDispatch('KBX-04816')">Dispatch</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- IN TRANSIT + DELIVERED section -->
+        <div id="shipmentsSection">
+          <div class="sec-head">
+            <span class="sh-label">Shipments · click row to track</span><span class="sh-cnt" id="shpCnt">11</span>
+          </div>
+          <table class="data-table" id="shipmentsTable">
+            <thead><tr><th></th><th>Shipment</th><th>From → To</th><th>Order</th><th>Modules</th><th>ETA / Arrived</th><th>Status</th><th>Driver</th></tr></thead>
+            <tbody id="shpBody">
+              <!-- rendered by JS -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -1366,6 +1509,62 @@
 
   </main>
 
+  <!-- ── DISPATCH OVERLAY ── -->
+  <div class="overlay-backdrop" id="dispatchBackdrop" onclick="closeDispatch()"></div>
+  <div class="dispatch-overlay" id="dispatchOverlay">
+    <div class="dov-head">
+      <h2>Dispatch <span class="it" style="color:var(--sienna-2)">kit</span></h2>
+      <button class="dov-close" onclick="closeDispatch()">✕</button>
+    </div>
+    <div class="dov-body">
+      <div class="dov-field">
+        <label>Order</label>
+        <select id="dovOrder">
+          <option value="KBX-04809">KBX-04809 · Priya Sharma · Vasant Kunj DEL</option>
+          <option value="KBX-04813">KBX-04813 · Meera Nair · Koregaon Pk PUN</option>
+          <option value="KBX-04816">KBX-04816 · Ananya Reddy · Jubilee Hills HYD</option>
+        </select>
+      </div>
+      <div class="dov-field">
+        <label>Vehicle number</label>
+        <input id="dovVehicle" type="text" placeholder="e.g. KA01 AB 1234" />
+      </div>
+      <div class="dov-field">
+        <label>Driver name</label>
+        <input id="dovDriver" type="text" placeholder="e.g. Raju Kumar" />
+      </div>
+      <div class="dov-field">
+        <label>Departure time</label>
+        <input id="dovDepart" type="datetime-local" />
+      </div>
+      <div class="dov-field">
+        <label>Expected arrival at site</label>
+        <input id="dovArrival" type="datetime-local" />
+      </div>
+      <div class="dov-field">
+        <label>Modules in this shipment</label>
+        <div class="dov-modules" id="dovModules">
+          <div class="mod-row"><span class="mn">W-3D · 3-door wardrobe</span><span>8 panels · 47 kg</span></div>
+          <div class="mod-row"><span class="mn">D-3S · Drawer stack</span><span>6 panels · 28 kg</span></div>
+          <div class="mod-row"><span class="mn">W-MR · Mirror unit</span><span>5 panels · 18 kg</span></div>
+          <div class="mod-row"><span class="mn">W-2D · 2-door wardrobe</span><span>6 panels · 36 kg</span></div>
+        </div>
+      </div>
+      <div class="dov-field">
+        <label>Customer tracking SMS</label>
+        <select>
+          <option>Send tracking link on dispatch</option>
+          <option>Send only on delivery</option>
+          <option>Do not send</option>
+        </select>
+      </div>
+    </div>
+    <div class="dov-foot">
+      <button class="dov-btn-cancel" onclick="closeDispatch()">Cancel</button>
+      <button class="dov-btn-full" onclick="submitDispatch()">Dispatch kit now →</button>
+    </div>
+  </div>
+
   <!-- ── STATUS BAR ── -->
   <div class="statusbar">
     <div class="grp">
@@ -1490,8 +1689,219 @@
     });
   });
 
+  // ── LOGISTICS / DISPATCH / TRACKING ──
+
+  const SHIPMENTS = [
+    { id:'SHP-2214', from:'F-01 · BLR', to:'WHITEFIELD STUDIO', order:'#KBX-04812', modules:'4 modules · 28 panels', eta:'TODAY · 08:30', etaColor:'var(--green)', status:'delivered', statusLabel:'Delivered', driver:'Raju · KA01',
+      track:[
+        { evt:'Factory QC pass', meta:'10 MAY · 16:34 · F-01 BLR', state:'done' },
+        { evt:'Kit dispatched from depot', meta:'12 MAY · 06:15 · F-01 BLR', state:'done' },
+        { evt:'Driver pickup confirmed', meta:'12 MAY · 06:42 · Raju · KA01-BLR', state:'done' },
+        { evt:'In transit — 28 km from site', meta:'12 MAY · 07:55 · GPS updated', state:'done' },
+        { evt:'Arrived at site', meta:'12 MAY · 08:28 · WHITEFIELD STUDIO · BLR', state:'done' },
+        { evt:'Customer sign-off received', meta:'12 MAY · 08:44 · Aishwarya Menon', state:'done' }
+      ]},
+    { id:'SHP-2215', from:'F-01 · BLR', to:'INDIRANAGAR STUDIO', order:'#KBX-04807', modules:'5 modules · 32 panels', eta:'TODAY · 09:15', etaColor:'var(--green)', status:'delivered', statusLabel:'Delivered', driver:'Suresh · KA02',
+      track:[
+        { evt:'Factory QC pass', meta:'10 MAY · 14:20 · F-01 BLR', state:'done' },
+        { evt:'Kit dispatched from depot', meta:'12 MAY · 07:00 · F-01 BLR', state:'done' },
+        { evt:'Driver pickup confirmed', meta:'12 MAY · 07:18 · Suresh · KA02-BLR', state:'done' },
+        { evt:'In transit — 14 km from site', meta:'12 MAY · 08:40 · GPS updated', state:'done' },
+        { evt:'Arrived at site', meta:'12 MAY · 09:12 · INDIRANAGAR STUDIO · BLR', state:'done' },
+        { evt:'Customer sign-off received', meta:'12 MAY · 09:30 · Vikram Singh', state:'done' }
+      ]},
+    { id:'SHP-2218', from:'F-02 · PUN', to:'KOREGAON STUDIO', order:'#KBX-04803', modules:'2 modules · 12 panels', eta:'TODAY · 14:00', etaColor:'var(--amber)', status:'transit', statusLabel:'In transit', driver:'Ravi · MH04',
+      track:[
+        { evt:'Factory QC pass', meta:'11 MAY · 15:10 · F-02 PUN', state:'done' },
+        { evt:'Kit dispatched from depot', meta:'12 MAY · 11:30 · F-02 PUN', state:'done' },
+        { evt:'Driver pickup confirmed', meta:'12 MAY · 11:52 · Ravi · MH04-PUN', state:'done' },
+        { evt:'In transit — 22 km from site', meta:'12 MAY · 13:15 · GPS · ETA 14:00', state:'active' },
+        { evt:'Arrive at site', meta:'Expected 12 MAY · 14:00', state:'pending' },
+        { evt:'Customer sign-off', meta:'Pending', state:'pending' }
+      ]},
+    { id:'SHP-2219', from:'F-02 · PUN', to:'BANDRA STUDIO', order:'#KBX-04798', modules:'3 modules · 16 panels', eta:'TODAY · 16:30', etaColor:'var(--amber)', status:'transit', statusLabel:'In transit', driver:'Vijay · MH08',
+      track:[
+        { evt:'Factory QC pass', meta:'11 MAY · 18:00 · F-02 PUN', state:'done' },
+        { evt:'Kit dispatched from depot', meta:'12 MAY · 13:00 · F-02 PUN', state:'done' },
+        { evt:'Driver pickup confirmed', meta:'12 MAY · 13:22 · Vijay · MH08', state:'done' },
+        { evt:'In transit — 68 km from site', meta:'12 MAY · 14:10 · On Mumbai expressway', state:'active' },
+        { evt:'Arrive at site', meta:'Expected 12 MAY · 16:30', state:'pending' },
+        { evt:'Customer sign-off', meta:'Pending', state:'pending' }
+      ]},
+    { id:'SHP-2221', from:'F-03 · HYD', to:'GACHIBOWLI STUDIO', order:'#KBX-04814', modules:'1 module · 6 panels', eta:'TUE 13 · 10:00', etaColor:'', status:'transit', statusLabel:'In transit', driver:'Anand · TS02',
+      track:[
+        { evt:'Factory QC pass', meta:'12 MAY · 10:00 · F-03 HYD', state:'done' },
+        { evt:'Kit dispatched from depot', meta:'12 MAY · 17:00 · F-03 HYD', state:'done' },
+        { evt:'Driver pickup confirmed', meta:'12 MAY · 17:20 · Anand · TS02', state:'active' },
+        { evt:'In transit', meta:'Expected 13 MAY · 08:00', state:'pending' },
+        { evt:'Arrive at site', meta:'Expected 13 MAY · 10:00', state:'pending' },
+        { evt:'Customer sign-off', meta:'Pending', state:'pending' }
+      ]},
+    { id:'SHP-2223', from:'F-01 · BLR', to:'JP NAGAR STUDIO', order:'#KBX-04815', modules:'5 modules · 36 panels', eta:'TUE 13 · 11:00', etaColor:'', status:'transit', statusLabel:'In transit', driver:'Raju · KA01',
+      track:[
+        { evt:'Factory QC pass', meta:'12 MAY · 11:00 · F-01 BLR', state:'done' },
+        { evt:'Kit dispatched from depot', meta:'12 MAY · 18:00 · F-01 BLR', state:'done' },
+        { evt:'Driver pickup confirmed', meta:'Pending', state:'pending' },
+        { evt:'In transit', meta:'Expected 13 MAY · 09:00', state:'pending' },
+        { evt:'Arrive at site', meta:'Expected 13 MAY · 11:00', state:'pending' },
+        { evt:'Customer sign-off', meta:'Pending', state:'pending' }
+      ]},
+    { id:'SHP-2210', from:'F-03 · HYD', to:'VIMAN NAGAR STUDIO', order:'#KBX-04811', modules:'8 modules · 56 panels', eta:'DELAYED · 14 MAY', etaColor:'var(--sienna-2)', status:'delayed', statusLabel:'Delayed', driver:'Deepak · TS05',
+      track:[
+        { evt:'Factory QC pass', meta:'9 MAY · 14:00 · F-03 HYD', state:'done' },
+        { evt:'Kit dispatched from depot', meta:'10 MAY · 08:30 · F-03 HYD', state:'done' },
+        { evt:'Vehicle breakdown reported', meta:'10 MAY · 11:40 · NH-65 · Replacement arranged', state:'active' },
+        { evt:'Replacement vehicle pickup', meta:'10 MAY · 14:00 · TS07-PUN', state:'pending' },
+        { evt:'Arrive at site', meta:'Expected 14 MAY · 10:00 (delayed)', state:'pending' },
+        { evt:'Customer sign-off', meta:'Pending', state:'pending' }
+      ]}
+  ];
+
+  const STATUS_CHIP = {
+    delivered: '<span class="status-chip ready">Delivered</span>',
+    transit:   '<span class="status-chip transit">In transit</span>',
+    delayed:   '<span class="status-chip urgent">Delayed</span>',
+    pending:   '<span class="dsp-chip pending">Pending</span>'
+  };
+
+  function renderShipments(filter) {
+    const tbody = document.getElementById('shpBody');
+    let rows = '';
+    let count = 0;
+    SHIPMENTS.forEach(s => {
+      if (filter && filter !== 'all' && filter !== 'pending' && s.status !== filter) return;
+      if (filter === 'pending') return;
+      count++;
+      const isDelayed = s.status === 'delayed';
+      rows += `
+        <tr class="${isDelayed ? 'alert-row' : ''}" onclick="toggleTrack('${s.id}')" style="cursor:pointer;">
+          <td style="width:28px;padding-left:12px;"><span id="arr-${s.id}" style="font-size:10px;color:var(--mute);transition:transform .15s;display:inline-block;">▶</span></td>
+          <td class="id-cell">${s.id}</td>
+          <td class="mono-cell" style="font-size:10px;">${s.from} <span style="color:var(--mute)">→</span> ${s.to}</td>
+          <td class="id-cell">${s.order}</td>
+          <td class="mono-cell">${s.modules}</td>
+          <td class="mono-cell" style="color:${s.etaColor || 'inherit'}">${s.eta}</td>
+          <td>${STATUS_CHIP[s.status] || s.statusLabel}</td>
+          <td class="mono-cell">${s.driver}</td>
+        </tr>
+        <tr class="track-expand" id="track-${s.id}">
+          <td colspan="8">
+            <div class="track-inner">
+              <div class="track-timeline">
+                ${s.track.map(t => `
+                  <div class="track-step">
+                    <div class="ts-dot ${t.state}">${t.state==='done'?'✓':t.state==='active'?'●':'○'}</div>
+                    <div class="ts-body">
+                      <div class="ts-evt ${t.state==='pending'?'muted':''}">${t.evt}</div>
+                      <div class="ts-meta">${t.meta}</div>
+                    </div>
+                  </div>`).join('')}
+              </div>
+              <div class="track-actions">
+                <button class="tbl-btn" style="font-size:10px;padding:5px 10px;" onclick="toast('SHARING TRACKING LINK…','green');event.stopPropagation()">Share link</button>
+                <button class="tbl-btn" style="font-size:10px;padding:5px 10px;" onclick="toast('CONTACTING ${s.driver.split('·')[0].trim().toUpperCase()}…');event.stopPropagation()">Call driver</button>
+                ${s.status==='delayed' ? `<button class="tbl-btn" style="font-size:10px;padding:5px 10px;color:var(--amber);" onclick="toast('ESCALATION RAISED · ${s.id}','warn');event.stopPropagation()">Escalate</button>` : ''}
+              </div>
+            </div>
+          </td>
+        </tr>`;
+    });
+    tbody.innerHTML = rows;
+    document.getElementById('shpCnt').textContent = count;
+  }
+
+  function toggleTrack(id) {
+    const row = document.getElementById('track-' + id);
+    const arr = document.getElementById('arr-' + id);
+    const isOpen = row.classList.contains('open');
+    // close all first
+    document.querySelectorAll('.track-expand.open').forEach(r => r.classList.remove('open'));
+    document.querySelectorAll('[id^="arr-"]').forEach(a => { a.style.transform = ''; });
+    if (!isOpen) {
+      row.classList.add('open');
+      if (arr) arr.style.transform = 'rotate(90deg)';
+    }
+  }
+
+  renderShipments('all');
+
+  // Logistics filter tabs
+  const logFilter = document.getElementById('logisticsFilter');
+  if (logFilter) {
+    logFilter.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-lf]');
+      if (!btn) return;
+      logFilter.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.lf;
+      const pendingSec = document.getElementById('pendingSection');
+      const shpSec = document.getElementById('shipmentsSection');
+      if (f === 'pending') {
+        pendingSec.style.display = '';
+        shpSec.style.display = 'none';
+      } else if (f === 'all') {
+        pendingSec.style.display = '';
+        shpSec.style.display = '';
+        renderShipments('all');
+      } else {
+        pendingSec.style.display = 'none';
+        shpSec.style.display = '';
+        renderShipments(f);
+      }
+    });
+  }
+
+  // Dispatch overlay
+  window.openDispatch = function(orderId) {
+    if (orderId) {
+      const sel = document.getElementById('dovOrder');
+      if (sel) { for (let o of sel.options) { if (o.value === orderId) { sel.value = orderId; break; } } }
+    }
+    // Default departure to now
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    const toLocal = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    const arr = new Date(now.getTime() + 3 * 3600000);
+    document.getElementById('dovDepart').value = toLocal(now);
+    document.getElementById('dovArrival').value = toLocal(arr);
+    document.getElementById('dispatchOverlay').classList.add('open');
+    document.getElementById('dispatchBackdrop').classList.add('open');
+  };
+
+  window.closeDispatch = function() {
+    document.getElementById('dispatchOverlay').classList.remove('open');
+    document.getElementById('dispatchBackdrop').classList.remove('open');
+  };
+
+  window.submitDispatch = function() {
+    const order = document.getElementById('dovOrder').value;
+    const vehicle = document.getElementById('dovVehicle').value.trim() || 'KA01 XX XXXX';
+    const driver = document.getElementById('dovDriver').value.trim() || 'Driver';
+    closeDispatch();
+    const shpId = 'SHP-' + (2224 + Math.floor(Math.random()*10));
+    toast(`${shpId} DISPATCHED · ${vehicle} · ${driver.toUpperCase()}`, 'green');
+    // Add to SHIPMENTS and re-render
+    SHIPMENTS.unshift({
+      id: shpId, from:'F-01 · BLR', to: order.replace('KBX-','') + ' STUDIO',
+      order: '#' + order, modules:'4 modules · 26 panels',
+      eta:'IN TRANSIT', etaColor:'var(--amber)',
+      status:'transit', statusLabel:'In transit', driver: driver + ' · ' + vehicle.split(' ').pop(),
+      track:[
+        { evt:'Factory QC pass', meta:'12 MAY · pre-dispatch QC', state:'done' },
+        { evt:'Kit dispatched from depot', meta:'Just now · ' + vehicle, state:'done' },
+        { evt:'Driver pickup confirmed', meta:'Pending · ' + driver, state:'active' },
+        { evt:'In transit', meta:'Pending', state:'pending' },
+        { evt:'Arrive at site', meta:'TBD', state:'pending' },
+        { evt:'Customer sign-off', meta:'Pending', state:'pending' }
+      ]
+    });
+    renderShipments('all');
+    // Switch filter to transit
+    const logF = document.getElementById('logisticsFilter');
+    if (logF) { logF.querySelectorAll('button').forEach(b => { b.classList.toggle('active', b.dataset.lf==='all'); }); }
+  };
+
   // Search
-  const searchInput = document.querySelector('.topbar .search input');
   if (searchInput) {
     searchInput.addEventListener('keydown', e => {
       if (e.key === 'Enter' && searchInput.value.trim()) {
