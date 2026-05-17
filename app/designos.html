@@ -175,6 +175,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 .asm-time-tag{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--sienna-2);letter-spacing:.1em;white-space:nowrap;margin-top:1px;}
 .asm-note-line{font-family:"JetBrains Mono",monospace;font-size:9px;color:#d4a44a;letter-spacing:.08em;margin-top:5px;padding-left:8px;border-left:2px solid rgba(212,164,74,.4);}
 .asm-diag{width:100%;background:#faf8f2;border-radius:5px;border:1px solid rgba(22,20,15,.1);margin-top:9px;display:block;}
+.asm-diag-3d{background:rgba(15,14,12,.55)!important;border-color:var(--line)!important;}
 .guide-module-sel{display:inline-flex;gap:3px;padding:3px;border-radius:7px;background:var(--surface-3);border:1px solid var(--line);margin-bottom:12px;}
 .guide-module-sel button{padding:4px 9px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.1em;text-transform:uppercase;transition:background .12s,color .12s;}
 .guide-module-sel button.active{background:var(--surface-4);color:var(--sienna-2);}
@@ -2063,6 +2064,137 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     return d[type] || '';
   }
 
+  // ── 3D ISOMETRIC MODULE VIEW ──
+  function draw3DModuleView(moduleId, assembledPanels, activePanelId) {
+    const T = 0.2, TH = 0.08;
+    const GEOM = {
+      W2D: { panels:{
+        'W2D-SL': [[0,0,0, T,24,6]],
+        'W2D-SR': [[8-T,0,0, 8,24,6]],
+        'W2D-B':  [[0,0,0, 8,T,6]],
+        'W2D-T':  [[0,24-T,0, 8,24,6]],
+        'W2D-BK': [[T,T,0, 8-T,24-T,TH]],
+        'W2D-D1': [[T,T,6, 4,24-T,6+T],[4,T,6, 8-T,24-T,6+T]],
+      }},
+      W3D: { panels:{
+        'W3D-SL':  [[0,0,0, T,24,6]],
+        'W3D-SR':  [[12-T,0,0, 12,24,6]],
+        'W3D-B':   [[0,0,0, 12,T,6]],
+        'W3D-T':   [[0,24-T,0, 12,24,6]],
+        'W3D-BK':  [[T,T,0, 12-T,24-T,TH]],
+        'W3D-MID': [[6-T/2,T,TH, 6+T/2,24-T,6-TH]],
+        'W3D-SH':  [[T,8,TH, 12-T,8+T,6-TH],[T,16,TH, 12-T,16+T,6-TH]],
+        'W3D-D1':  [[T,T,6, 4.1,24-T,6+T],[4.1,T,6, 7.9,24-T,6+T],[7.9,T,6, 12-T,24-T,6+T]],
+      }},
+      D3S: { panels:{
+        'D3S-SL': [[0,0,0, T,24,6]],
+        'D3S-SR': [[6-T,0,0, 6,24,6]],
+        'D3S-B':  [[0,0,0, 6,T,6]],
+        'D3S-T':  [[0,24-T,0, 6,24,6]],
+        'D3S-BK': [[T,T,0, 6-T,24-T,TH]],
+        'D3S-DF': [[T,T,6, 6-T,6.4,6+T],[T,6.4,6, 6-T,12.8,6+T],[T,12.8,6, 6-T,19.2,6+T],[T,19.2,6, 6-T,24-T,6+T]],
+      }},
+      WMR: { panels:{
+        'WMR-SL': [[0,0,0, T,24,4]],
+        'WMR-SR': [[8-T,0,0, 8,24,4]],
+        'WMR-B':  [[0,0,0, 8,T,4]],
+        'WMR-T':  [[0,24-T,0, 8,24,4]],
+        'WMR-MR': [[T,T,2-0.04, 8-T,24-T,2+0.04]],
+      }},
+    };
+
+    const gm = GEOM[moduleId];
+    if (!gm) return '';
+
+    const S = 4.5, CX = 0.866, CZ = 0.5;
+    const OX = 62, OY = 128;
+
+    function pt(x, y, z) {
+      return [+(OX + (x - z) * CX * S).toFixed(1), +(OY - y * S + (x + z) * CZ * S).toFixed(1)];
+    }
+
+    function face(pts, fill, stroke) {
+      return `<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="${fill}" stroke="${stroke||'rgba(0,0,0,.35)'}" stroke-width=".5" stroke-linejoin="round"/>`;
+    }
+
+    function drawBox(x1,y1,z1, x2,y2,z2, fc, rc, tc, ghost) {
+      if (ghost) {
+        const p = [pt(x1,y1,z2), pt(x2,y1,z2), pt(x2,y2,z2), pt(x1,y2,z2)];
+        return face(p, 'rgba(200,185,155,.05)', 'rgba(200,185,155,.14)');
+      }
+      const bbl=pt(x1,y1,z1), bbr=pt(x2,y1,z1), btl=pt(x1,y2,z1), btr=pt(x2,y2,z1);
+      const fbl=pt(x1,y1,z2), fbr=pt(x2,y1,z2), ftl=pt(x1,y2,z2), ftr=pt(x2,y2,z2);
+      const str = 'rgba(0,0,0,.32)';
+      // Draw: top face, right face, front face (painter's order within one box)
+      return face([btl,btr,ftr,ftl],tc,str) + face([bbr,fbr,ftr,btr],rc,str) + face([fbl,fbr,ftr,ftl],fc,str);
+    }
+
+    const WOOD  = ['#c8b89a','#9e8a6e','#ddd0bc'];
+    const ACT   = ['#c96442','#9c4928','#e08060'];
+    const HDF   = ['#ddd8cc','#b8b0a0','#edeae0'];
+    const DOOR  = ['#b8a884','#907860','#ccbfa0'];
+    const SHELF = ['#ccc0a8','#a89070','#ddd4c0'];
+    const MIRR  = ['rgba(175,210,228,.75)','rgba(140,178,205,.55)','rgba(215,238,248,.5)'];
+
+    function colorsFor(pid, active) {
+      if (active) return ACT;
+      if (pid.includes('BK')) return HDF;
+      if (pid.includes('MR')) return MIRR;
+      if (pid.endsWith('D1') || pid.includes('DF')) return DOOR;
+      if (pid.includes('SH') || pid.includes('MID')) return SHELF;
+      return WOOD;
+    }
+
+    const items = [];
+    for (const [pid, boxes] of Object.entries(gm.panels)) {
+      const isActive = pid === activePanelId;
+      const isBuilt = assembledPanels.has(pid);
+      for (const box of boxes) {
+        const [x1,y1,z1,x2,y2,z2] = box;
+        items.push({x1,y1,z1,x2,y2,z2, pid, isActive, isBuilt});
+      }
+    }
+
+    // Painter's: back (low z) first, right panels before left (high x first so left draws over), bottom before top
+    items.sort((a, b) => {
+      const za = (a.z1+a.z2)/2, zb = (b.z1+b.z2)/2;
+      if (Math.abs(za-zb) > 0.3) return za - zb;
+      const xa = (a.x1+a.x2)/2, xb = (b.x1+b.x2)/2;
+      if (Math.abs(xa-xb) > 0.5) return xb - xa;
+      return (a.y1+a.y2)/2 - (b.y1+b.y2)/2;
+    });
+
+    let svg = '';
+    for (const {x1,y1,z1,x2,y2,z2, pid, isActive, isBuilt} of items) {
+      const ghost = !isActive && !isBuilt;
+      const [fc,rc,tc] = colorsFor(pid, isActive);
+      svg += drawBox(x1,y1,z1,x2,y2,z2, fc,rc,tc, ghost);
+    }
+
+    // Serial badge on active panel face
+    if (activePanelId && gm.panels[activePanelId]) {
+      const [x1,y1,z1,x2,y2,z2] = gm.panels[activePanelId][0];
+      const cx=(x1+x2)/2, cy=(y1+y2)/2;
+      const [lx,ly] = pt(cx, cy, z2);
+      const serial = getPanelSerial(moduleId, activePanelId);
+      svg += `<circle cx="${lx}" cy="${ly}" r="4" fill="#c96442" stroke="#7a3010" stroke-width="1"/>`;
+      if (serial) {
+        const tw = serial.length * 5.5 + 8;
+        svg += `<rect x="${+lx+8}" y="${+ly-8}" width="${tw}" height="13" rx="3" fill="rgba(12,10,8,.82)"/>`;
+        svg += `<text x="${+lx+12}" y="${+ly+3}" fill="#e0795a" font-family="JetBrains Mono" font-size="7.5" font-weight="600" letter-spacing=".07em">${serial}</text>`;
+      }
+    }
+
+    // Axis legend (bottom-right)
+    const lx=185, ly=175;
+    svg += `<text x="${lx}" y="${ly}" fill="rgba(200,185,155,.4)" font-family="JetBrains Mono" font-size="6" letter-spacing=".08em">3D VIEW</text>`;
+
+    return `<svg class="asm-diag asm-diag-3d" viewBox="0 0 220 185" xmlns="http://www.w3.org/2000/svg">
+      <rect width="220" height="185" fill="rgba(15,14,12,.5)" rx="5"/>
+      ${svg}
+    </svg>`;
+  }
+
   function renderAssemblyGuide(moduleId) {
     const data = ASSEMBLY_GUIDE[moduleId];
     if (!data) return;
@@ -2083,12 +2215,16 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     document.getElementById('guideEta').textContent = etaStr;
 
     let html = '';
+    // Track assembled panels progressively for 3D view
+    const builtPanels3D = new Set();
     data.phases.forEach(ph => {
       html += `<div class="asm-phase-label">${ph.phase}</div>`;
       ph.steps.forEach(s => {
         const state = getStepState(moduleId, s.n);
         const isDone = state === 'assembled';
         const serial = s.panel ? getPanelSerial(moduleId, s.panel) : null;
+        // 3D view: show wardrobe state at this step (active panel highlighted)
+        const view3D = draw3DModuleView(moduleId, new Set(builtPanels3D), isDone ? null : s.panel);
         // Build scan row
         let scanRow = '';
         if (isDone) {
@@ -2127,10 +2263,13 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
             <div class="asm-instr">${s.instr}</div>
             ${s.hw ? `<div class="asm-foot"><div class="asm-hw"><b>HW:</b> ${s.hw}</div><span class="asm-time-tag">${s.time}</span></div>` : `<div class="asm-foot"><div></div><span class="asm-time-tag">${s.time}</span></div>`}
             ${s.tip ? `<div class="asm-note-line">⚑ ${s.tip}</div>` : ''}
+            ${view3D}
             ${drawStepDiagram(s.diag)}
             ${scanRow}
           </div>
         </div>`;
+        // Track which panels are assembled so each subsequent step shows them built
+        if (isDone && s.panel) builtPanels3D.add(s.panel);
       });
     });
     document.getElementById('guideBody').innerHTML = html;
@@ -2446,8 +2585,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     // Inject panel+hardware detail into the BOM expand row
     const expandEl = document.getElementById('expand-' + id);
     if (expandEl) expandEl.innerHTML = renderModuleDetail(id);
-    // Switch to BOM tab when clicking a module from the canvas
-    if (activeDetailTab !== 'bom') setDetailTab('bom');
+    // Do NOT force tab switch here — canvas click handler does it explicitly
   }
 
   // Initial render for all modules (so expand content is ready for any selection)
