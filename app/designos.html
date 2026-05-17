@@ -402,9 +402,9 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     <span class="badge">T-19 hrs</span>
   </div>
   <div class="cell">
-    <span class="l">Kit status · from Factory F-01</span>
-    <div class="v">At Studio BLR-14</div>
-    <span class="badge green">● Ready · 4 modules · 28 panels staged</span>
+    <span class="l">Panels allocated · Depot BLR-14</span>
+    <div class="v">28 serials assigned</div>
+    <span class="badge green">● Pack slips ready · 112 accessories</span>
   </div>
   <div class="cell">
     <span class="l">Your earnings · Gold 18%</span>
@@ -930,14 +930,15 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     <div class="tab-panel" id="tab-panels">
       <div class="d-section">
         <div class="panels-intro">
-          <div class="pi-title">CNC drill program · factory output</div>
-          <div class="pi-body">DesignOS sends this panel plan to Factory F-01 as CNC instructions. Every panel is cut and pre-drilled exactly as shown — no field drilling required. Each physical panel ships with these marks pre-printed.</div>
-          <div style="display:flex;gap:8px;margin-top:10px;">
-            <button class="pdc-download" onclick="showToast('CNC PROGRAM SENT TO F-01 · KBX-04812', 'green')" style="color:var(--green);border-color:rgba(111,191,122,.3);">Send to factory →</button>
-            <button class="pdc-download" onclick="showToast('PANEL PLAN PDF EXPORTED')">Export PDF</button>
+          <div class="pi-title">Depot pack slips · order #KBX-04812</div>
+          <div class="pi-body">These slips are printed at Depot BLR-14 and attached to each physical panel. Standard-size panels are pulled from depot stock by serial number — no custom cuts. Each slip tells the contractor exactly where to drill, place dowels, fix hinges, and mount accessories for this design.</div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+            <button class="pdc-download" onclick="showToast('ALL PACK SLIPS PRINTING · 28 PANELS', 'green')" style="color:var(--green);border-color:rgba(111,191,122,.3);">Print all pack slips →</button>
+            <button class="pdc-download" onclick="showToast('DEPOT ALLOCATION CONFIRMED · BLR-14')">Confirm allocation</button>
+            <button class="pdc-download" onclick="showToast('PACK SLIP PDF EXPORTED')">Export PDF</button>
           </div>
         </div>
-        <div class="d-h"><span id="panels-head">Panels in module</span><span class="cnt" id="panels-cnt">—</span></div>
+        <div class="d-h"><span id="panels-head">Pack slips for module</span><span class="cnt" id="panels-cnt">—</span></div>
         <div id="panelsList"><!-- rendered by JS --></div>
       </div>
     </div>
@@ -1563,46 +1564,46 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     W2D: {
       label: '2-door wardrobe · W-2D', count: 6,
       panels: [
-        { id:'W2D-SL', name:'Left side panel', dims:'600 × 2400 × 18 MM', type:'side', seq:'01', mat:'Walnut Matt · outer face shown' },
-        { id:'W2D-SR', name:'Right side panel', dims:'600 × 2400 × 18 MM', type:'side', seq:'02', mat:'Walnut Matt · outer face shown' },
-        { id:'W2D-T',  name:'Top panel',        dims:'764 × 600 × 18 MM',  type:'horiz', seq:'03', mat:'Walnut Matt · outer face shown' },
-        { id:'W2D-B',  name:'Bottom panel',     dims:'764 × 600 × 18 MM',  type:'horiz', seq:'04', mat:'Walnut Matt · outer face shown' },
-        { id:'W2D-BK', name:'Back panel (HDF)', dims:'764 × 2382 × 6 MM',  type:'back',  seq:'05', mat:'Ivory White · 6mm HDF' },
-        { id:'W2D-D1', name:'Door shutter × 2', dims:'400 × 2380 × 18 MM', type:'door',  seq:'06', mat:'Walnut Matt · outer face shown' },
+        { id:'W2D-SL', serial:'P-BLR-1186', name:'Left side panel', dims:'600 × 2400 × 18 MM', type:'side', seq:'01', mat:'Walnut Matt' },
+        { id:'W2D-SR', serial:'P-BLR-1187', name:'Right side panel', dims:'600 × 2400 × 18 MM', type:'side', seq:'02', mat:'Walnut Matt' },
+        { id:'W2D-T',  serial:'P-BLR-1702', name:'Top panel',        dims:'764 × 600 × 18 MM',  type:'horiz', seq:'03', mat:'Walnut Matt' },
+        { id:'W2D-B',  serial:'P-BLR-1703', name:'Bottom panel',     dims:'764 × 600 × 18 MM',  type:'horiz', seq:'04', mat:'Walnut Matt' },
+        { id:'W2D-BK', serial:'P-BLR-1988', name:'Back panel (HDF)', dims:'764 × 2382 × 6 MM',  type:'back',  seq:'05', mat:'Ivory White HDF 6mm' },
+        { id:'W2D-D1', serial:'P-BLR-1842', name:'Door shutter × 2', dims:'400 × 2380 × 18 MM', type:'door',  seq:'06', mat:'Walnut Matt' },
       ]
     },
     W3D: {
       label: '3-door wardrobe · W-3D', count: 8,
       panels: [
-        { id:'W3D-SL', name:'Left side panel',   dims:'600 × 2400 × 18 MM',  type:'side',  seq:'01', mat:'Walnut Matt · outer face shown' },
-        { id:'W3D-SR', name:'Right side panel',  dims:'600 × 2400 × 18 MM',  type:'side',  seq:'02', mat:'Walnut Matt · outer face shown' },
-        { id:'W3D-T',  name:'Top panel',         dims:'1164 × 600 × 18 MM',  type:'horiz', seq:'03', mat:'Walnut Matt · outer face shown' },
-        { id:'W3D-B',  name:'Bottom panel',      dims:'1164 × 600 × 18 MM',  type:'horiz', seq:'04', mat:'Walnut Matt · outer face shown' },
-        { id:'W3D-BK', name:'Back panel (HDF)',  dims:'1164 × 2382 × 6 MM',  type:'back',  seq:'05', mat:'Ivory White · 6mm HDF' },
-        { id:'W3D-SH', name:'Shelf × 4',         dims:'1128 × 560 × 18 MM',  type:'shelf', seq:'06', mat:'Ivory White · inner face' },
-        { id:'W3D-D1', name:'Door shutter × 3', dims:'400 × 2380 × 18 MM',  type:'door',  seq:'07', mat:'Walnut Matt · outer face shown' },
-        { id:'W3D-MID', name:'Middle divider',   dims:'560 × 2364 × 18 MM',  type:'divider', seq:'08', mat:'Ivory White · inner face' },
+        { id:'W3D-SL', serial:'P-BLR-1188', name:'Left side panel',   dims:'600 × 2400 × 18 MM',  type:'side',  seq:'01', mat:'Walnut Matt' },
+        { id:'W3D-SR', serial:'P-BLR-1189', name:'Right side panel',  dims:'600 × 2400 × 18 MM',  type:'side',  seq:'02', mat:'Walnut Matt' },
+        { id:'W3D-T',  serial:'P-BLR-1604', name:'Top panel',         dims:'1164 × 600 × 18 MM',  type:'horiz', seq:'03', mat:'Walnut Matt' },
+        { id:'W3D-B',  serial:'P-BLR-1605', name:'Bottom panel',      dims:'1164 × 600 × 18 MM',  type:'horiz', seq:'04', mat:'Walnut Matt' },
+        { id:'W3D-BK', serial:'P-BLR-1990', name:'Back panel (HDF)',  dims:'1164 × 2382 × 6 MM',  type:'back',  seq:'05', mat:'Ivory White HDF 6mm' },
+        { id:'W3D-SH', serial:'P-BLR-1764', name:'Shelf × 4',         dims:'1128 × 560 × 18 MM',  type:'shelf', seq:'06', mat:'Ivory White' },
+        { id:'W3D-D1', serial:'P-BLR-1844', name:'Door shutter × 3', dims:'400 × 2380 × 18 MM',  type:'door',  seq:'07', mat:'Walnut Matt' },
+        { id:'W3D-MID', serial:'P-BLR-1766', name:'Middle divider',   dims:'560 × 2364 × 18 MM',  type:'divider', seq:'08', mat:'Ivory White' },
       ]
     },
     D3S: {
       label: 'Drawer stack · D-3S', count: 6,
       panels: [
-        { id:'D3S-SL', name:'Left side panel',   dims:'600 × 2400 × 18 MM',  type:'side',  seq:'01', mat:'Walnut Matt · outer face shown' },
-        { id:'D3S-SR', name:'Right side panel',  dims:'600 × 2400 × 18 MM',  type:'side',  seq:'02', mat:'Walnut Matt · outer face shown' },
-        { id:'D3S-T',  name:'Top panel',         dims:'564 × 600 × 18 MM',   type:'horiz', seq:'03', mat:'Walnut Matt · outer face shown' },
-        { id:'D3S-B',  name:'Bottom panel',      dims:'564 × 600 × 18 MM',   type:'horiz', seq:'04', mat:'Walnut Matt · outer face shown' },
-        { id:'D3S-BK', name:'Back panel (HDF)',  dims:'564 × 2382 × 6 MM',   type:'back',  seq:'05', mat:'Ivory White · 6mm HDF' },
-        { id:'D3S-DF', name:'Drawer front × 4',  dims:'556 × 195 × 18 MM',   type:'drawer-front', seq:'06', mat:'Walnut Matt · outer face shown' },
+        { id:'D3S-SL', serial:'P-BLR-1190', name:'Left side panel',   dims:'600 × 2400 × 18 MM',  type:'side',  seq:'01', mat:'Walnut Matt' },
+        { id:'D3S-SR', serial:'P-BLR-1191', name:'Right side panel',  dims:'600 × 2400 × 18 MM',  type:'side',  seq:'02', mat:'Walnut Matt' },
+        { id:'D3S-T',  serial:'P-BLR-1750', name:'Top panel',         dims:'564 × 600 × 18 MM',   type:'horiz', seq:'03', mat:'Walnut Matt' },
+        { id:'D3S-B',  serial:'P-BLR-1751', name:'Bottom panel',      dims:'564 × 600 × 18 MM',   type:'horiz', seq:'04', mat:'Walnut Matt' },
+        { id:'D3S-BK', serial:'P-BLR-1992', name:'Back panel (HDF)',  dims:'564 × 2382 × 6 MM',   type:'back',  seq:'05', mat:'Ivory White HDF 6mm' },
+        { id:'D3S-DF', serial:'P-BLR-2118', name:'Drawer front × 4',  dims:'556 × 195 × 18 MM',   type:'drawer-front', seq:'06', mat:'Walnut Matt' },
       ]
     },
     WMR: {
       label: 'Mirror unit · W-MR', count: 5,
       panels: [
-        { id:'WMR-SL', name:'Left side panel',   dims:'400 × 2400 × 18 MM',  type:'side',  seq:'01', mat:'Walnut Matt · outer face shown' },
-        { id:'WMR-SR', name:'Right side panel',  dims:'400 × 2400 × 18 MM',  type:'side',  seq:'02', mat:'Walnut Matt · outer face shown' },
-        { id:'WMR-T',  name:'Top panel',         dims:'764 × 400 × 18 MM',   type:'horiz', seq:'03', mat:'Walnut Matt · outer face shown' },
-        { id:'WMR-B',  name:'Bottom panel',      dims:'764 × 400 × 18 MM',   type:'horiz', seq:'04', mat:'Walnut Matt · outer face shown' },
-        { id:'WMR-MR', name:'Mirror panel',      dims:'736 × 2320 MM',       type:'mirror', seq:'05', mat:'5mm toughened float glass' },
+        { id:'WMR-SL', serial:'P-BLR-1496', name:'Left side panel',   dims:'400 × 2400 × 18 MM',  type:'side',  seq:'01', mat:'Walnut Matt' },
+        { id:'WMR-SR', serial:'P-BLR-1497', name:'Right side panel',  dims:'400 × 2400 × 18 MM',  type:'side',  seq:'02', mat:'Walnut Matt' },
+        { id:'WMR-T',  serial:'P-BLR-1705', name:'Top panel',         dims:'764 × 400 × 18 MM',   type:'horiz', seq:'03', mat:'Walnut Matt' },
+        { id:'WMR-B',  serial:'P-BLR-1706', name:'Bottom panel',      dims:'764 × 400 × 18 MM',   type:'horiz', seq:'04', mat:'Walnut Matt' },
+        { id:'WMR-MR', serial:'G-BLR-0044', name:'Mirror panel',      dims:'736 × 2320 MM',       type:'mirror', seq:'05', mat:'5mm toughened float glass' },
       ]
     }
   };
@@ -2104,11 +2105,14 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
       <div class="panel-diagram-card">
         <div class="pdc-head">
           <div>
-            <div class="pdc-id">${p.id}</div>
+            <div class="pdc-id" style="display:flex;gap:8px;align-items:center;">
+              <span>${p.id}</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:1px 7px;border-radius:3px;background:rgba(107,157,189,.12);border:1px solid rgba(107,157,189,.2);color:var(--blue);letter-spacing:.1em;">${p.serial || '—'}</span>
+            </div>
             <div class="pdc-name">${p.name}</div>
-            <div class="pdc-dims">${p.dims} · ${p.mat}</div>
+            <div class="pdc-dims">${p.dims} · ${p.mat} · <span style="color:var(--mute-2)">from Depot BLR-14</span></div>
           </div>
-          <span class="pdc-seq">STEP ${p.seq}</span>
+          <span class="pdc-seq">PACK ${p.seq}</span>
         </div>
         <div class="pdc-body">${drawPanelSVG(p)}</div>
         <div class="pdc-legend">
@@ -2119,8 +2123,8 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
           <span class="pdc-leg-item"><span class="pdc-leg-sym" style="background:#d4a44a;"></span> Handle drill</span>
         </div>
         <div class="pdc-actions">
-          <button class="pdc-download" onclick="showToast('${p.id} PDF PRINTING…')">Print label</button>
-          <button class="pdc-download" onclick="showToast('${p.id} DXF EXPORTED', 'green')">Export DXF</button>
+          <button class="pdc-download" onclick="showToast('PACK SLIP · ${p.serial || p.id} PRINTING…')">Print pack slip</button>
+          <button class="pdc-download" onclick="showToast('${p.serial || p.id} DXF EXPORTED', 'green')">Export DXF</button>
         </div>
       </div>
     `).join('');
