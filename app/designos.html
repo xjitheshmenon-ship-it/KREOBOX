@@ -156,6 +156,55 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 .guide-module-sel button{padding:4px 9px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.1em;text-transform:uppercase;transition:background .12s,color .12s;}
 .guide-module-sel button.active{background:var(--surface-4);color:var(--sienna-2);}
 
+/* Scan flow */
+.scan-row{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap;}
+.scan-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:100px;font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border:1.5px solid;transition:background .12s,color .12s,border-color .12s;}
+.scan-btn.scan{background:rgba(107,157,189,.1);border-color:rgba(107,157,189,.4);color:var(--blue);}
+.scan-btn.scan:hover{background:rgba(107,157,189,.2);}
+.scan-btn.placed{background:rgba(212,164,74,.1);border-color:rgba(212,164,74,.4);color:var(--amber);}
+.scan-btn.drilled{background:rgba(201,100,66,.1);border-color:rgba(201,100,66,.4);color:var(--sienna-2);}
+.scan-btn.assembled{background:rgba(111,191,122,.12);border-color:rgba(111,191,122,.35);color:var(--green);}
+.scan-btn.done-state{background:rgba(111,191,122,.12);border-color:rgba(111,191,122,.25);color:rgba(111,191,122,.7);pointer-events:none;}
+.scan-serial{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--blue);letter-spacing:.1em;padding:3px 8px;border-radius:4px;background:rgba(107,157,189,.08);border:1px solid rgba(107,157,189,.18);}
+.scan-confirmed{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--green);letter-spacing:.1em;animation:scanpop .3s ease;}
+@keyframes scanpop{0%{opacity:0;transform:scale(.9)}100%{opacity:1;transform:scale(1)}}
+/* Track tab */
+.track-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.tk{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;text-align:center;}
+.tk .tk-v{font-family:"Fraunces",serif;font-size:22px;letter-spacing:-.02em;}
+.tk .tk-l{font-family:"JetBrains Mono",monospace;font-size:8.5px;color:var(--mute);letter-spacing:.12em;text-transform:uppercase;margin-top:2px;}
+.tk.ok .tk-v{color:var(--green);}
+.tk.prog .tk-v{color:var(--amber);}
+.tk.alert .tk-v{color:var(--sienna-2);}
+.panel-track-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:14px;}
+.pt-tile{background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:9px 10px;cursor:pointer;transition:border-color .15s;}
+.pt-tile:hover{border-color:var(--line-2);}
+.pt-tile.assembled{border-color:rgba(111,191,122,.3);background:rgba(111,191,122,.04);}
+.pt-tile.drilled{border-color:rgba(201,100,66,.25);background:rgba(201,100,66,.03);}
+.pt-tile.placed{border-color:rgba(212,164,74,.25);background:rgba(212,164,74,.03);}
+.pt-tile.scanned{border-color:rgba(107,157,189,.25);}
+.pt-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.pt-id{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--sienna-2);letter-spacing:.1em;font-weight:600;}
+.pt-dot{width:7px;height:7px;border-radius:50%;background:var(--surface-4);border:1px solid var(--line-2);}
+.pt-dot.assembled{background:var(--green);border-color:var(--green);box-shadow:0 0 5px var(--green);}
+.pt-dot.drilled{background:var(--sienna);border-color:var(--sienna);}
+.pt-dot.placed{background:var(--amber);border-color:var(--amber);}
+.pt-dot.scanned{background:var(--blue);border-color:var(--blue);}
+.pt-nm{font-size:11px;color:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pt-serial{font-family:"JetBrains Mono",monospace;font-size:8.5px;color:var(--mute);margin-top:2px;letter-spacing:.08em;}
+.pt-ts{font-family:"JetBrains Mono",monospace;font-size:8px;color:var(--mute);margin-top:3px;letter-spacing:.06em;}
+.scan-log-wrap{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.scan-log-head{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;padding:9px 12px;border-bottom:1px solid var(--line);background:var(--surface-3);}
+.scan-log-list{max-height:240px;overflow-y:auto;}
+.sl-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line);align-items:center;font-family:"JetBrains Mono",monospace;font-size:9.5px;}
+.sl-row:last-child{border-bottom:0;}
+.sl-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.sl-dot.assembled{background:var(--green);}
+.sl-dot.drilled{background:var(--sienna);}
+.sl-dot.placed{background:var(--amber);}
+.sl-dot.scanned{background:var(--blue);}
+.sl-txt{color:var(--paper);letter-spacing:.06em;}
+.sl-time{color:var(--mute);font-size:8.5px;white-space:nowrap;}
 /* Install steps (legacy — kept for checklist bar) */
 .step-list{display:flex;flex-direction:column;gap:7px;}
 .step-item{display:grid;grid-template-columns:26px 1fr auto;gap:10px;padding:11px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);align-items:flex-start;transition:border-color .2s,background .2s;}
@@ -762,6 +811,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     <button class="dtab" data-tab="materials">Materials</button>
     <button class="dtab" data-tab="hardware">Hardware</button>
     <button class="dtab" data-tab="install">Assembly guide</button>
+    <button class="dtab" data-tab="track">Track</button>
     <button class="dtab" data-tab="notes">Notes</button>
     <button class="dtab" data-tab="panels">Panels</button>
   </div>
@@ -924,6 +974,26 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
         <button data-gmod="WMR">W-MR</button>
       </div>
       <div id="guideBody"><!-- rendered by JS --></div>
+    </div>
+
+    <!-- TRACK TAB -->
+    <div class="tab-panel" id="tab-track">
+      <div class="d-section">
+        <div class="d-h"><span>Live panel tracking · #KBX-04812</span><span class="cnt" id="trackContractor">Suresh K.</span></div>
+        <div class="track-kpis" id="trackKpis">
+          <div class="tk ok"><div class="tk-v" id="tkAssembled">0</div><div class="tk-l">Assembled</div></div>
+          <div class="tk prog"><div class="tk-v" id="tkDrilled">0</div><div class="tk-l">Drilled</div></div>
+          <div class="tk prog"><div class="tk-v" id="tkPlaced">0</div><div class="tk-l">Placed</div></div>
+          <div class="tk alert"><div class="tk-v" id="tkPending">28</div><div class="tk-l">Pending</div></div>
+        </div>
+        <div class="panel-track-grid" id="trackGrid"><!-- rendered by JS --></div>
+        <div class="scan-log-wrap">
+          <div class="scan-log-head">Scan event log · all panels</div>
+          <div class="scan-log-list" id="scanLog">
+            <div class="sl-row" style="color:var(--mute);font-size:9px;padding:14px 12px;grid-template-columns:1fr;">Waiting for first panel scan…</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- PANELS TAB -->
@@ -1698,9 +1768,52 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     }
   };
 
-  // Step completion state per module
+  // Step completion + scan state
   const guideCompleted = { W2D: new Set(), W3D: new Set(), D3S: new Set(), WMR: new Set() };
   let activeGuideModule = 'W2D';
+
+  // Scan states per step key (moduleId-stepN): 'pending'|'scanned'|'placed'|'drilled'|'assembled'
+  const SCAN_STATE = {};
+  // All scan events for log
+  const SCAN_EVENTS = [];
+  const CONTRACTOR = 'Suresh K.';
+
+  // Build a flat map of panel serials from PANEL_DATA
+  function getPanelSerial(moduleId, panelId) {
+    const m = PANEL_DATA[moduleId];
+    if (!m) return null;
+    const p = m.panels.find(p => p.id === panelId);
+    return p ? p.serial : null;
+  }
+
+  // Get state for a step
+  function getStepState(moduleId, stepN) {
+    return SCAN_STATE[moduleId + '-' + stepN] || 'pending';
+  }
+
+  // Advance step state: pending → scanned → placed → drilled → assembled
+  const STEP_SEQUENCE = ['pending', 'scanned', 'placed', 'drilled', 'assembled'];
+  function advanceStep(moduleId, stepN, panelId, serial, event) {
+    event && event.stopPropagation();
+    const key = moduleId + '-' + stepN;
+    const cur = SCAN_STATE[key] || 'pending';
+    const idx = STEP_SEQUENCE.indexOf(cur);
+    const next = STEP_SEQUENCE[Math.min(idx + 1, STEP_SEQUENCE.length - 1)];
+    SCAN_STATE[key] = next;
+    const now = new Date();
+    const ts = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0') + ':' + now.getSeconds().toString().padStart(2,'0');
+    const label = next === 'scanned' ? 'Scanned' : next === 'placed' ? 'Placed' : next === 'drilled' ? 'Drilled' : 'Assembled';
+    const displayId = serial || panelId || ('Step ' + stepN);
+    SCAN_EVENTS.unshift({ state: next, label, id: panelId || 'Step-'+stepN, serial: serial || '—', module: moduleId, ts, by: CONTRACTOR });
+    showToast(label.toUpperCase() + ' · ' + displayId + ' · ' + ts, next === 'assembled' ? 'green' : '');
+    if (next === 'assembled') {
+      guideCompleted[moduleId].add(stepN);
+    }
+    renderAssemblyGuide(moduleId);
+    syncProgress();
+    renderTrackTab();
+  }
+  window.advanceStep = advanceStep;
 
   function drawStepDiagram(type) {
     if (!type) return '';
@@ -1883,8 +1996,38 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     data.phases.forEach(ph => {
       html += `<div class="asm-phase-label">${ph.phase}</div>`;
       ph.steps.forEach(s => {
-        const isDone = completed.has(s.n);
-        html += `<div class="asm-step${isDone?' done':''}" onclick="toggleAsmStep('${moduleId}',${s.n},this)">
+        const state = getStepState(moduleId, s.n);
+        const isDone = state === 'assembled';
+        const serial = s.panel ? getPanelSerial(moduleId, s.panel) : null;
+        // Build scan row
+        let scanRow = '';
+        if (isDone) {
+          scanRow = `<div class="scan-row"><span class="scan-btn done-state">✓ Assembled</span></div>`;
+        } else if (s.panel) {
+          // Panel step — full scan flow
+          const stateLabels = {
+            pending:  ['scan', '⬡ Scan panel'],
+            scanned:  ['placed', '↓ Mark placed'],
+            placed:   ['drilled', '⚑ Mark drilled'],
+            drilled:  ['assembled', '✓ Mark assembled']
+          };
+          const [cls, lbl] = stateLabels[state] || ['scan', '⬡ Scan panel'];
+          const serialTag = serial ? `<span class="scan-serial">${serial}</span>` : '';
+          const scannedInfo = state !== 'pending'
+            ? `<span class="scan-confirmed">● ${state.charAt(0).toUpperCase()+state.slice(1)}</span>`
+            : '';
+          scanRow = `<div class="scan-row">
+            ${serialTag}
+            ${scannedInfo}
+            <button class="scan-btn ${cls}" onclick="advanceStep('${moduleId}',${s.n},'${s.panel}','${serial||''}',event)">${lbl}</button>
+          </div>`;
+        } else {
+          // Non-panel step (level, QC etc)
+          scanRow = `<div class="scan-row">
+            <button class="scan-btn ${state==='assembled'?'done-state':'placed'}" onclick="advanceStep('${moduleId}',${s.n},null,null,event)">${state==='assembled'?'✓ Done':'Mark done'}</button>
+          </div>`;
+        }
+        html += `<div class="asm-step${isDone?' done':''}">
           <div class="asm-snum">${isDone?'✓':s.n}</div>
           <div class="asm-body">
             <div class="asm-top">
@@ -1895,11 +2038,78 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
             ${s.hw ? `<div class="asm-foot"><div class="asm-hw"><b>HW:</b> ${s.hw}</div><span class="asm-time-tag">${s.time}</span></div>` : `<div class="asm-foot"><div></div><span class="asm-time-tag">${s.time}</span></div>`}
             ${s.tip ? `<div class="asm-note-line">⚑ ${s.tip}</div>` : ''}
             ${drawStepDiagram(s.diag)}
+            ${scanRow}
           </div>
         </div>`;
       });
     });
     document.getElementById('guideBody').innerHTML = html;
+  }
+
+  // Render the tracking tab
+  function renderTrackTab() {
+    const grid = document.getElementById('trackGrid');
+    const log = document.getElementById('scanLog');
+    if (!grid) return;
+    // Collect all panels across all modules
+    let allPanels = [];
+    ['W2D','W3D','D3S','WMR'].forEach(modId => {
+      const m = PANEL_DATA[modId];
+      if (!m) return;
+      m.panels.forEach(p => {
+        const key = modId + '-';
+        // find step N for this panel in ASSEMBLY_GUIDE
+        let stepN = null;
+        const ag = ASSEMBLY_GUIDE[modId];
+        if (ag) { ag.phases.forEach(ph => ph.steps.forEach(s => { if (s.panel === p.id) stepN = s.n; })); }
+        const state = stepN ? getStepState(modId, stepN) : 'pending';
+        allPanels.push({ modId, panelId: p.id, serial: p.serial, name: p.name, state, stepN });
+      });
+    });
+    // Update KPIs
+    const counts = { assembled:0, drilled:0, placed:0, scanned:0, pending:0 };
+    allPanels.forEach(p => { counts[p.state] = (counts[p.state]||0) + 1; });
+    const pending = allPanels.length - counts.assembled - counts.drilled - counts.placed - counts.scanned;
+    const el = id => document.getElementById(id);
+    if (el('tkAssembled')) el('tkAssembled').textContent = counts.assembled;
+    if (el('tkDrilled')) el('tkDrilled').textContent = counts.drilled;
+    if (el('tkPlaced')) el('tkPlaced').textContent = counts.placed + counts.scanned;
+    if (el('tkPending')) el('tkPending').textContent = pending;
+    // Render tiles
+    const STATE_LABEL = { pending:'Pending', scanned:'Scanned', placed:'Placed', drilled:'Drilled', assembled:'Assembled' };
+    grid.innerHTML = allPanels.map(p => `
+      <div class="pt-tile ${p.state}" onclick="advanceStep('${p.modId}',${p.stepN||0},'${p.panelId}','${p.serial||''}',event)">
+        <div class="pt-top">
+          <span class="pt-id">${p.panelId}</span>
+          <span class="pt-dot ${p.state}"></span>
+        </div>
+        <div class="pt-nm">${p.name}</div>
+        <div class="pt-serial">${p.serial || '—'} · ${p.modId}</div>
+        <div class="pt-ts">${STATE_LABEL[p.state]}${p.state !== 'pending' ? ' · ' + CONTRACTOR : ''}</div>
+      </div>`).join('');
+    // Render scan log
+    if (SCAN_EVENTS.length === 0) {
+      log.innerHTML = `<div class="sl-row" style="color:var(--mute);font-size:9px;padding:14px 12px;grid-template-columns:1fr;">Waiting for first panel scan…</div>`;
+    } else {
+      log.innerHTML = SCAN_EVENTS.slice(0, 40).map(e => `
+        <div class="sl-row">
+          <span class="sl-dot ${e.state}"></span>
+          <span class="sl-txt">${e.label} · ${e.id} · ${e.serial}</span>
+          <span class="sl-time">${e.ts} · ${e.by}</span>
+        </div>`).join('');
+    }
+  }
+
+  // Sync checklist bar
+  function syncProgress() {
+    const totalAll = Object.values(ASSEMBLY_GUIDE).reduce((a,d) => {
+      return a + d.phases.reduce((b,p) => b + p.steps.length, 0);
+    }, 0);
+    const doneAll = Object.values(guideCompleted).reduce((a,s) => a + s.size, 0);
+    const bar = document.getElementById('progBar');
+    const txt = document.getElementById('progText');
+    if (bar) bar.style.width = (doneAll/totalAll*100)+'%';
+    if (txt) txt.textContent = doneAll + ' / ' + totalAll;
   }
 
   window.toggleAsmStep = function(moduleId, stepN, el) {
@@ -2136,6 +2346,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     origSetDetailTab(tab);
     if (tab === 'panels') renderPanelDiagrams(selectedModule);
     if (tab === 'install') renderAssemblyGuide(activeGuideModule);
+    if (tab === 'track') renderTrackTab();
   }
 
   const origSelectModule = selectModule;
