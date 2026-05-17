@@ -1244,37 +1244,112 @@
   <div class="main-panel" id="panel-inventory">
     <div class="main-inner">
       <div class="page-h">
-        <div class="left"><div class="sub">38 studios · 3 factories</div><h1>Studio <span class="it">inventory</span></h1></div>
-        <div class="right"><button class="tbl-btn primary" onclick="toast('RESTOCK ORDER RAISED', 'green')">Raise restock</button></div>
+        <div class="left"><div class="sub">3 depots · standard panels + accessories · serial-numbered</div><h1>Depot <span class="it">inventory</span></h1></div>
+        <div class="right">
+          <div class="seg" id="depotSeg" style="margin-right:10px;">
+            <button class="active" data-depot="BLR">BLR-14</button>
+            <button data-depot="PUN">PUN-02</button>
+            <button data-depot="HYD">HYD-01</button>
+          </div>
+          <button class="tbl-btn primary" onclick="toast('RESTOCK ORDER RAISED FOR SELECTED DEPOT', 'green')">Raise restock</button>
+        </div>
       </div>
+
+      <!-- Depot KPIs -->
+      <div class="dispatch-kpis" id="depotKpis">
+        <div class="dk"><div class="dk-l">Panel serials in stock</div><div class="dk-v" id="dkPanels">1,284</div><div class="dk-sub">across all sizes</div></div>
+        <div class="dk transit"><div class="dk-l">Allocated to orders</div><div class="dk-v" id="dkAlloc">186</div><div class="dk-sub">pending pack</div></div>
+        <div class="dk done-kpi"><div class="dk-l">Available to allocate</div><div class="dk-v" id="dkAvail">1,098</div><div class="dk-sub">free stock</div></div>
+        <div class="dk urgent"><div class="dk-l">Low stock alerts</div><div class="dk-v" id="dkAlerts">2</div><div class="dk-sub">below reorder threshold</div></div>
+      </div>
+
+      <!-- Standard panels table -->
       <div class="panel-wrap" style="margin-bottom:12px;">
-        <div class="panel-h"><div><div class="ti">Low stock alerts</div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;margin-top:4px;">3 SKUs below reorder threshold</div></div></div>
-        <table class="data-table">
-          <thead><tr><th>SKU</th><th>Product</th><th>BLR Stock</th><th>PUN Stock</th><th>HYD Stock</th><th>Reorder Level</th><th>Status</th><th>Action</th></tr></thead>
+        <div class="panel-toolbar">
+          <div><div class="panel-h" style="border:0;padding:0;"><div class="ti" style="font-size:14px;">Standard panel cuts</div></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;margin-top:2px;">Each panel serial-numbered · auto-allocated to orders on confirmation</div></div>
+          <button class="tbl-btn" onclick="toast('PANEL MANIFEST EXPORTED')">Export manifest</button>
+        </div>
+        <table class="data-table" id="panelStockTable">
+          <thead><tr><th>Panel type</th><th>Size (mm)</th><th>Material</th><th>Serial range</th><th>Total</th><th>Allocated</th><th>Available</th><th>Reorder at</th><th>Status</th></tr></thead>
           <tbody>
-            <tr class="alert-row"><td class="id-cell">K-PR</td><td>Pantry module</td><td class="mono-cell">18</td><td class="mono-cell" style="color:var(--sienna-2);font-weight:600;">6 ⚠</td><td class="mono-cell">12</td><td class="mono-cell">20</td><td><span class="status-chip urgent">LOW</span></td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('RESTOCK QUEUED FOR K-PR PUN', 'green')">Restock PUN</button></td></tr>
-            <tr class="alert-row"><td class="id-cell">K-LSH</td><td>L-shape kitchen</td><td class="mono-cell" style="color:var(--amber);font-weight:600;">14</td><td class="mono-cell" style="color:var(--amber);font-weight:600;">11</td><td class="mono-cell" style="color:var(--sienna-2);font-weight:600;">4 ⚠</td><td class="mono-cell">20</td><td><span class="status-chip urgent">CRITICAL</span></td><td><button class="tbl-btn" style="padding:4px 10px;font-size:10px;" onclick="toast('URGENT RESTOCK: K-LSH ALL CITIES', 'warn')">Restock all</button></td></tr>
+            <tr onclick="toast('PANEL SERIALS: P-BLR-1001 → P-BLR-1248')">
+              <td><strong>Side panel — tall</strong></td><td class="mono-cell">600 × 2400 × 18</td><td class="mono-cell">Walnut Matt</td>
+              <td class="id-cell">P-BLR-1001…1248</td><td class="mono-cell">248</td>
+              <td class="mono-cell" style="color:var(--amber);">42</td><td class="mono-cell" style="color:var(--green);">206</td>
+              <td class="mono-cell">50</td><td><span class="status-chip ready">OK</span></td>
+            </tr>
+            <tr onclick="toast('PANEL SERIALS: P-BLR-1249 → P-BLR-1434')">
+              <td><strong>Side panel — tall</strong></td><td class="mono-cell">600 × 2400 × 18</td><td class="mono-cell">Ivory White</td>
+              <td class="id-cell">P-BLR-1249…1434</td><td class="mono-cell">186</td>
+              <td class="mono-cell" style="color:var(--amber);">38</td><td class="mono-cell" style="color:var(--green);">148</td>
+              <td class="mono-cell">50</td><td><span class="status-chip ready">OK</span></td>
+            </tr>
+            <tr onclick="toast('PANEL SERIALS: P-BLR-1435 → P-BLR-1558')">
+              <td><strong>Side panel — mirror unit</strong></td><td class="mono-cell">400 × 2400 × 18</td><td class="mono-cell">Walnut Matt</td>
+              <td class="id-cell">P-BLR-1435…1558</td><td class="mono-cell">124</td>
+              <td class="mono-cell">18</td><td class="mono-cell" style="color:var(--green);">106</td>
+              <td class="mono-cell">40</td><td><span class="status-chip ready">OK</span></td>
+            </tr>
+            <tr onclick="toast('PANEL SERIALS: P-BLR-1559 → P-BLR-1646')">
+              <td><strong>Top / bottom — W-3D</strong></td><td class="mono-cell">1164 × 600 × 18</td><td class="mono-cell">Walnut Matt</td>
+              <td class="id-cell">P-BLR-1559…1646</td><td class="mono-cell">88</td>
+              <td class="mono-cell" style="color:var(--amber);">22</td><td class="mono-cell" style="color:var(--green);">66</td>
+              <td class="mono-cell">30</td><td><span class="status-chip ready">OK</span></td>
+            </tr>
+            <tr onclick="toast('PANEL SERIALS: P-BLR-1647 → P-BLR-1742')">
+              <td><strong>Top / bottom — W-2D</strong></td><td class="mono-cell">764 × 600 × 18</td><td class="mono-cell">Walnut Matt</td>
+              <td class="id-cell">P-BLR-1647…1742</td><td class="mono-cell">96</td>
+              <td class="mono-cell">24</td><td class="mono-cell" style="color:var(--green);">72</td>
+              <td class="mono-cell">30</td><td><span class="status-chip ready">OK</span></td>
+            </tr>
+            <tr onclick="toast('PANEL SERIALS: P-BLR-1743 → P-BLR-1790')">
+              <td><strong>Divider / shelf</strong></td><td class="mono-cell">560 × 2364 × 18</td><td class="mono-cell">Ivory White</td>
+              <td class="id-cell">P-BLR-1743…1790</td><td class="mono-cell">48</td>
+              <td class="mono-cell">14</td><td class="mono-cell" style="color:var(--green);">34</td>
+              <td class="mono-cell">20</td><td><span class="status-chip ready">OK</span></td>
+            </tr>
+            <tr onclick="toast('PANEL SERIALS: P-BLR-1791 → P-BLR-1946')">
+              <td><strong>Door shutter</strong></td><td class="mono-cell">400 × 2380 × 18</td><td class="mono-cell">Walnut Matt</td>
+              <td class="id-cell">P-BLR-1791…1946</td><td class="mono-cell">156</td>
+              <td class="mono-cell" style="color:var(--amber);">38</td><td class="mono-cell" style="color:var(--green);">118</td>
+              <td class="mono-cell">40</td><td><span class="status-chip ready">OK</span></td>
+            </tr>
+            <tr onclick="toast('PANEL SERIALS: P-BLR-1947 → P-BLR-2102')">
+              <td><strong>Back panel (HDF 6mm)</strong></td><td class="mono-cell">various × 6</td><td class="mono-cell">Ivory White HDF</td>
+              <td class="id-cell">P-BLR-1947…2102</td><td class="mono-cell">156</td>
+              <td class="mono-cell">44</td><td class="mono-cell" style="color:var(--green);">112</td>
+              <td class="mono-cell">60</td><td><span class="status-chip ready">OK</span></td>
+            </tr>
+            <tr class="alert-row" onclick="toast('RESTOCK NEEDED: DRAWER FRONT PANELS')">
+              <td><strong>Drawer front</strong></td><td class="mono-cell">556 × 195 × 18</td><td class="mono-cell">Walnut Matt</td>
+              <td class="id-cell">P-BLR-2103…2134</td><td class="mono-cell">32</td>
+              <td class="mono-cell" style="color:var(--amber);">18</td><td class="mono-cell" style="color:var(--amber);">14</td>
+              <td class="mono-cell">25</td><td><span class="status-chip urgent">LOW</span></td>
+            </tr>
           </tbody>
         </table>
       </div>
+
+      <!-- Accessories table -->
       <div class="panel-wrap">
-        <div class="panel-h"><div><div class="ti">Full inventory heatmap</div><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;margin-top:4px;">unit count by SKU × city cluster</div></div></div>
-        <div style="padding:16px 20px;">
-          <div class="inv-grid">
-            <div></div><div class="h">BLR</div><div class="h">PUN</div><div class="h">HYD</div>
-            <div class="h row">W-2D</div><div class="inv-cell l3">42</div><div class="inv-cell l2">28</div><div class="inv-cell l3">36</div>
-            <div class="h row">W-3D</div><div class="inv-cell l4">68</div><div class="inv-cell l3">44</div><div class="inv-cell l2">22</div>
-            <div class="h row">W-4D</div><div class="inv-cell l3">38</div><div class="inv-cell l1">14</div><div class="inv-cell l2">26</div>
-            <div class="h row">W-MR</div><div class="inv-cell l4">82</div><div class="inv-cell l3">52</div><div class="inv-cell l3">48</div>
-            <div class="h row">D-3S</div><div class="inv-cell l3">54</div><div class="inv-cell l4">76</div><div class="inv-cell l3">42</div>
-            <div class="h row">K-PR</div><div class="inv-cell l2">18</div><div class="inv-cell l0">6</div><div class="inv-cell l1">12</div>
-            <div class="h row">K-LSH</div><div class="inv-cell l1">14</div><div class="inv-cell l1">11</div><div class="inv-cell l0">4</div>
-            <div class="h row">T-PNT</div><div class="inv-cell l3">36</div><div class="inv-cell l2">22</div><div class="inv-cell l3">34</div>
-            <div class="h row">B-SHF</div><div class="inv-cell l2">24</div><div class="inv-cell l3">38</div><div class="inv-cell l2">18</div>
-            <div class="h row">OFC-01</div><div class="inv-cell l3">32</div><div class="inv-cell l2">16</div><div class="inv-cell l1">10</div>
-          </div>
-          <div class="inv-legend"><span>STOCK-OUT</span><div class="inv-gradient"></div><span>SURPLUS</span></div>
+        <div class="panel-toolbar">
+          <div><div class="panel-h" style="border:0;padding:0;"><div class="ti" style="font-size:14px;">Standard accessories</div></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;margin-top:2px;">Batch serial-numbered · auto-counted per order on allocation</div></div>
         </div>
+        <table class="data-table">
+          <thead><tr><th>Accessory</th><th>Spec</th><th>Batch serial</th><th>Total pcs</th><th>Allocated</th><th>Available</th><th>Reorder at</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Dowel</strong></td><td class="mono-cell">Ø8 × 35mm · hardwood</td><td class="id-cell">A-BLR-D001…D840</td><td class="mono-cell">8,400</td><td class="mono-cell" style="color:var(--amber);">1,240</td><td class="mono-cell" style="color:var(--green);">7,160</td><td class="mono-cell">2,000</td><td><span class="status-chip ready">OK</span></td></tr>
+            <tr><td><strong>Confirmat screw</strong></td><td class="mono-cell">Ø5 × 50mm</td><td class="id-cell">A-BLR-C001…C620</td><td class="mono-cell">6,200</td><td class="mono-cell" style="color:var(--amber);">980</td><td class="mono-cell" style="color:var(--green);">5,220</td><td class="mono-cell">2,000</td><td><span class="status-chip ready">OK</span></td></tr>
+            <tr><td><strong>Shelf pin</strong></td><td class="mono-cell">Ø5 × 16mm · zinc</td><td class="id-cell">A-BLR-S001…S1280</td><td class="mono-cell">12,800</td><td class="mono-cell">2,400</td><td class="mono-cell" style="color:var(--green);">10,400</td><td class="mono-cell">4,000</td><td><span class="status-chip ready">OK</span></td></tr>
+            <tr><td><strong>Blum Sensys hinge</strong></td><td class="mono-cell">110° clip-on · Ø35 cup</td><td class="id-cell">A-BLR-H001…H320</td><td class="mono-cell">3,200</td><td class="mono-cell">486</td><td class="mono-cell" style="color:var(--green);">2,714</td><td class="mono-cell">1,000</td><td><span class="status-chip ready">OK</span></td></tr>
+            <tr><td><strong>Leveller foot</strong></td><td class="mono-cell">M8 × 80mm · adjustable</td><td class="id-cell">A-BLR-L001…L280</td><td class="mono-cell">2,800</td><td class="mono-cell">512</td><td class="mono-cell" style="color:var(--green);">2,288</td><td class="mono-cell">1,000</td><td><span class="status-chip ready">OK</span></td></tr>
+            <tr><td><strong>Brass bar handle</strong></td><td class="mono-cell">128mm c/c · satin brass</td><td class="id-cell">A-BLR-BH001…BH084</td><td class="mono-cell">840</td><td class="mono-cell">92</td><td class="mono-cell" style="color:var(--green);">748</td><td class="mono-cell">200</td><td><span class="status-chip ready">OK</span></td></tr>
+            <tr><td><strong>Blum Tandem slide pair</strong></td><td class="mono-cell">500mm full extension</td><td class="id-cell">A-BLR-T001…T068</td><td class="mono-cell">680</td><td class="mono-cell">84</td><td class="mono-cell" style="color:var(--green);">596</td><td class="mono-cell">200</td><td><span class="status-chip ready">OK</span></td></tr>
+            <tr class="alert-row"><td><strong>Mirror clip set</strong></td><td class="mono-cell">SS · neoprene pad · 4-pt</td><td class="id-cell">A-BLR-MC001…MC022</td><td class="mono-cell">220</td><td class="mono-cell" style="color:var(--amber);">48</td><td class="mono-cell" style="color:var(--amber);">22</td><td class="mono-cell">40</td><td><span class="status-chip urgent">LOW</span></td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -1588,7 +1663,7 @@
   const TITLES = {
     dash:        'Network <span class="it">ops</span> · Dashboard',
     orders:      'Order <span class="it">pipeline</span>',
-    inventory:   'Studio <span class="it">inventory</span>',
+    inventory:   'Depot <span class="it">inventory</span>',
     logistics:   'Logistics <span class="it">tracker</span>',
     contractors: 'Contractor <span class="it">network</span>',
     customers:   'Customer <span class="it">base</span>',
@@ -1900,6 +1975,30 @@
     const logF = document.getElementById('logisticsFilter');
     if (logF) { logF.querySelectorAll('button').forEach(b => { b.classList.toggle('active', b.dataset.lf==='all'); }); }
   };
+
+  // Depot switcher
+  const depotSeg = document.getElementById('depotSeg');
+  const DEPOT_DATA = {
+    BLR: { panels:'1,284', alloc:'186', avail:'1,098', alerts:'2' },
+    PUN: { panels:'944',   alloc:'112', avail:'832',   alerts:'1' },
+    HYD: { panels:'682',   alloc:'78',  avail:'604',   alerts:'0' }
+  };
+  if (depotSeg) {
+    depotSeg.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-depot]');
+      if (!btn) return;
+      depotSeg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const d = DEPOT_DATA[btn.dataset.depot];
+      if (d) {
+        document.getElementById('dkPanels').textContent = d.panels;
+        document.getElementById('dkAlloc').textContent = d.alloc;
+        document.getElementById('dkAvail').textContent = d.avail;
+        document.getElementById('dkAlerts').textContent = d.alerts;
+        toast('DEPOT ' + btn.dataset.depot + ' · INVENTORY LOADED');
+      }
+    });
+  }
 
   // Search
   if (searchInput) {
