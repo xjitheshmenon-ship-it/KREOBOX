@@ -383,6 +383,24 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 .item-mat .mat-txt strong{color:var(--paper);display:block;letter-spacing:.08em;}
 .item-factory{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:100px;background:var(--surface-2);border:1px solid var(--line);font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.12em;text-transform:uppercase;margin-top:8px;}
 
+/* 3D design context bar */
+.canvas-design-ctx{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(22,20,15,.82);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:100px;padding:8px 16px;font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--paper);z-index:20;white-space:nowrap;transition:opacity .2s,transform .2s;}
+.canvas-design-ctx.hidden{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(6px);}
+.canvas-design-ctx .ctx-sep{width:1px;height:14px;background:rgba(255,255,255,.15);}
+.canvas-design-ctx .ctx-sel{color:var(--sienna-2);letter-spacing:.1em;text-transform:uppercase;font-weight:700;}
+.canvas-design-ctx .ctx-nm{color:rgba(255,255,255,.6);letter-spacing:.06em;}
+.canvas-design-ctx .ctx-btn{padding:4px 12px;border-radius:100px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.65);font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+.canvas-design-ctx .ctx-btn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.3);}
+.canvas-design-ctx .ctx-btn.danger:hover{background:rgba(201,100,66,.25);color:var(--sienna-2);border-color:rgba(201,100,66,.4);}
+.canvas-design-ctx .ctx-label{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-right:4px;}
+
+/* Elevation badge */
+.elev-badge-wrap{position:absolute;top:10px;right:14px;display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:100px;background:rgba(22,20,15,.06);border:1px solid rgba(22,20,15,.1);font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--canvas-mute);letter-spacing:.14em;text-transform:uppercase;pointer-events:none;}
+.view-panel{position:relative;}
+
+/* 3D canvas cursor hint */
+#view-3d svg{cursor:crosshair;}
+
 /* Fabrication live feed (internal mode only) */
 .fab-stage-wrap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
 .fab-stage-wrap.hidden{display:none;}
@@ -525,9 +543,9 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 <main class="canvas-wrap">
   <div class="canvas-toolbar">
     <div class="view-tabs" id="viewTabs">
-      <button class="view-tab active" data-view="front">Front view</button>
-      <button class="view-tab" data-view="top">Top view</button>
-      <button class="view-tab" data-view="3d">3D</button>
+      <button class="view-tab active" data-view="3d">3D Design</button>
+      <button class="view-tab" data-view="front">Elevation</button>
+      <button class="view-tab" data-view="top">Top plan</button>
     </div>
     <div class="overlay-toggles" id="overlayToggles">
       <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--canvas-mute);letter-spacing:.14em;text-transform:uppercase;">Overlays</span>
@@ -540,8 +558,9 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
   <div class="canvas-body">
 
-    <!-- FRONT VIEW -->
-    <div class="view-panel active" id="view-front">
+    <!-- FRONT VIEW (Elevation — output only) -->
+    <div class="view-panel" id="view-front">
+      <div class="elev-badge-wrap">Elevation · view only</div>
       <svg viewBox="0 0 860 580" xmlns="http://www.w3.org/2000/svg" id="frontSvg">
         <!-- Wall + floor -->
         <rect x="0" y="0" width="860" height="490" fill="url(#wall-g)"/>
@@ -797,8 +816,8 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
       </svg>
     </div>
 
-    <!-- 3D VIEW -->
-    <div class="view-panel" id="view-3d">
+    <!-- 3D VIEW (primary design surface) -->
+    <div class="view-panel active" id="view-3d">
       <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
         <rect x="0" y="0" width="800" height="500" fill="#f0ece2"/>
         <!-- Floor plane (isometric) -->
@@ -858,6 +877,17 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
         <text x="360" y="360" fill="rgba(22,20,15,.45)" font-family="JetBrains Mono" font-size="8.5" text-anchor="middle" letter-spacing=".12em">D-3S</text>
         <text x="482" y="360" fill="rgba(22,20,15,.45)" font-family="JetBrains Mono" font-size="8.5" text-anchor="middle" letter-spacing=".12em">W-MR</text>
       </svg>
+    </div>
+
+    <!-- 3D design context bar -->
+    <div class="canvas-design-ctx hidden" id="designCtx">
+      <span class="ctx-label">Designing</span>
+      <span class="ctx-sel" id="ctxSel">W-3D</span>
+      <span class="ctx-nm" id="ctxNm">3-door wardrobe</span>
+      <div class="ctx-sep"></div>
+      <button class="ctx-btn" onclick="showToast('SWAP MODULE — COMING SOON')">Swap</button>
+      <button class="ctx-btn" onclick="setDetailTab('bom')">Configure</button>
+      <button class="ctx-btn danger" onclick="showToast('REMOVE MODULE — COMING SOON')">Remove</button>
     </div>
 
   </div>
@@ -1278,7 +1308,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
   // ── STATE ──
   let selectedModule = 'W3D';
   let activeDetailTab = 'bom';
-  let activeView = 'front';
+  let activeView = '3d';
   let overlays = { dim: true, hw: true, drill: true, edge: false };
   let completedSteps = new Set([1, 2]);
   let activeStep = 3;
@@ -1302,6 +1332,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     if (selectedModule === id) return;
     selectedModule = id;
     updateModuleSelection();
+    updateDesignCtx();
   }
 
   function updateModuleSelection() {
@@ -1357,8 +1388,23 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     activeView = v;
     document.querySelectorAll('.view-tab').forEach(el => el.classList.toggle('active', el.dataset.view === v));
     document.querySelectorAll('.view-panel').forEach(el => el.classList.toggle('active', el.id === 'view-'+v));
-    // Only show overlay toggles in front view
-    document.getElementById('overlayToggles').style.visibility = v === 'front' ? 'visible' : 'hidden';
+    // Overlays make sense in 3D design view and elevation; not in top plan
+    document.getElementById('overlayToggles').style.visibility = v === 'top' ? 'hidden' : 'visible';
+    // Design context bar only in 3D view
+    updateDesignCtx();
+  }
+
+  const MODULE_NAMES = { W2D:'2-door wardrobe', W3D:'3-door wardrobe', D3S:'Drawer stack', WMR:'Mirror unit' };
+
+  function updateDesignCtx() {
+    const ctx = document.getElementById('designCtx');
+    if (!ctx) return;
+    const visible = activeView === '3d' && selectedModule;
+    ctx.classList.toggle('hidden', !visible);
+    if (visible) {
+      document.getElementById('ctxSel').textContent = selectedModule.replace('W2D','W-2D').replace('W3D','W-3D').replace('D3S','D-3S').replace('WMR','W-MR');
+      document.getElementById('ctxNm').textContent = MODULE_NAMES[selectedModule] || selectedModule;
+    }
   }
 
   // ── OVERLAY TOGGLES ──
@@ -1445,13 +1491,15 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     if (row) selectModule(row.dataset.module);
   });
 
-  // Module clicks in SVG canvases (all views)
+  // Module clicks in SVG canvases
   document.querySelector('.canvas-body').addEventListener('click', e => {
     const g = e.target.closest('.module-g[data-module]');
-    if (g) {
-      selectModule(g.dataset.module);
-      // Switch to BOM tab to show the selected module
-      setDetailTab('bom');
+    if (!g) return;
+    selectModule(g.dataset.module);
+    setDetailTab('bom');
+    // Nudge users to design in 3D when they click the elevation view
+    if (activeView === 'front') {
+      showToast('SWITCH TO 3D DESIGN TO CONFIGURE THIS MODULE');
     }
   });
 
@@ -2563,6 +2611,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
   // Initial render
   renderAssemblyGuide('W2D');
+  updateDesignCtx();
 
   // SVG panel diagrams — draw panel face with pre-printed hole positions
   function drawPanelSVG(panel) {
