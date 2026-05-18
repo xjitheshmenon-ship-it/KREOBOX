@@ -1090,7 +1090,6 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
           </div>
         </div>
       </div>
-    </div>
 
       <div class="proj-item" data-proj="KBX-04798">
         <div class="pi-top">
@@ -1190,7 +1189,6 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
     </div>
   </div>
-</aside>
 
   <!-- Project Detail -->
   <div class="proj-detail" id="projDetail">
@@ -2534,14 +2532,67 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     </svg>`;
   }
 
+  // Pre-mark drilling positions per panel type (applied at factory before dispatch)
+  const DRILL_MARKS = {
+    'side': [
+      { type:'dowel', sym:'●', color:'#3d7abf', label:'Dowel Ø8', count:6, pos:'3× top edge · 3× bottom edge', marked:'ink stamp' },
+      { type:'confirmat', sym:'■', color:'#c96442', label:'Confirmat Ø5', count:6, pos:'3× top edge · 3× bottom edge', marked:'ink stamp' },
+      { type:'shelf-pin', sym:'○', color:'#6b9dbd', label:'Shelf pin Ø5', count:20, pos:'10× each side channel · 32mm pitch', marked:'printed jig template' },
+    ],
+    'horiz': [
+      { type:'dowel', sym:'●', color:'#3d7abf', label:'Dowel Ø8', count:6, pos:'3× front · 3× back face-edge', marked:'ink stamp' },
+      { type:'confirmat', sym:'■', color:'#c96442', label:'Confirmat Ø5', count:6, pos:'3× each end', marked:'ink stamp' },
+      { type:'leveller', sym:'◆', color:'#d4a44a', label:'Leveller M8', count:4, pos:'4× on underside · 80mm inset from corners', marked:'printed jig template' },
+    ],
+    'divider': [
+      { type:'dowel', sym:'●', color:'#3d7abf', label:'Dowel Ø8', count:4, pos:'2× top edge · 2× bottom edge', marked:'ink stamp' },
+      { type:'confirmat', sym:'■', color:'#c96442', label:'Confirmat Ø5', count:4, pos:'2× top · 2× bottom', marked:'ink stamp' },
+    ],
+    'door': [
+      { type:'hinge-cup', sym:'○', color:'#4ea25a', label:'Hinge cup Ø35', count:6, pos:'3× positions per door · 22mm from edge · 100·1400·2280mm from top', marked:'CNC pre-drilled at factory' },
+      { type:'handle', sym:'◆', color:'#d4a44a', label:'Handle Ø5 × 2', count:2, pos:'900mm AFL · 128mm c/c', marked:'ink stamp' },
+    ],
+    'drawer-front': [
+      { type:'handle', sym:'◆', color:'#d4a44a', label:'Handle Ø5 × 2', count:2, pos:'centre of face · 128mm c/c', marked:'ink stamp' },
+      { type:'clip-hole', sym:'●', color:'#3d7abf', label:'Front adj. clip Ø5', count:4, pos:'4 corners · 32mm inset', marked:'CNC pre-drilled at factory' },
+    ],
+    'shelf': [
+      { type:'none', sym:'—', color:'var(--mute)', label:'No pre-drilling', count:0, pos:'Shelf rests on pins — no holes needed', marked:'—' },
+    ],
+    'back': [
+      { type:'none', sym:'—', color:'var(--mute)', label:'No pre-drilling', count:0, pos:'Back panel nailed/glued at installation', marked:'—' },
+    ],
+    'mirror': [
+      { type:'clip', sym:'○', color:'#6b9dbd', label:'Mirror clip pos × 4', count:4, pos:'Marked on frame inner face — not drilled', marked:'factory adhesive dot' },
+    ],
+  };
+
   function renderPanelDiagrams(moduleId) {
     const data = PANEL_DATA[moduleId];
     if (!data) return;
     document.getElementById('panels-head').textContent = data.label;
     document.getElementById('panels-cnt').textContent = data.count + ' panels';
     const list = document.getElementById('panelsList');
-    list.innerHTML = data.panels.map(p => `
-      <div class="panel-diagram-card">
+    list.innerHTML = data.panels.map(p => {
+      const marks = DRILL_MARKS[p.type] || [];
+      const hasDrilling = marks.some(m => m.count > 0);
+      const preMarkHtml = `<div style="border-top:1px solid var(--line);padding:10px 12px 6px;background:rgba(201,100,66,.03);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:8px;">
+          <span style="display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:100px;background:rgba(111,191,122,.12);border:1px solid rgba(111,191,122,.2);color:var(--green);">✓ Pre-marked at factory</span>
+          <span>Ink + jig applied before dispatch</span>
+        </div>
+        ${hasDrilling ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px;">
+          ${marks.map(m => `<div style="display:flex;align-items:flex-start;gap:7px;padding:5px 8px;border-radius:5px;background:var(--surface-3);">
+            <span style="font-size:12px;color:${m.color};flex-shrink:0;margin-top:1px;">${m.sym}</span>
+            <div>
+              <div style="font-size:11px;font-weight:500;color:var(--paper);">${m.label}${m.count > 0 ? ` <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:${m.color};">×${m.count}</span>` : ''}</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute);letter-spacing:.06em;margin-top:1px;">${m.pos}</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;color:rgba(111,191,122,.7);margin-top:1px;">⚙ ${m.marked}</div>
+            </div>
+          </div>`).join('')}
+        </div>` : `<div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--mute);letter-spacing:.08em;">No pre-drilling required for this panel type</div>`}
+      </div>`;
+      return `<div class="panel-diagram-card">
         <div class="pdc-head">
           <div>
             <div class="pdc-id" style="display:flex;gap:8px;align-items:center;">
@@ -2561,12 +2612,14 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
           <span class="pdc-leg-item"><span class="pdc-leg-sym" style="background:none;border:1px solid #6b9dbd;"></span> Shelf pin Ø5</span>
           <span class="pdc-leg-item"><span class="pdc-leg-sym" style="background:#d4a44a;"></span> Handle drill</span>
         </div>
+        ${preMarkHtml}
         <div class="pdc-actions">
           <button class="pdc-download" onclick="showToast('PACK SLIP · ${p.serial || p.id} PRINTING…')">Print pack slip</button>
+          <button class="pdc-download" onclick="showToast('DRILL TEMPLATE · ${p.serial || p.id} PRINTING…','green')" style="color:var(--green);border-color:rgba(111,191,122,.3);">⚙ Print drill template</button>
           <button class="pdc-download" onclick="showToast('${p.serial || p.id} DXF EXPORTED', 'green')">Export DXF</button>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   }
 
   // Render panels/guide when tab switches, or module changes
