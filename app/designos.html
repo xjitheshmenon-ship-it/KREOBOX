@@ -1248,6 +1248,8 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
   let completedSteps = new Set([1, 2]);
   let activeStep = 3;
   const TOTAL_STEPS = 9;
+  // Maps checklist pill step# → assembly guide module
+  const STEP_MODULE_MAP = { 3:'W2D', 4:'W3D', 5:'D3S', 6:'WMR' };
 
   // ── TOAST ──
   let toastTimer;
@@ -1338,11 +1340,22 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
   function markStepComplete() {
     if (activeStep > TOTAL_STEPS) { showToast('ALL STEPS COMPLETE · GREAT WORK!', 'green'); return; }
     completedSteps.add(activeStep);
+    const justDone = activeStep;
     activeStep = Math.min(activeStep + 1, TOTAL_STEPS + 1);
     updateSteps();
-    showToast('STEP ' + (activeStep-1) + ' MARKED COMPLETE', 'green');
-    // Switch to install tab to show progress
+    showToast('STEP ' + justDone + ' MARKED COMPLETE', 'green');
     setDetailTab('install');
+    // If next phase maps to a module, load it in the guide automatically
+    const mod = STEP_MODULE_MAP[activeStep];
+    if (mod) switchGuideModule(mod);
+  }
+
+  function switchGuideModule(mod) {
+    activeGuideModule = mod;
+    document.querySelectorAll('[data-gmod]').forEach(b => b.classList.toggle('active', b.dataset.gmod === mod));
+    renderAssemblyGuide(mod);
+    const gb = document.getElementById('guideBody');
+    if (gb) { const wrap = gb.closest('.detail-scroll, .tab-panel, #tab-install'); if (wrap) wrap.scrollTop = 0; }
   }
 
   function updateSteps() {
@@ -1407,14 +1420,19 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     }
   });
 
-  // Checklist pills — click to jump to step
+  // Checklist pills — click to jump to phase / module
   document.getElementById('chkSteps').addEventListener('click', e => {
     const chk = e.target.closest('.chk[data-step]');
-    if (chk) {
-      setDetailTab('install');
-      const stepEl = document.querySelector('#stepList .step-item[data-step="'+chk.dataset.step+'"]');
-      if (stepEl) stepEl.scrollIntoView({ behavior:'smooth', block:'center' });
-    }
+    if (!chk) return;
+    const step = +chk.dataset.step;
+    // Allow jumping to any step that isn't already done (or the current active)
+    if (completedSteps.has(step)) return;
+    activeStep = step;
+    updateSteps();
+    setDetailTab('install');
+    // Load the module that corresponds to this phase
+    const mod = STEP_MODULE_MAP[step];
+    if (mod) switchGuideModule(mod);
   });
 
   // ── INTERNAL TEAM MODE ──
