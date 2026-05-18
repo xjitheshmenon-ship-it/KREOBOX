@@ -877,152 +877,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     <!-- 3D VIEW (primary design surface) -->
     <div class="view-panel active" id="view-3d">
       <svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" id="room3dSvg">
-
-        <!-- ── ROOM SURFACES ── -->
-        <!-- Ceiling strip -->
-        <polygon points="40,0 960,0 960,62 840,62 160,62 40,62" fill="#f2ede3"/>
-        <line x1="40" y1="62" x2="160" y2="62" stroke="rgba(22,20,15,.1)" stroke-width="1"/>
-        <line x1="840" y1="62" x2="960" y2="62" stroke="rgba(22,20,15,.1)" stroke-width="1"/>
-
-        <!-- Back wall -->
-        <rect x="160" y="62" width="680" height="430" fill="url(#wall-g)"/>
-
-        <!-- Left side wall -->
-        <polygon points="40,62 160,62 160,492 40,556" fill="#e8e2d4"/>
-        <line x1="160" y1="62" x2="160" y2="492" stroke="rgba(22,20,15,.14)" stroke-width="1"/>
-
-        <!-- Right side wall -->
-        <polygon points="840,62 960,62 960,556 840,492" fill="#e2dbd0"/>
-        <line x1="840" y1="62" x2="840" y2="492" stroke="rgba(22,20,15,.14)" stroke-width="1"/>
-
-        <!-- Floor (perspective trapezoid, wider at front) -->
-        <polygon points="40,556 160,492 840,492 960,556" fill="#d9c19a"/>
-        <!-- Floor wood grain lines (perspective) -->
-        <line x1="40" y1="510" x2="960" y2="510" stroke="rgba(120,80,40,.07)" stroke-width=".8"/>
-        <line x1="40" y1="528" x2="960" y2="528" stroke="rgba(120,80,40,.06)" stroke-width=".8"/>
-        <line x1="40" y1="543" x2="960" y2="543" stroke="rgba(120,80,40,.07)" stroke-width=".8"/>
-        <!-- Floor vertical grain (perspective convergence) -->
-        <line x1="260" y1="492" x2="220" y2="556" stroke="rgba(120,80,40,.06)" stroke-width=".6"/>
-        <line x1="420" y1="492" x2="400" y2="556" stroke="rgba(120,80,40,.06)" stroke-width=".6"/>
-        <line x1="580" y1="492" x2="580" y2="556" stroke="rgba(120,80,40,.06)" stroke-width=".6"/>
-        <line x1="740" y1="492" x2="760" y2="556" stroke="rgba(120,80,40,.06)" stroke-width=".6"/>
-
-        <!-- Skirting board -->
-        <rect x="160" y="474" width="680" height="18" fill="rgba(22,20,15,.06)"/>
-
-        <!-- ── ROOM DIMENSION GUIDES ── -->
-        <!-- Top width: room total -->
-        <line x1="175" y1="50" x2="825" y2="50" stroke="rgba(22,20,15,.2)" stroke-width=".8"/>
-        <line x1="175" y1="45" x2="175" y2="55" stroke="rgba(22,20,15,.2)" stroke-width=".8"/>
-        <line x1="825" y1="45" x2="825" y2="55" stroke="rgba(22,20,15,.2)" stroke-width=".8"/>
-        <text x="500" y="46" fill="rgba(22,20,15,.3)" font-family="JetBrains Mono" font-size="8" text-anchor="middle" letter-spacing=".14em">ROOM · 3800MM</text>
-
-        <!-- ── MODULE SHADOW ── -->
-        <ellipse cx="500" cy="494" rx="330" ry="5" fill="rgba(22,20,15,.18)" opacity=".6"/>
-
-        <!-- ── W-2D (2-door wardrobe, 800mm = 148px) ── -->
-        <!-- x: 175–323 -->
-        <g class="module-g" data-module="W2D">
-          <!-- Top face (depth toward viewer) -->
-          <polygon points="175,106 323,106 343,78 195,78" fill="#5a3e2c" stroke="#3e2a1d" stroke-width=".8"/>
-          <!-- Front face -->
-          <rect x="175" y="106" width="148" height="368" fill="url(#grain)" stroke="#3e2a1d" stroke-width=".8"/>
-          <!-- Door split centre -->
-          <line x1="249" y1="106" x2="249" y2="474" stroke="#3e2a1d" stroke-width="1.2"/>
-          <!-- Door handles -->
-          <line x1="238" y1="283" x2="238" y2="308" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="260" y1="283" x2="260" y2="308" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- Right side face (depth) -->
-          <polygon points="323,106 343,78 343,446 323,474" fill="#4a3020" stroke="#3e2a1d" stroke-width=".6"/>
-          <!-- Selection hover outline -->
-          <rect class="mod-hover" x="173" y="104" width="172" height="372" fill="none" stroke="var(--sienna)" stroke-width="1.5" rx="2" opacity=".5"/>
-        </g>
-        <!-- W-2D label + dim -->
-        <text x="249" y="510" fill="rgba(22,20,15,.4)" font-family="JetBrains Mono" font-size="8.5" text-anchor="middle" letter-spacing=".12em">W-2D</text>
-        <line x1="175" y1="502" x2="323" y2="502" stroke="rgba(22,20,15,.18)" stroke-width=".8"/>
-        <text x="249" y="500" fill="rgba(22,20,15,.3)" font-family="JetBrains Mono" font-size="7.5" text-anchor="middle" letter-spacing=".1em">800MM</text>
-
-        <!-- ── W-3D (3-door wardrobe, 1200mm = 222px · SELECTED) ── -->
-        <!-- x: 323–545 -->
-        <g class="module-g" data-module="W3D">
-          <!-- Top face -->
-          <polygon points="323,106 545,106 565,78 343,78" fill="#6a4838" stroke="#c96442" stroke-width="1"/>
-          <!-- Front face -->
-          <rect x="323" y="106" width="222" height="368" fill="url(#grain)" stroke="#c96442" stroke-width="1.8"/>
-          <!-- 3 door splits -->
-          <line x1="397" y1="106" x2="397" y2="474" stroke="#3e2a1d" stroke-width="1.2"/>
-          <line x1="471" y1="106" x2="471" y2="474" stroke="#3e2a1d" stroke-width="1.2"/>
-          <!-- Hanging rod visible through leftmost door -->
-          <line x1="340" y1="206" x2="394" y2="206" stroke="rgba(22,20,15,.35)" stroke-width="2" stroke-linecap="round"/>
-          <!-- Door handles -->
-          <line x1="386" y1="283" x2="386" y2="308" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="408" y1="283" x2="408" y2="308" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="460" y1="283" x2="460" y2="308" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="482" y1="283" x2="482" y2="308" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- Right side face -->
-          <polygon points="545,106 565,78 565,446 545,474" fill="#4a3020" stroke="#c96442" stroke-width=".6"/>
-          <!-- Selection highlight (active) -->
-          <rect x="321" y="104" width="226" height="372" fill="none" stroke="#c96442" stroke-width="2" rx="2"/>
-          <!-- Selection hover outline -->
-          <rect class="mod-hover" x="321" y="104" width="226" height="372" fill="none" stroke="var(--sienna)" stroke-width="0" rx="2" opacity=".5"/>
-        </g>
-        <text x="434" y="510" fill="#c96442" font-family="JetBrains Mono" font-size="9" text-anchor="middle" letter-spacing=".12em" font-weight="700">W-3D</text>
-        <line x1="323" y1="502" x2="545" y2="502" stroke="rgba(201,100,66,.3)" stroke-width=".8"/>
-        <text x="434" y="500" fill="rgba(201,100,66,.5)" font-family="JetBrains Mono" font-size="7.5" text-anchor="middle" letter-spacing=".1em">1200MM</text>
-
-        <!-- ── D-3S (drawer stack, 600mm = 111px) ── -->
-        <!-- x: 545–656 -->
-        <g class="module-g" data-module="D3S">
-          <!-- Top face -->
-          <polygon points="545,106 656,106 676,78 565,78" fill="#5a3e2c" stroke="#3e2a1d" stroke-width=".8"/>
-          <!-- Front face -->
-          <rect x="545" y="106" width="111" height="368" fill="url(#grain)" stroke="#3e2a1d" stroke-width=".8"/>
-          <!-- 4 drawer dividers -->
-          <line x1="545" y1="198" x2="656" y2="198" stroke="#3e2a1d" stroke-width="1.2"/>
-          <line x1="545" y1="290" x2="656" y2="290" stroke="#3e2a1d" stroke-width="1.2"/>
-          <line x1="545" y1="382" x2="656" y2="382" stroke="#3e2a1d" stroke-width="1.2"/>
-          <!-- Drawer handles (horizontal bars) -->
-          <line x1="573" y1="149" x2="628" y2="149" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="573" y1="241" x2="628" y2="241" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="573" y1="333" x2="628" y2="333" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="573" y1="425" x2="628" y2="425" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>
-          <!-- Right side face -->
-          <polygon points="656,106 676,78 676,446 656,474" fill="#4a3020" stroke="#3e2a1d" stroke-width=".6"/>
-          <rect class="mod-hover" x="543" y="104" width="135" height="372" fill="none" stroke="var(--sienna)" stroke-width="1.5" rx="2" opacity=".5"/>
-        </g>
-        <text x="600" y="510" fill="rgba(22,20,15,.4)" font-family="JetBrains Mono" font-size="8.5" text-anchor="middle" letter-spacing=".12em">D-3S</text>
-        <line x1="545" y1="502" x2="656" y2="502" stroke="rgba(22,20,15,.18)" stroke-width=".8"/>
-        <text x="600" y="500" fill="rgba(22,20,15,.3)" font-family="JetBrains Mono" font-size="7.5" text-anchor="middle" letter-spacing=".1em">600MM</text>
-
-        <!-- ── W-MR (mirror unit, 800mm = 148px) ── -->
-        <!-- x: 656–804 -->
-        <g class="module-g" data-module="WMR">
-          <!-- Top face -->
-          <polygon points="656,106 804,106 824,78 676,78" fill="#5a3e2c" stroke="#3e2a1d" stroke-width=".8"/>
-          <!-- Front face -->
-          <rect x="656" y="106" width="148" height="368" fill="url(#grain)" stroke="#3e2a1d" stroke-width=".8"/>
-          <!-- Mirror panel -->
-          <rect x="668" y="118" width="124" height="258" fill="url(#mirror)" opacity=".92" rx="2"/>
-          <!-- Mirror reflection lines -->
-          <line x1="680" y1="134" x2="780" y2="134" stroke="rgba(255,255,255,.45)" stroke-width=".8"/>
-          <line x1="680" y1="134" x2="680" y2="240" stroke="rgba(255,255,255,.45)" stroke-width=".8"/>
-          <path d="M 690 150 L 734 290" stroke="rgba(255,255,255,.08)" stroke-width="16" stroke-linecap="round"/>
-          <!-- Right side face -->
-          <polygon points="804,106 824,78 824,446 804,474" fill="#4a3020" stroke="#3e2a1d" stroke-width=".6"/>
-          <rect class="mod-hover" x="654" y="104" width="172" height="372" fill="none" stroke="var(--sienna)" stroke-width="1.5" rx="2" opacity=".5"/>
-        </g>
-        <text x="730" y="510" fill="rgba(22,20,15,.4)" font-family="JetBrains Mono" font-size="8.5" text-anchor="middle" letter-spacing=".12em">W-MR</text>
-        <line x1="656" y1="502" x2="804" y2="502" stroke="rgba(22,20,15,.18)" stroke-width=".8"/>
-        <text x="730" y="500" fill="rgba(22,20,15,.3)" font-family="JetBrains Mono" font-size="7.5" text-anchor="middle" letter-spacing=".1em">800MM</text>
-
-        <!-- ── ADD MODULE slot ── -->
-        <g id="addSlotSvg" style="cursor:pointer" onclick="showToast('CLICK + IN CATALOG TO ADD A MODULE')">
-          <rect x="804" y="106" width="36" height="368" fill="none" stroke="rgba(201,100,66,.28)" stroke-width="1.5" stroke-dasharray="5,4" rx="3"/>
-          <line x1="822" y1="276" x2="822" y2="314" stroke="rgba(201,100,66,.45)" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="804" y1="295" x2="840" y2="295" stroke="rgba(201,100,66,.45)" stroke-width="2.5" stroke-linecap="round"/>
-        </g>
-        <text x="822" y="510" fill="rgba(201,100,66,.4)" font-family="JetBrains Mono" font-size="7.5" text-anchor="middle" letter-spacing=".08em">ADD</text>
-
+        <!-- populated by renderRoom3D() -->
       </svg>
     </div>
 
@@ -1493,39 +1348,217 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
   };
 
   // ── CATALOG DATA ──
-  const CATALOG_MODULES = [
-    { id:'W2D',  cat:'wardrobe', nm:'2-door wardrobe',       widths:['800mm','1000mm'],         sku:'W-2D',  price:'₹38,200', thumb:'m-w2d' },
-    { id:'W3D',  cat:'wardrobe', nm:'3-door wardrobe',       widths:['1200mm','1500mm'],        sku:'W-3D',  price:'₹52,400', thumb:'m-w3d' },
-    { id:'W4D',  cat:'wardrobe', nm:'4-door wardrobe',       widths:['1600mm','2000mm'],        sku:'W-4D',  price:'₹68,000', thumb:'m-w3d' },
-    { id:'WSL',  cat:'wardrobe', nm:'Sliding door wardrobe', widths:['1200mm','1800mm'],        sku:'W-SL',  price:'₹65,000', thumb:'m-w2d' },
-    { id:'D2S',  cat:'storage',  nm:'Drawer × 2',            widths:['400mm','600mm'],          sku:'D-2S',  price:'₹18,500', thumb:'m-dr'  },
-    { id:'D3S',  cat:'storage',  nm:'Drawer × 3',            widths:['600mm','800mm'],          sku:'D-3S',  price:'₹24,800', thumb:'m-dr'  },
-    { id:'D4S',  cat:'storage',  nm:'Drawer × 4',            widths:['600mm','800mm'],          sku:'D-4S',  price:'₹32,000', thumb:'m-dr'  },
-    { id:'OS1',  cat:'storage',  nm:'Open shelf unit',       widths:['600mm','900mm','1200mm'], sku:'OS-1',  price:'₹12,400', thumb:'m-w2d' },
-    { id:'TLP',  cat:'storage',  nm:'Tall pantry tower',     widths:['600mm'],                  sku:'T-LP',  price:'₹34,000', thumb:'m-w2d' },
-    { id:'WMR',  cat:'accent',   nm:'Mirror unit',           widths:['600mm','800mm'],          sku:'W-MR',  price:'₹22,600', thumb:'m-mr'  },
-    { id:'WLF',  cat:'accent',   nm:'Loft unit',             widths:['1200mm','1600mm'],        sku:'W-LF',  price:'₹18,000', thumb:'m-w2d' },
-    { id:'WTV',  cat:'accent',   nm:'TV panel unit',         widths:['1200mm','1600mm'],        sku:'W-TV',  price:'₹28,000', thumb:'m-w2d' },
+  // ── PLANNER STATE ──
+  const ROOM_STATE = { width: 3600 };  // total room wall width in mm
+  const SVG_WALL_L=160, SVG_WALL_R=840, SVG_MOD_T=106, SVG_MOD_B=474;
+  const DEPTH_DX=20, DEPTH_DY=-28;
+
+  let placed = [
+    { id:'W2D-1', type:'W2D', width:800,  x:0,    renderType:'wardrobe', doors:2, drawers:0, shelves:3 },
+    { id:'W3D-1', type:'W3D', width:1200, x:800,  renderType:'wardrobe', doors:3, drawers:0, shelves:3 },
+    { id:'D3S-1', type:'D3S', width:600,  x:2000, renderType:'drawer',   doors:0, drawers:4, shelves:0 },
+    { id:'WMR-1', type:'WMR', width:800,  x:2600, renderType:'mirror',   doors:0, drawers:0, shelves:0 },
   ];
-  // Track which modules are placed in the room
-  let placedModules = new Set(['W2D','W3D','D3S','WMR']);
+  let selectedId = 'W3D-1';
+  let nextModId = 5;
+
+  const CATALOG_MODULES = [
+    { id:'W2D', cat:'wardrobe', nm:'2-door wardrobe',       widths:[800,1000],       sku:'W-2D',  price:'₹38,200', thumb:'m-w2d', renderType:'wardrobe', doors:2  },
+    { id:'W3D', cat:'wardrobe', nm:'3-door wardrobe',       widths:[1200,1500],      sku:'W-3D',  price:'₹52,400', thumb:'m-w3d', renderType:'wardrobe', doors:3  },
+    { id:'W4D', cat:'wardrobe', nm:'4-door wardrobe',       widths:[1600,2000],      sku:'W-4D',  price:'₹68,000', thumb:'m-w3d', renderType:'wardrobe', doors:4  },
+    { id:'WSL', cat:'wardrobe', nm:'Sliding door',          widths:[1200,1800],      sku:'W-SL',  price:'₹65,000', thumb:'m-w2d', renderType:'wardrobe', doors:2  },
+    { id:'D2S', cat:'storage',  nm:'Drawer × 2',            widths:[400,600],        sku:'D-2S',  price:'₹18,500', thumb:'m-dr',  renderType:'drawer',   drawers:3 },
+    { id:'D3S', cat:'storage',  nm:'Drawer × 3',            widths:[600,800],        sku:'D-3S',  price:'₹24,800', thumb:'m-dr',  renderType:'drawer',   drawers:4 },
+    { id:'D4S', cat:'storage',  nm:'Drawer × 4',            widths:[600,800],        sku:'D-4S',  price:'₹32,000', thumb:'m-dr',  renderType:'drawer',   drawers:5 },
+    { id:'OS1', cat:'storage',  nm:'Open shelf unit',       widths:[600,900,1200],   sku:'OS-1',  price:'₹12,400', thumb:'m-w2d', renderType:'open',     shelves:4 },
+    { id:'TLP', cat:'storage',  nm:'Tall pantry',           widths:[600],            sku:'T-LP',  price:'₹34,000', thumb:'m-w2d', renderType:'wardrobe', doors:2  },
+    { id:'WMR', cat:'accent',   nm:'Mirror unit',           widths:[600,800],        sku:'W-MR',  price:'₹22,600', thumb:'m-mr',  renderType:'mirror'               },
+    { id:'WLF', cat:'accent',   nm:'Loft unit',             widths:[1200,1600],      sku:'W-LF',  price:'₹18,000', thumb:'m-w2d', renderType:'loft'                 },
+    { id:'WTV', cat:'accent',   nm:'TV panel unit',         widths:[1200,1600],      sku:'W-TV',  price:'₹28,000', thumb:'m-w2d', renderType:'open',     shelves:3 },
+  ];
+
+  // ── ROOM RENDERER ──
+  function mmToSvgX(mm, roomW) {
+    return SVG_WALL_L + (mm / roomW) * (SVG_WALL_R - SVG_WALL_L);
+  }
+
+  function roomSurfacesSVG() {
+    return `
+      <polygon points="40,0 960,0 960,62 840,62 160,62 40,62" fill="#f2ede3"/>
+      <rect x="160" y="62" width="680" height="430" fill="url(#wall-g)"/>
+      <polygon points="40,62 160,62 160,492 40,556" fill="#e8e2d4"/>
+      <line x1="160" y1="62" x2="160" y2="492" stroke="rgba(22,20,15,.14)" stroke-width="1"/>
+      <polygon points="840,62 960,62 960,556 840,492" fill="#e2dbd0"/>
+      <line x1="840" y1="62" x2="840" y2="492" stroke="rgba(22,20,15,.14)" stroke-width="1"/>
+      <polygon points="40,556 160,492 840,492 960,556" fill="#d9c19a"/>
+      <line x1="40" y1="510" x2="960" y2="510" stroke="rgba(120,80,40,.07)" stroke-width=".8"/>
+      <line x1="40" y1="528" x2="960" y2="528" stroke="rgba(120,80,40,.06)" stroke-width=".8"/>
+      <line x1="40" y1="543" x2="960" y2="543" stroke="rgba(120,80,40,.07)" stroke-width=".8"/>
+      <rect x="160" y="474" width="680" height="18" fill="rgba(22,20,15,.06)"/>`;
+  }
+
+  function moduleContentSVG(m, sx, ex, w, T, B) {
+    const mid = (sx + ex) / 2;
+    let h = '';
+    if (m.renderType === 'wardrobe') {
+      const doors = m.doors || 2;
+      const dw = w / doors;
+      for (let d = 1; d < doors; d++)
+        h += `<line x1="${sx+d*dw}" y1="${T}" x2="${sx+d*dw}" y2="${B}" stroke="#3e2a1d" stroke-width="1.2"/>`;
+      for (let d = 0; d < doors; d++) {
+        const hx1 = sx + d*dw + dw*0.35, hx2 = sx + d*dw + dw*0.58;
+        const hy = T + (B-T)*0.48;
+        h += `<line x1="${hx1}" y1="${hy}" x2="${hx1}" y2="${hy+24}" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>`;
+        h += `<line x1="${hx2}" y1="${hy}" x2="${hx2}" y2="${hy+24}" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>`;
+      }
+      if (w > 100)
+        h += `<line x1="${sx+8}" y1="${T+100}" x2="${sx+w/doors-8}" y2="${T+100}" stroke="rgba(22,20,15,.3)" stroke-width="2" stroke-linecap="round"/>`;
+    } else if (m.renderType === 'drawer') {
+      const n = m.drawers || 4;
+      const dh = (B - T) / n;
+      for (let d = 1; d < n; d++)
+        h += `<line x1="${sx}" y1="${T+d*dh}" x2="${ex}" y2="${T+d*dh}" stroke="#3e2a1d" stroke-width="1.2"/>`;
+      for (let d = 0; d < n; d++) {
+        const hy = T + d*dh + dh*0.5;
+        h += `<line x1="${mid-w*0.25}" y1="${hy}" x2="${mid+w*0.25}" y2="${hy}" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>`;
+      }
+    } else if (m.renderType === 'mirror') {
+      const mx=sx+w*0.08, mex=ex-w*0.08, my=T+12, mby=T+(B-T)*0.72;
+      h += `<rect x="${mx}" y="${my}" width="${mex-mx}" height="${mby-my}" fill="url(#mirror)" opacity=".92" rx="2"/>`;
+      h += `<line x1="${mx+10}" y1="${my+14}" x2="${mex-10}" y2="${my+14}" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>`;
+      h += `<line x1="${mx+10}" y1="${my+14}" x2="${mx+10}" y2="${my+(mby-my)*0.5}" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>`;
+      h += `<path d="M ${mx+14} ${my+20} L ${mid} ${mby-20}" stroke="rgba(255,255,255,.07)" stroke-width="${Math.min(w*0.18,18)}" stroke-linecap="round"/>`;
+    } else if (m.renderType === 'open') {
+      const n = m.shelves || 4;
+      const sh = (B-T)/(n+1);
+      for (let s=1; s<=n; s++)
+        h += `<line x1="${sx+2}" y1="${T+s*sh}" x2="${ex-2}" y2="${T+s*sh}" stroke="#3e2a1d" stroke-width="1.5"/>`;
+    } else if (m.renderType === 'loft') {
+      const split = T+(B-T)*0.52;
+      h += `<line x1="${sx}" y1="${split}" x2="${ex}" y2="${split}" stroke="#3e2a1d" stroke-width="1.5"/>`;
+      h += `<line x1="${mid}" y1="${T}" x2="${mid}" y2="${split}" stroke="#3e2a1d" stroke-width="1.2"/>`;
+      const hy = T+(split-T)*0.48;
+      h += `<line x1="${sx+w*0.22}" y1="${hy}" x2="${sx+w*0.22}" y2="${hy+22}" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>`;
+      h += `<line x1="${ex-w*0.22}" y1="${hy}" x2="${ex-w*0.22}" y2="${hy+22}" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>`;
+    }
+    return h;
+  }
+
+  function moduleBoxSVG(m, roomW) {
+    const isSel = m.id === selectedId;
+    const sx = mmToSvgX(m.x, roomW), ex = mmToSvgX(m.x + m.width, roomW);
+    const w = ex - sx, T = SVG_MOD_T, B = SVG_MOD_B;
+    const col = isSel ? '#c96442' : '#3e2a1d';
+    const sw  = isSel ? '1.8' : '.8';
+    const tf  = isSel ? '#6a4838' : '#5a3e2c';
+    const cx  = (sx+ex)/2;
+    const lbl = m.type.replace(/([A-Z])(\d)/g,'$1-$2');
+
+    return `<g class="module-g" data-mid="${m.id}" style="cursor:pointer">
+      <polygon points="${sx},${T} ${ex},${T} ${ex+DEPTH_DX},${T+DEPTH_DY} ${sx+DEPTH_DX},${T+DEPTH_DY}" fill="${tf}" stroke="${col}" stroke-width="${isSel?'1':'.7'}"/>
+      <rect x="${sx}" y="${T}" width="${w}" height="${B-T}" fill="url(#grain)" stroke="${col}" stroke-width="${sw}"/>
+      ${moduleContentSVG(m, sx, ex, w, T, B)}
+      <polygon points="${ex},${T} ${ex+DEPTH_DX},${T+DEPTH_DY} ${ex+DEPTH_DX},${B+DEPTH_DY} ${ex},${B}" fill="#4a3020" stroke="${col}" stroke-width=".5"/>
+      ${isSel
+        ? `<rect x="${sx-2}" y="${T-2}" width="${w+4}" height="${B-T+4}" fill="none" stroke="#c96442" stroke-width="2.5" rx="2"/>`
+        : `<rect x="${sx-2}" y="${T-2}" width="${w+4}" height="${B-T+4}" fill="none" stroke="var(--sienna)" stroke-width="0" rx="2" class="mod-hover" opacity=".6"/>`}
+      <text x="${cx}" y="510" fill="${isSel?'#c96442':'rgba(22,20,15,.4)'}" font-family="JetBrains Mono" font-size="9" text-anchor="middle" letter-spacing=".12em" ${isSel?'font-weight="700"':''}>${lbl}</text>
+      <line x1="${sx}" y1="502" x2="${ex}" y2="502" stroke="${isSel?'rgba(201,100,66,.3)':'rgba(22,20,15,.15)'}" stroke-width=".8"/>
+      <text x="${cx}" y="500" fill="${isSel?'rgba(201,100,66,.5)':'rgba(22,20,15,.28)'}" font-family="JetBrains Mono" font-size="7.5" text-anchor="middle" letter-spacing=".1em">${m.width}MM</text>
+    </g>`;
+  }
+
+  function renderRoom3D() {
+    const svg = document.getElementById('room3dSvg');
+    if (!svg) return;
+    let xPos = 0;
+    placed.forEach(m => { m.x = xPos; xPos += m.width; });
+    const totalW = xPos;
+    const roomW = Math.max(ROOM_STATE.width, totalW);
+    const shadowCx = mmToSvgX(totalW/2, roomW);
+    const shadowRx = Math.max(10, (mmToSvgX(totalW, roomW) - SVG_WALL_L) / 2);
+
+    let html = roomSurfacesSVG();
+    html += `<ellipse cx="${shadowCx}" cy="494" rx="${shadowRx}" ry="5" fill="rgba(22,20,15,.18)" opacity=".6"/>`;
+    html += placed.map(m => moduleBoxSVG(m, roomW)).join('');
+
+    // Empty slot
+    const slotSx = mmToSvgX(totalW, roomW);
+    const slotEx = mmToSvgX(roomW, roomW);
+    if (slotEx - slotSx > 14) {
+      const sm = (slotSx+slotEx)/2, smv = (SVG_MOD_T+SVG_MOD_B)/2;
+      html += `<g onclick="showToast('CLICK + IN CATALOG TO ADD A MODULE')" style="cursor:pointer">
+        <rect x="${slotSx}" y="${SVG_MOD_T}" width="${slotEx-slotSx}" height="${SVG_MOD_B-SVG_MOD_T}" fill="rgba(201,100,66,.04)" stroke="rgba(201,100,66,.3)" stroke-width="1.5" stroke-dasharray="5,4" rx="3"/>
+        <line x1="${sm}" y1="${smv-18}" x2="${sm}" y2="${smv+18}" stroke="rgba(201,100,66,.5)" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="${sm-18}" y1="${smv}" x2="${sm+18}" y2="${smv}" stroke="rgba(201,100,66,.5)" stroke-width="2.5" stroke-linecap="round"/>
+      </g>`;
+    }
+    // Room dimension label
+    html += `<line x1="${SVG_WALL_L}" y1="50" x2="${SVG_WALL_R}" y2="50" stroke="rgba(22,20,15,.18)" stroke-width=".8"/>`;
+    html += `<text x="${(SVG_WALL_L+SVG_WALL_R)/2}" y="46" fill="rgba(22,20,15,.28)" font-family="JetBrains Mono" font-size="8" text-anchor="middle" letter-spacing=".14em">ROOM · ${roomW}MM</text>`;
+
+    svg.innerHTML = html;
+    // Click handlers
+    svg.querySelectorAll('[data-mid]').forEach(el => {
+      el.addEventListener('click', () => selectPlacedModule(el.dataset.mid));
+    });
+  }
+
+  function selectPlacedModule(id) {
+    if (selectedId === id) return;
+    selectedId = id;
+    const m = placed.find(p => p.id === id);
+    if (m) { selectedModule = m.type; updateModuleSelection(); updateDesignCtx(); renderModuleConfig(m.type); }
+    renderRoom3D();
+  }
+
+  function addModuleFromCatalog(typeId, e) {
+    if (e) e.stopPropagation();
+    const cat = CATALOG_MODULES.find(c => c.id === typeId);
+    if (!cat) return;
+    const totalW = placed.reduce((s, m) => s + m.width, 0);
+    const newM = {
+      id: typeId + '-' + (++nextModId),
+      type: typeId, width: cat.widths[0],
+      x: totalW,
+      renderType: cat.renderType || 'wardrobe',
+      doors: cat.doors || 2, drawers: cat.drawers || 0, shelves: cat.shelves || 0,
+    };
+    placed.push(newM);
+    selectedId = newM.id;
+    selectedModule = typeId;
+    renderRoom3D();
+    updateModuleSelection();
+    updateDesignCtx();
+    renderModuleConfig(typeId);
+    renderCatalog(document.querySelector('.ct.active')?.dataset.cat || 'all');
+    showToast(cat.sku + ' · ' + cat.nm.toUpperCase() + ' ADDED TO ROOM');
+  }
+
+  function removeSelectedModule() {
+    const idx = placed.findIndex(m => m.id === selectedId);
+    if (idx < 0) return;
+    const lbl = placed[idx].type;
+    placed.splice(idx, 1);
+    selectedId = placed.length ? placed[Math.min(idx, placed.length-1)].id : null;
+    if (selectedId) { selectedModule = placed.find(m => m.id === selectedId)?.type; updateModuleSelection(); updateDesignCtx(); renderModuleConfig(selectedModule); }
+    renderRoom3D();
+    renderCatalog(document.querySelector('.ct.active')?.dataset.cat || 'all');
+    showToast(lbl.replace(/([A-Z])(\d)/g,'$1-$2') + ' REMOVED FROM ROOM');
+  }
 
   function renderCatalog(cat) {
     const items = cat === 'all' ? CATALOG_MODULES : CATALOG_MODULES.filter(m => m.cat === cat);
-    let html = '';
-    let lastCat = '';
+    const catLabels = { wardrobe:'Wardrobes', storage:'Storage', accent:'Accent' };
+    let html = '', lastCat = '';
     items.forEach(m => {
-      if (m.cat !== lastCat && cat === 'all') {
-        const labels = { wardrobe:'Wardrobes', storage:'Storage', accent:'Accent' };
-        html += `<div class="cat-section-lbl">${labels[m.cat]}</div>`;
-        lastCat = m.cat;
-      }
-      const inRoom = placedModules.has(m.id);
+      if (cat === 'all' && m.cat !== lastCat) { html += `<div class="cat-section-lbl">${catLabels[m.cat]}</div>`; lastCat = m.cat; }
+      const inRoom = placed.some(p => p.type === m.id);
       html += `<div class="cat-item${inRoom?' in-room':''}" data-cid="${m.id}">
         <div class="cat-item-th"><svg width="34" height="34"><use href="#${m.thumb}"/></svg></div>
         <div class="cat-item-info">
           <div class="cat-item-nm">${m.nm}</div>
-          <div class="cat-item-sub">${m.widths.join(' · ')}</div>
+          <div class="cat-item-sub">${m.widths.map(w=>w+'mm').join(' · ')}</div>
           <div class="cat-item-pr">${m.price}</div>
         </div>
         <button class="cat-item-add" title="Add to room" onclick="addModuleFromCatalog('${m.id}',event)">+</button>
@@ -1534,50 +1567,36 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     document.getElementById('catItems').innerHTML = html;
   }
 
-  function addModuleFromCatalog(id, e) {
-    if (e) e.stopPropagation();
-    placedModules.add(id);
-    renderCatalog(document.querySelector('.ct.active')?.dataset.cat || 'all');
-    const m = CATALOG_MODULES.find(x => x.id === id);
-    showToast((m ? m.sku + ' · ' + m.nm : id).toUpperCase() + ' ADDED TO ROOM');
-  }
-
-  function removeSelectedModule() {
-    if (!selectedModule) return;
-    placedModules.delete(selectedModule);
-    renderCatalog(document.querySelector('.ct.active')?.dataset.cat || 'all');
-    showToast(selectedModule.replace(/([A-Z])/g,'-$1').replace(/^-/,'') + ' REMOVED FROM ROOM');
-  }
-
-  // Module config panel helpers
-  const MOD_CFG = {
-    W2D:  { nm:'2-door wardrobe',       sku:'W-2D · 800 × 2400 × 600 MM',  sizes:['800mm','1000mm'],         int:['Hanging rod','2 × shelf','Shoe rack'] },
-    W3D:  { nm:'3-door wardrobe',       sku:'W-3D · 1200 × 2400 × 600 MM', sizes:['800mm','1200mm','1500mm'], int:['Hanging rod','3 × shelf','Drawers','Shoe rack'] },
-    D3S:  { nm:'Drawer stack × 3',      sku:'D-3S · 600 × 2400 × 600 MM',  sizes:['400mm','600mm','800mm'],   int:['4 drawers','Lockable top','Soft-close'] },
-    WMR:  { nm:'Mirror unit',           sku:'W-MR · 800 × 2400 × 400 MM',  sizes:['600mm','800mm'],           int:['Full mirror','Half mirror','Shelves below'] },
+  // Module config card
+  const MOD_INT_OPTS = {
+    wardrobe: ['Hanging rod','Shelves','Drawers','Shoe rack'],
+    drawer:   ['Soft-close','Lockable top','Dividers'],
+    mirror:   ['Full mirror','Half mirror','Shelf below'],
+    open:     ['Fixed shelves','Adjustable shelves','Basket pull-out'],
+    loft:     ['Hinged doors','Open front','Interior light'],
   };
-  let cfgSizes = {};
-  let cfgSwatchIdx = {};
-  let cfgInts = {};
-
-  function renderModuleConfig(modId) {
-    const cfg = MOD_CFG[modId] || { nm: modId, sku: modId, sizes:[], int:[] };
-    document.getElementById('cfgName').textContent = cfg.nm;
-    document.getElementById('cfgSku').textContent = cfg.sku;
-    const activeSize = cfgSizes[modId] || cfg.sizes[1] || cfg.sizes[0] || '';
-    document.getElementById('cfgSizes').innerHTML = cfg.sizes.map(s =>
-      `<button class="cfg-size${s===activeSize?' active':''}" onclick="setCfgSize(this,'${s}')">${s}</button>`
+  function renderModuleConfig(typeId) {
+    const cat = CATALOG_MODULES.find(c => c.id === typeId);
+    const m   = placed.find(p => p.id === selectedId);
+    if (!cat) return;
+    const w   = m ? m.width : cat.widths[0];
+    document.getElementById('cfgName').textContent = cat.nm;
+    document.getElementById('cfgSku').textContent  = cat.sku + ' · ' + w + ' × 2400 × 600 MM';
+    document.getElementById('cfgSizes').innerHTML  = cat.widths.map(sw =>
+      `<button class="cfg-size${sw===w?' active':''}" onclick="setModuleWidth(${sw})">${sw}mm</button>`
     ).join('');
-    const activeInts = cfgInts[modId] || new Set(cfg.int.slice(0,2));
-    document.getElementById('cfgInt').innerHTML = cfg.int.map(i =>
-      `<button class="cfg-int${activeInts.has(i)?' active':''}" onclick="toggleCfgInt(this)">${i}</button>`
+    const intOpts = MOD_INT_OPTS[cat.renderType] || MOD_INT_OPTS.wardrobe;
+    document.getElementById('cfgInt').innerHTML = intOpts.map((opt, i) =>
+      `<button class="cfg-int${i<2?' active':''}" onclick="this.classList.toggle('active')">${opt}</button>`
     ).join('');
   }
-
-  function setCfgSize(btn, sz) {
-    cfgSizes[selectedModule] = sz;
-    document.querySelectorAll('.cfg-size').forEach(b => b.classList.toggle('active', b === btn));
-    showToast(selectedModule + ' WIDTH SET TO ' + sz.toUpperCase());
+  function setModuleWidth(w) {
+    const m = placed.find(p => p.id === selectedId);
+    if (!m) return;
+    m.width = w;
+    renderRoom3D();
+    renderModuleConfig(m.type);
+    showToast('WIDTH SET TO ' + w + 'MM');
   }
   function setCfgSwatch(el) {
     document.querySelectorAll('.cfg-sw').forEach(s => s.classList.remove('active'));
@@ -2898,6 +2917,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
   // Initial render
   renderAssemblyGuide('W2D');
+  renderRoom3D();
   updateDesignCtx();
   renderModuleConfig('W3D');
   renderCatalog('all');
@@ -2915,8 +2935,9 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     const item = e.target.closest('.cat-item[data-cid]');
     if (!item || e.target.closest('.cat-item-add')) return;
     const id = item.dataset.cid;
-    if (placedModules.has(id)) {
-      selectModule(id);
+    const inRoom = placed.find(p => p.type === id);
+    if (inRoom) {
+      selectPlacedModule(inRoom.id);
       setDetailTab('bom');
     }
   });
