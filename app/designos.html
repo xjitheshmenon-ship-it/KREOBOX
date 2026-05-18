@@ -2570,23 +2570,24 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
   }
 
   // Render panels/guide when tab switches, or module changes
+  // Use assignment (not declaration) to avoid hoisting overwriting the originals
   const origSetDetailTab = setDetailTab;
-  function setDetailTab(tab) {
+  setDetailTab = function(tab) {
     origSetDetailTab(tab);
     if (tab === 'panels') renderPanelDiagrams(selectedModule);
     if (tab === 'install') renderAssemblyGuide(activeGuideModule);
     if (tab === 'track') renderTrackTab();
-  }
+  };
 
   const origSelectModule = selectModule;
-  function selectModule(id) {
+  selectModule = function(id) {
     origSelectModule(id);
     if (activeDetailTab === 'panels') renderPanelDiagrams(id);
     // Inject panel+hardware detail into the BOM expand row
     const expandEl = document.getElementById('expand-' + id);
     if (expandEl) expandEl.innerHTML = renderModuleDetail(id);
     // Do NOT force tab switch here — canvas click handler does it explicitly
-  }
+  };
 
   // Initial render for all modules (so expand content is ready for any selection)
   ['W2D','W3D','D3S','WMR'].forEach(id => {
