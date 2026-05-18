@@ -1623,98 +1623,103 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
   const ITEM_THUMB_MAP = { 'W-2D':'m-w2d','W-3D':'m-w3d','D-3S':'m-dr','W-MR':'m-mr' };
 
-  const FAB_STAGE_NAMES = ['CNC Cut','Edge Band','Laminate','Pre-drill','QC Check','Kit Ready'];
+  // Stages that happen PER ORDER after panels are pulled from depot.
+  // CNC Cut / Edge Band / Laminate are factory batch stages tracked
+  // in the admin depot restock pipeline — not per-order stages.
+  const FAB_STAGE_NAMES = ['Depot alloc','Pre-drill','QC check','Kit pack','Dispatch ready'];
   const FAB_DATA = {
     'KBX-04812': {
       items: {
-        'W-2D':  { s:[1,1,1,1,0,0], active:4, eta:'ETA 3 hrs' },
-        'W-3D':  { s:[1,1,1,0,0,0], active:3, eta:'ETA 5 hrs' },
-        'D-3S':  { s:[1,1,0,0,0,0], active:2, eta:'ETA 8 hrs' },
-        'W-MR':  { s:[1,0,0,0,0,0], active:1, eta:'ETA 10 hrs' },
+        'W-2D':  { s:[1,1,0,0,0], active:2, eta:'ETA 3 hrs' },
+        'W-3D':  { s:[1,0,0,0,0], active:1, eta:'ETA 5 hrs' },
+        'D-3S':  { s:[0,0,0,0,0], active:0, eta:'Awaiting depot alloc' },
+        'W-MR':  { s:[0,0,0,0,0], active:0, eta:'Awaiting depot alloc' },
       },
       feed: [
-        { t:'14:52', loc:'F-01 · PRE-DRILL', msg:'W-2D left side panel pre-drill done', badge:'done' },
-        { t:'14:38', loc:'F-01 · LAMIN',     msg:'W-2D all carcass panels laminated', badge:'done' },
-        { t:'14:21', loc:'F-01 · EDGE',      msg:'W-3D top & bottom edge banding done', badge:'done' },
-        { t:'14:05', loc:'F-01 · CNC-2',     msg:'D-3S dividers queued — 6 panels', badge:'active' },
-        { t:'13:48', loc:'F-01 · CNC-1',     msg:'W-MR back panel CNC cut complete', badge:'done' },
-        { t:'13:30', loc:'F-01 · QC',        msg:'W-2D back panel QC check in queue', badge:'queue' },
+        { t:'14:52', loc:'BLR-14 · DEPOT',   msg:'W-2D · 6 panels allocated (serials P-BLR-1186–1191)', badge:'done' },
+        { t:'14:38', loc:'F-01 · PRE-DRILL',  msg:'W-2D pre-drill started — hinge cups + dowel marks', badge:'active' },
+        { t:'14:10', loc:'BLR-14 · DEPOT',   msg:'W-3D · 8 panels allocated (serials P-BLR-1188–1195)', badge:'done' },
+        { t:'13:48', loc:'F-01 · ALLOC',      msg:'D-3S panels pending — BLR-14 stock check in progress', badge:'queue' },
+        { t:'13:30', loc:'F-01 · ALLOC',      msg:'W-MR panels pending — BLR-14 stock check in progress', badge:'queue' },
       ]
     },
     'KBX-04798': {
       items: {
-        'OFC-01':  { s:[1,1,1,0,0,0], active:3, eta:'ETA 4 hrs' },
-        'BOOK-01': { s:[1,1,0,0,0,0], active:2, eta:'ETA 7 hrs' },
-        'CAB-03':  { s:[1,1,1,1,1,1], active:-1, eta:'Kit Ready' },
+        'OFC-01':  { s:[1,1,0,0,0], active:2, eta:'ETA 4 hrs' },
+        'BOOK-01': { s:[1,0,0,0,0], active:1, eta:'ETA 7 hrs' },
+        'CAB-03':  { s:[1,1,1,1,1], active:-1, eta:'Dispatch ready' },
       },
       feed: [
-        { t:'14:38', loc:'F-02 · CNC-3',    msg:'OFC-01 top panel CNC cut complete', badge:'done' },
-        { t:'14:25', loc:'F-02 · LAMIN',    msg:'OFC-01 side panels → laminator bay 2', badge:'active' },
-        { t:'14:10', loc:'F-02 · EDGE',     msg:'BOOK-01 top shelf edge banding done', badge:'done' },
-        { t:'13:52', loc:'F-02 · CNC-3',    msg:'BOOK-01 back panel queued for cut', badge:'queue' },
-        { t:'13:44', loc:'F-02 · QC',       msg:'CAB-03 kit QC passed — KIT READY', badge:'pass' },
-        { t:'13:28', loc:'F-02 · PRE-DRILL',msg:'CAB-03 all panels pre-drilled & marked', badge:'done' },
+        { t:'14:38', loc:'MUM-07 · DEPOT',   msg:'CAB-03 · 4 panels allocated & confirmed', badge:'done' },
+        { t:'14:25', loc:'F-02 · PRE-DRILL', msg:'OFC-01 pre-drill started — cable grommet + dowel marks', badge:'active' },
+        { t:'14:10', loc:'MUM-07 · DEPOT',   msg:'OFC-01 · 4 panels allocated (serials M-002-441–444)', badge:'done' },
+        { t:'13:52', loc:'MUM-07 · DEPOT',   msg:'BOOK-01 · 3 panels allocated', badge:'done' },
+        { t:'13:44', loc:'F-02 · KIT PACK',  msg:'CAB-03 kit packed & sealed — dispatch ready', badge:'pass' },
+        { t:'13:28', loc:'F-02 · QC',        msg:'CAB-03 QC check passed · all panels verified', badge:'done' },
       ]
     },
     'KBX-04811': {
       items: {
-        'KIT-UPR-1': { s:[1,1,1,1,0,0], active:4, eta:'ETA 5 hrs' },
-        'KIT-LWR-1': { s:[1,1,1,0,0,0], active:3, eta:'ETA 8 hrs' },
-        'KIT-ISL-1': { s:[1,1,0,0,0,0], active:2, eta:'ETA 12 hrs' },
-        'KIT-PAN-1': { s:[0,0,0,0,0,0], active:0, eta:'Queued' },
+        'KIT-UPR-1': { s:[1,1,1,0,0], active:3, eta:'ETA 5 hrs' },
+        'KIT-LWR-1': { s:[1,1,0,0,0], active:2, eta:'ETA 8 hrs' },
+        'KIT-ISL-1': { s:[1,0,0,0,0], active:1, eta:'ETA 12 hrs' },
+        'KIT-PAN-1': { s:[0,0,0,0,0], active:0, eta:'Awaiting depot alloc' },
       },
       feed: [
-        { t:'15:10', loc:'F-03 · PRE-DRILL', msg:'KIT-UPR-1 shelf pin holes pre-drilled', badge:'done' },
-        { t:'14:55', loc:'F-03 · LAMIN',     msg:'KIT-LWR-1 lower panels in laminator', badge:'active' },
-        { t:'14:30', loc:'F-03 · CNC-1',     msg:'KIT-ISL-1 waterfall sides cut', badge:'done' },
-        { t:'14:12', loc:'F-03 · EDGE',      msg:'KIT-UPR-1 all doors edge banding done', badge:'done' },
-        { t:'13:50', loc:'F-03 · CNC-2',     msg:'KIT-PAN-1 scheduled for tomorrow AM', badge:'queue' },
+        { t:'15:10', loc:'DEL-03 · DEPOT',   msg:'KIT-UPR-1 · 12 panels allocated from DEL-03', badge:'done' },
+        { t:'15:00', loc:'F-03 · PRE-DRILL', msg:'KIT-UPR-1 shelf pin holes pre-drilled · 48 holes', badge:'done' },
+        { t:'14:55', loc:'F-03 · QC',        msg:'KIT-UPR-1 QC check in progress', badge:'active' },
+        { t:'14:30', loc:'DEL-03 · DEPOT',   msg:'KIT-LWR-1 · 14 panels allocated', badge:'done' },
+        { t:'14:12', loc:'F-03 · PRE-DRILL', msg:'KIT-LWR-1 pre-drill started', badge:'active' },
+        { t:'13:50', loc:'DEL-03 · DEPOT',   msg:'KIT-PAN-1 alloc pending — min stock check running', badge:'queue' },
       ]
     },
     'KBX-04807': {
       items: {
-        'LIV-TV-1':  { s:[1,1,1,1,1,1], active:-1, eta:'Kit Ready' },
-        'LIV-CAB-2': { s:[1,1,1,1,1,1], active:-1, eta:'Kit Ready' },
+        'LIV-TV-1':  { s:[1,1,1,1,1], active:-1, eta:'Dispatch ready' },
+        'LIV-CAB-2': { s:[1,1,1,1,1], active:-1, eta:'Dispatch ready' },
       },
       feed: [
-        { t:'11:24', loc:'F-01 · KIT',    msg:'LIV-TV-1 kit packed & sealed', badge:'pass' },
-        { t:'11:10', loc:'F-01 · QC',     msg:'LIV-CAB-2 QC check passed', badge:'pass' },
-        { t:'10:52', loc:'F-01 · QC',     msg:'LIV-TV-1 QC check passed', badge:'pass' },
-        { t:'09:38', loc:'F-01 · PRE-DRILL', msg:'LIV-CAB-2 hinge holes pre-drilled', badge:'done' },
+        { t:'11:24', loc:'F-01 · DISPATCH',  msg:'LIV-TV-1 kit sealed · dispatch label printed', badge:'pass' },
+        { t:'11:10', loc:'F-01 · DISPATCH',  msg:'LIV-CAB-2 kit sealed · dispatch label printed', badge:'pass' },
+        { t:'10:52', loc:'F-01 · QC',        msg:'LIV-TV-1 QC passed · 8 panels verified', badge:'done' },
+        { t:'10:38', loc:'F-01 · QC',        msg:'LIV-CAB-2 QC passed · 6 panels verified', badge:'done' },
+        { t:'09:30', loc:'BLR-14 · DEPOT',   msg:'All panels allocated — 14 serials assigned', badge:'done' },
       ]
     },
     'KBX-04803': {
       items: {
-        'W-2D':  { s:[1,1,1,1,1,1], active:-1, eta:'Kit Ready' },
-        'BED-1': { s:[1,1,1,1,1,0], active:5,  eta:'ETA 1 hr' },
+        'W-2D':  { s:[1,1,1,1,1], active:-1, eta:'Dispatch ready' },
+        'BED-1': { s:[1,1,1,0,0], active:3,  eta:'ETA 1 hr' },
       },
       feed: [
-        { t:'14:18', loc:'F-02 · QC',      msg:'W-2D kit QC passed — ready for dispatch', badge:'pass' },
-        { t:'13:55', loc:'F-02 · QC',      msg:'BED-1 QC check started', badge:'active' },
-        { t:'13:40', loc:'F-02 · PRE-DRILL',msg:'BED-1 headboard mounting holes done', badge:'done' },
-        { t:'12:50', loc:'F-02 · LAMIN',   msg:'BED-1 side rails laminated', badge:'done' },
+        { t:'14:18', loc:'F-02 · DISPATCH',  msg:'W-2D kit sealed — dispatch ready', badge:'pass' },
+        { t:'13:55', loc:'F-02 · KIT PACK',  msg:'W-2D kit packing complete · 6 panels', badge:'done' },
+        { t:'13:44', loc:'F-02 · QC',        msg:'BED-1 QC check passed', badge:'done' },
+        { t:'13:40', loc:'F-02 · PRE-DRILL', msg:'BED-1 headboard mounting holes pre-drilled', badge:'done' },
+        { t:'12:50', loc:'MUM-07 · DEPOT',   msg:'BED-1 · 3 panels allocated', badge:'done' },
       ]
     },
     'KBX-04799': {
       items: {
-        'KIDS-BED': { s:[0,0,0,0,0,0], active:0, eta:'Design phase' },
-        'KIDS-STU': { s:[0,0,0,0,0,0], active:0, eta:'Design phase' },
+        'KIDS-BED': { s:[0,0,0,0,0], active:0, eta:'Design phase' },
+        'KIDS-STU': { s:[0,0,0,0,0], active:0, eta:'Design phase' },
       },
       feed: [
-        { t:'—', loc:'DESIGN',  msg:'KIDS-BED awaiting design sign-off', badge:'queue' },
+        { t:'—', loc:'DESIGN',  msg:'KIDS-BED awaiting design sign-off before depot alloc', badge:'queue' },
         { t:'—', loc:'DESIGN',  msg:'KIDS-STU material selection pending', badge:'queue' },
       ]
     },
     'KBX-04795': {
       items: {
-        'DIN-BUF-1': { s:[1,1,1,0,0,0], active:3, eta:'ETA 6 hrs' },
-        'DIN-WINE':  { s:[1,0,0,0,0,0], active:1, eta:'ETA 9 hrs' },
+        'DIN-BUF-1': { s:[1,1,0,0,0], active:2, eta:'ETA 6 hrs' },
+        'DIN-WINE':  { s:[1,0,0,0,0], active:1, eta:'ETA 9 hrs' },
       },
       feed: [
-        { t:'14:44', loc:'F-01 · LAMIN',   msg:'DIN-BUF-1 top panel laminated', badge:'done' },
-        { t:'14:20', loc:'F-01 · EDGE',    msg:'DIN-BUF-1 doors edge banding in progress', badge:'active' },
-        { t:'13:58', loc:'F-01 · CNC-2',   msg:'DIN-WINE back panel cut complete', badge:'done' },
-        { t:'13:30', loc:'F-01 · CNC-1',   msg:'DIN-WINE wine cubbies queued', badge:'queue' },
+        { t:'14:44', loc:'BLR-14 · DEPOT',   msg:'DIN-BUF-1 · 6 panels allocated (serials P-BLR-1820–1825)', badge:'done' },
+        { t:'14:20', loc:'F-01 · PRE-DRILL', msg:'DIN-BUF-1 pre-drill in progress — drawer runners', badge:'active' },
+        { t:'13:58', loc:'BLR-14 · DEPOT',   msg:'DIN-WINE · 4 panels allocated', badge:'done' },
+        { t:'13:30', loc:'F-01 · PRE-DRILL', msg:'DIN-WINE pre-drill queued', badge:'queue' },
       ]
     },
   };
