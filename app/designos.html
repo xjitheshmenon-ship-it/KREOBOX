@@ -383,6 +383,41 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 .item-mat .mat-txt strong{color:var(--paper);display:block;letter-spacing:.08em;}
 .item-factory{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:100px;background:var(--surface-2);border:1px solid var(--line);font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.12em;text-transform:uppercase;margin-top:8px;}
 
+/* Fabrication live feed (internal mode only) */
+.fab-stage-wrap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+.fab-stage-wrap.hidden{display:none;}
+.fab-stage-row{display:flex;align-items:center;gap:0;margin-bottom:5px;}
+.fab-stage-row .fs{flex:1;height:4px;background:var(--line);border-radius:0;position:relative;margin-right:2px;border-radius:2px;}
+.fab-stage-row .fs:last-child{margin-right:0;}
+.fab-stage-row .fs.done{background:#4ea25a;}
+.fab-stage-row .fs.active{background:var(--amber);animation:fabpulse 1.2s infinite ease-in-out;}
+@keyframes fabpulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.fab-stage-lbls{display:flex;gap:0;margin-bottom:4px;}
+.fab-stage-lbls span{flex:1;font-family:"JetBrains Mono",monospace;font-size:8px;color:var(--mute);letter-spacing:.06em;text-transform:uppercase;text-align:center;padding-right:2px;}
+.fab-stage-lbls span.done{color:#4ea25a;}
+.fab-stage-lbls span.active{color:var(--amber);}
+.fab-pct-row{display:flex;align-items:center;justify-content:space-between;margin-top:3px;}
+.fab-pct-row .fp-pct{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--green);letter-spacing:.1em;}
+.fab-pct-row .fp-eta{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.08em;}
+.fab-section{display:none;margin-top:14px;}
+.app.internal-mode .fab-section{display:block;}
+.fab-section-h{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.fab-section-h .fs-label{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);}
+.fab-section-h .live-dot{width:6px;height:6px;border-radius:50%;background:#4ea25a;animation:pulse 1.6s infinite ease-out;flex-shrink:0;}
+.fab-feed-box{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.fab-feed-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--surface-3);}
+.fab-feed-hd span{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);}
+.fab-evt{display:grid;grid-template-columns:38px 90px 1fr auto;gap:8px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--line);}
+.fab-evt:last-child{border-bottom:none;}
+.fab-evt .fe-t{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.06em;}
+.fab-evt .fe-loc{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--sienna-2);letter-spacing:.08em;text-transform:uppercase;}
+.fab-evt .fe-msg{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--paper);letter-spacing:.04em;}
+.fab-evt .fe-badge{font-family:"JetBrains Mono",monospace;font-size:8px;padding:2px 7px;border-radius:100px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;}
+.fab-evt .fe-badge.done{background:rgba(78,162,90,.15);color:#4ea25a;}
+.fab-evt .fe-badge.active{background:rgba(212,164,74,.15);color:var(--amber);}
+.fab-evt .fe-badge.queue{background:rgba(140,140,140,.12);color:var(--mute);}
+.fab-evt .fe-badge.pass{background:rgba(61,122,191,.15);color:var(--blue);}
+
 /* Internal footer */
 .int-footer{grid-area:int-foot;display:none;background:var(--surface);border-top:1px solid var(--line);align-items:center;padding:0 20px;gap:24px;}
 .int-footer .f-stat{display:flex;align-items:center;gap:8px;font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--mute);letter-spacing:.12em;text-transform:uppercase;}
@@ -1540,6 +1575,102 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
   const ITEM_THUMB_MAP = { 'W-2D':'m-w2d','W-3D':'m-w3d','D-3S':'m-dr','W-MR':'m-mr' };
 
+  const FAB_STAGE_NAMES = ['CNC Cut','Edge Band','Laminate','Pre-drill','QC Check','Kit Ready'];
+  const FAB_DATA = {
+    'KBX-04812': {
+      items: {
+        'W-2D':  { s:[1,1,1,1,0,0], active:4, eta:'ETA 3 hrs' },
+        'W-3D':  { s:[1,1,1,0,0,0], active:3, eta:'ETA 5 hrs' },
+        'D-3S':  { s:[1,1,0,0,0,0], active:2, eta:'ETA 8 hrs' },
+        'W-MR':  { s:[1,0,0,0,0,0], active:1, eta:'ETA 10 hrs' },
+      },
+      feed: [
+        { t:'14:52', loc:'F-01 · PRE-DRILL', msg:'W-2D left side panel pre-drill done', badge:'done' },
+        { t:'14:38', loc:'F-01 · LAMIN',     msg:'W-2D all carcass panels laminated', badge:'done' },
+        { t:'14:21', loc:'F-01 · EDGE',      msg:'W-3D top & bottom edge banding done', badge:'done' },
+        { t:'14:05', loc:'F-01 · CNC-2',     msg:'D-3S dividers queued — 6 panels', badge:'active' },
+        { t:'13:48', loc:'F-01 · CNC-1',     msg:'W-MR back panel CNC cut complete', badge:'done' },
+        { t:'13:30', loc:'F-01 · QC',        msg:'W-2D back panel QC check in queue', badge:'queue' },
+      ]
+    },
+    'KBX-04798': {
+      items: {
+        'OFC-01':  { s:[1,1,1,0,0,0], active:3, eta:'ETA 4 hrs' },
+        'BOOK-01': { s:[1,1,0,0,0,0], active:2, eta:'ETA 7 hrs' },
+        'CAB-03':  { s:[1,1,1,1,1,1], active:-1, eta:'Kit Ready' },
+      },
+      feed: [
+        { t:'14:38', loc:'F-02 · CNC-3',    msg:'OFC-01 top panel CNC cut complete', badge:'done' },
+        { t:'14:25', loc:'F-02 · LAMIN',    msg:'OFC-01 side panels → laminator bay 2', badge:'active' },
+        { t:'14:10', loc:'F-02 · EDGE',     msg:'BOOK-01 top shelf edge banding done', badge:'done' },
+        { t:'13:52', loc:'F-02 · CNC-3',    msg:'BOOK-01 back panel queued for cut', badge:'queue' },
+        { t:'13:44', loc:'F-02 · QC',       msg:'CAB-03 kit QC passed — KIT READY', badge:'pass' },
+        { t:'13:28', loc:'F-02 · PRE-DRILL',msg:'CAB-03 all panels pre-drilled & marked', badge:'done' },
+      ]
+    },
+    'KBX-04811': {
+      items: {
+        'KIT-UPR-1': { s:[1,1,1,1,0,0], active:4, eta:'ETA 5 hrs' },
+        'KIT-LWR-1': { s:[1,1,1,0,0,0], active:3, eta:'ETA 8 hrs' },
+        'KIT-ISL-1': { s:[1,1,0,0,0,0], active:2, eta:'ETA 12 hrs' },
+        'KIT-PAN-1': { s:[0,0,0,0,0,0], active:0, eta:'Queued' },
+      },
+      feed: [
+        { t:'15:10', loc:'F-03 · PRE-DRILL', msg:'KIT-UPR-1 shelf pin holes pre-drilled', badge:'done' },
+        { t:'14:55', loc:'F-03 · LAMIN',     msg:'KIT-LWR-1 lower panels in laminator', badge:'active' },
+        { t:'14:30', loc:'F-03 · CNC-1',     msg:'KIT-ISL-1 waterfall sides cut', badge:'done' },
+        { t:'14:12', loc:'F-03 · EDGE',      msg:'KIT-UPR-1 all doors edge banding done', badge:'done' },
+        { t:'13:50', loc:'F-03 · CNC-2',     msg:'KIT-PAN-1 scheduled for tomorrow AM', badge:'queue' },
+      ]
+    },
+    'KBX-04807': {
+      items: {
+        'LIV-TV-1':  { s:[1,1,1,1,1,1], active:-1, eta:'Kit Ready' },
+        'LIV-CAB-2': { s:[1,1,1,1,1,1], active:-1, eta:'Kit Ready' },
+      },
+      feed: [
+        { t:'11:24', loc:'F-01 · KIT',    msg:'LIV-TV-1 kit packed & sealed', badge:'pass' },
+        { t:'11:10', loc:'F-01 · QC',     msg:'LIV-CAB-2 QC check passed', badge:'pass' },
+        { t:'10:52', loc:'F-01 · QC',     msg:'LIV-TV-1 QC check passed', badge:'pass' },
+        { t:'09:38', loc:'F-01 · PRE-DRILL', msg:'LIV-CAB-2 hinge holes pre-drilled', badge:'done' },
+      ]
+    },
+    'KBX-04803': {
+      items: {
+        'W-2D':  { s:[1,1,1,1,1,1], active:-1, eta:'Kit Ready' },
+        'BED-1': { s:[1,1,1,1,1,0], active:5,  eta:'ETA 1 hr' },
+      },
+      feed: [
+        { t:'14:18', loc:'F-02 · QC',      msg:'W-2D kit QC passed — ready for dispatch', badge:'pass' },
+        { t:'13:55', loc:'F-02 · QC',      msg:'BED-1 QC check started', badge:'active' },
+        { t:'13:40', loc:'F-02 · PRE-DRILL',msg:'BED-1 headboard mounting holes done', badge:'done' },
+        { t:'12:50', loc:'F-02 · LAMIN',   msg:'BED-1 side rails laminated', badge:'done' },
+      ]
+    },
+    'KBX-04799': {
+      items: {
+        'KIDS-BED': { s:[0,0,0,0,0,0], active:0, eta:'Design phase' },
+        'KIDS-STU': { s:[0,0,0,0,0,0], active:0, eta:'Design phase' },
+      },
+      feed: [
+        { t:'—', loc:'DESIGN',  msg:'KIDS-BED awaiting design sign-off', badge:'queue' },
+        { t:'—', loc:'DESIGN',  msg:'KIDS-STU material selection pending', badge:'queue' },
+      ]
+    },
+    'KBX-04795': {
+      items: {
+        'DIN-BUF-1': { s:[1,1,1,0,0,0], active:3, eta:'ETA 6 hrs' },
+        'DIN-WINE':  { s:[1,0,0,0,0,0], active:1, eta:'ETA 9 hrs' },
+      },
+      feed: [
+        { t:'14:44', loc:'F-01 · LAMIN',   msg:'DIN-BUF-1 top panel laminated', badge:'done' },
+        { t:'14:20', loc:'F-01 · EDGE',    msg:'DIN-BUF-1 doors edge banding in progress', badge:'active' },
+        { t:'13:58', loc:'F-01 · CNC-2',   msg:'DIN-WINE back panel cut complete', badge:'done' },
+        { t:'13:30', loc:'F-01 · CNC-1',   msg:'DIN-WINE wine cubbies queued', badge:'queue' },
+      ]
+    },
+  };
+
   let activeProject = 'KBX-04812';
   let expandedItem = null;
   let isInternalMode = false;
@@ -1567,6 +1698,31 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     expandedItem = null;
     const body = document.getElementById('projDetailBody');
     const statusLabels = { ready:'Ready', 'in-prod':'In production', design:'Design phase' };
+    const fabProj = FAB_DATA[projId] || { items:{}, feed:[] };
+
+    function fabStageHTML(sku) {
+      const fd = fabProj.items[sku];
+      if (!fd) return '';
+      const doneCount = fd.s.filter(Boolean).length;
+      const pct = Math.round((doneCount / FAB_STAGE_NAMES.length) * 100);
+      const lbls = FAB_STAGE_NAMES.map((n,i) => {
+        const cls = fd.s[i] ? 'done' : (i === fd.active ? 'active' : '');
+        return `<span class="${cls}">${n}</span>`;
+      }).join('');
+      const bars = fd.s.map((done, i) => {
+        const cls = done ? 'done' : (i === fd.active ? 'active' : '');
+        return `<div class="fs ${cls}"></div>`;
+      }).join('');
+      return `<div class="fab-stage-wrap">
+        <div class="fab-stage-lbls">${lbls}</div>
+        <div class="fab-stage-row">${bars}</div>
+        <div class="fab-pct-row">
+          <span class="fp-pct">${pct}% complete · ${doneCount}/${FAB_STAGE_NAMES.length} stages</span>
+          <span class="fp-eta">${fd.eta}</span>
+        </div>
+      </div>`;
+    }
+
     body.innerHTML = '<div style="margin-bottom:10px" class="item-section-h"><span>' + proj.modules + ' items in order</span><span class="cnt">' + proj.panels + ' panels total</span></div>' +
       proj.items.map((item, i) => {
         const thumbId = getThumbId(item.sku);
@@ -1590,9 +1746,29 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
               <div class="mat-txt"><strong>${item.mat.name}</strong>${item.mat.sub}</div>
             </div>
             <span class="item-factory">Factory · ${item.factory}</span>
+            ${fabStageHTML(item.sku)}
           </div>
         </div>`;
-      }).join('');
+      }).join('') +
+      // Live fabrication feed (visible in internal mode via CSS)
+      `<div class="fab-section">
+        <div class="fab-section-h">
+          <div class="live-dot"></div>
+          <span class="fs-label">Live fabrication feed · ${projId}</span>
+        </div>
+        <div class="fab-feed-box">
+          <div class="fab-feed-hd">
+            <span>Factory events · today</span>
+            <span>${fabProj.feed.length} updates</span>
+          </div>
+          ${fabProj.feed.map(ev => `<div class="fab-evt">
+            <span class="fe-t">${ev.t}</span>
+            <span class="fe-loc">${ev.loc}</span>
+            <span class="fe-msg">${ev.msg}</span>
+            <span class="fe-badge ${ev.badge}">${ev.badge}</span>
+          </div>`).join('')}
+        </div>
+      </div>`;
 
     // Add click handlers for expand/collapse
     body.querySelectorAll('.item-card').forEach(card => {
