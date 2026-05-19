@@ -505,7 +505,7 @@ function estimateItemPrice(priceStr) {
 }
 
 /* ── TRUE PERSPECTIVE 3D view — driven by placed items ──────── */
-function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: RD = 2840, roomH: RH = 2400, onMoveItem }) {
+function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: RD = 2840, roomH: RH = 2400, onMoveItem, onDrop, onItemSelect }) {
   const { useState: useS, useCallback: useCB, useMemo: useM, useRef } = React;
   const SVG_W = 620, SVG_H = 440;
   const denom = Math.sqrt(RW * RW + RD * RD);
@@ -602,11 +602,12 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
       const item = items[clickedItemIdx];
       const c2 = itemCenter2D(item);
       setSelIdx(clickedItemIdx);
+      onItemSelect && onItemSelect(items[clickedItemIdx]?.id || null);
       setZoomCtr({ x: c2.x, y: c2.y });
       setZoom(2);
       drag.current = { type: 'move', idx: clickedItemIdx, ox: item.x, oy: item.y, depth: c2.z };
     } else {
-      if (selIdx !== null) { setSelIdx(null); setZoom(1); drag.current = null; return; }
+      if (selIdx !== null) { setSelIdx(null); onItemSelect && onItemSelect(null); setZoom(1); drag.current = null; return; }
       drag.current = { type: 'rotate', sx: e.clientX, sy: e.clientY, y0: yaw, p0: pitch };
     }
   };
@@ -648,11 +649,14 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
   const confirmMove = (e) => {
     e.stopPropagation();
     setSelIdx(null);
+    onItemSelect && onItemSelect(null);
     setZoom(1);
   };
 
   return (
-    <div style={{ position:'relative', width:'100%', height:'100%' }}>
+    <div style={{ position:'relative', width:'100%', height:'100%' }}
+      onDrop={e => { e.preventDefault(); try { const data = JSON.parse(e.dataTransfer.getData('text/plain')); onDrop && onDrop({ ...data, x: RW*0.15 + items.length * 650, y: 200 }); } catch {} }}
+      onDragOver={e => e.preventDefault()}>
       <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`}
         style={{ width:'100%', height:'100%', display:'block', userSelect:'none',
           cursor: selIdx !== null ? 'move' : 'grab' }}
@@ -1359,6 +1363,7 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
   const [search, setSearch] = useS('');
   const [selectedVariants, setSelectedVariants] = useS({});
   const searchRef = useRef(null);
+  const dragActive = useRef(false);
 
   const getSelVariant = (item) => {
     const name = typeof item === 'string' ? item : item.name;
@@ -1476,8 +1481,9 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
           return (
             <div key={`${name}-${idx}`}
               draggable
-              onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims }))}
-              onClick={() => onAdd && onAdd({ name, variant: selV, price })}
+              onDragStart={e => { dragActive.current = true; e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims })); }}
+              onDragEnd={() => { setTimeout(() => { dragActive.current = false; }, 50); }}
+              onClick={() => { if (!dragActive.current) onAdd && onAdd({ name, variant: selV, price }); }}
               style={{
                 display:'flex', alignItems:'center', gap:14, padding:'12px 20px',
                 cursor:'pointer', borderBottom:`1px solid ${pLine}`,
