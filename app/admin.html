@@ -271,6 +271,8 @@
   /* Factory batch pipe-cols: 4 columns */
   .pipe-cols-4 { grid-template-columns: repeat(4, 1fr); }
   .pipe-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .pipe-cols-5 { grid-template-columns: repeat(5, 1fr); }
+  .pay-due { display:inline-block; font-family:"JetBrains Mono",monospace; font-size:8px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; background:rgba(201,100,66,.14); color:var(--sienna-3); border:1px solid rgba(201,100,66,.3); border-radius:4px; padding:2px 5px; margin-top:4px; }
 
   /* Batch card specifics */
   .pipe-card .batch-qty {
@@ -825,20 +827,16 @@
         <div class="pipe-section-h">
           <div class="pipe-section-dot"></div>
           <span class="pipe-section-label">Customer orders</span>
-          <span class="pipe-section-sub">Ordered → Installing → Done · avg cycle 51 hrs</span>
+          <span class="pipe-section-sub">Ordered → Kit Ready → Final Payment → Dispatched → Installing · Done · avg cycle 51 hrs</span>
         </div>
-        <div class="pipe-cols pipe-cols-3">
+        <div class="pipe-cols pipe-cols-5">
+          <!-- 01 Ordered -->
           <div class="pipe-col">
             <div class="pipe-col-h">
               <span class="nm">01 · Ordered</span>
-              <span class="cnt hot">14</span>
+              <span class="cnt hot">4</span>
             </div>
             <div class="pipe-cards">
-              <div class="pipe-card urgent">
-                <div class="id">#KBX-04812</div>
-                <div class="nm">4-door wardrobe</div>
-                <div class="meta"><span class="city">HSR · BLR</span><span class="val">₹1.42L</span></div>
-              </div>
               <div class="pipe-card">
                 <div class="id">#KBX-04813</div>
                 <div class="nm">L-shape kitchen</div>
@@ -854,13 +852,61 @@
                 <div class="nm">Parallel kitchen</div>
                 <div class="meta"><span class="city">INDIR · BLR</span><span class="val">₹2.24L</span></div>
               </div>
+              <div class="pipe-card">
+                <div class="id">#KBX-04816</div>
+                <div class="nm">TV unit + storage</div>
+                <div class="meta"><span class="city">KORM · BLR</span><span class="val">₹74K</span></div>
+              </div>
             </div>
           </div>
 
+          <!-- 02 Kit Ready — QC passed at factory, final payment due -->
           <div class="pipe-col">
             <div class="pipe-col-h">
-              <span class="nm">02 · Installing</span>
-              <span class="cnt hot">6</span>
+              <span class="nm">02 · Kit Ready</span>
+              <span class="cnt hot">2</span>
+            </div>
+            <div class="pipe-cards">
+              <div class="pipe-card urgent">
+                <div class="id">#KBX-04798</div>
+                <div class="nm">Home office · 3 modules</div>
+                <div class="meta"><span class="city">BANDRA · MUM</span><span class="val">₹96.8K</span></div>
+                <div class="pay-due">⚡ Final payment due</div>
+              </div>
+              <div class="pipe-card">
+                <div class="id">#KBX-04795</div>
+                <div class="nm">3-door wardrobe</div>
+                <div class="meta"><span class="city">JP · BLR</span><span class="val">₹86K</span></div>
+                <div class="pay-due">Final payment due</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 03 Dispatched — payment received, kit en route -->
+          <div class="pipe-col">
+            <div class="pipe-col-h">
+              <span class="nm">03 · Dispatched</span>
+              <span class="cnt hot">2</span>
+            </div>
+            <div class="pipe-cards">
+              <div class="pipe-card">
+                <div class="id">#KBX-04812</div>
+                <div class="nm">4-door wardrobe</div>
+                <div class="meta"><span class="city">HSR · BLR</span><span class="val">₹1.84L</span></div>
+              </div>
+              <div class="pipe-card">
+                <div class="id">#KBX-04769</div>
+                <div class="nm">Master bedroom set</div>
+                <div class="meta"><span class="city">VIMAN · PUN</span><span class="val">₹1.42L</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 04 Installing -->
+          <div class="pipe-col">
+            <div class="pipe-col-h">
+              <span class="nm">04 · Installing</span>
+              <span class="cnt hot">3</span>
             </div>
             <div class="pipe-cards">
               <div class="pipe-card urgent">
@@ -881,9 +927,10 @@
             </div>
           </div>
 
+          <!-- 05 Done -->
           <div class="pipe-col">
             <div class="pipe-col-h">
-              <span class="nm">03 · Done</span>
+              <span class="nm">05 · Done</span>
               <span class="cnt">3</span>
             </div>
             <div class="pipe-cards">
@@ -1415,8 +1462,8 @@
           <button class="active" data-filter="all">All</button>
           <button data-filter="urgent">Urgent</button>
           <button data-filter="installing">Installing</button>
-          <button data-filter="ready">Kit ready</button>
-          <button data-filter="cnc">CNC</button>
+          <button data-filter="kitready">Kit ready</button>
+          <button data-filter="dispatched">Dispatched</button>
           <button data-filter="done">Done</button>
         </div>
         <button class="tbl-btn primary" onclick="toast('NEW ORDER FORM OPENING…')">+ New order</button>
@@ -1891,7 +1938,7 @@
   });
 
   // ── ORDER TRACKER DATA ──
-  const STAGE_LABELS = ['Ordered','CNC Cut','Kit Ready','Transit','Installing','Done'];
+  const STAGE_LABELS = ['Ordered','Kit Ready','Dispatched','Installing','Done'];
 
   const ORDERS_DATA = [
     { id:'KBX-04812', status:'urgent', urgent:true, activeStage:4, progress:76,
@@ -2012,38 +2059,49 @@
         {time:'11 MAY',actor:'System',action:'Kit QC passed · F-02 PUN · 12 panels',badge:'qc'},
         {time:'10 MAY',actor:'System',action:'Panels allocated · 12 panels tagged',badge:'scanned'},
       ]},
-    { id:'KBX-04798', status:'cnc', urgent:false, activeStage:1, progress:55,
+    { id:'KBX-04798', status:'kitready', urgent:true, activeStage:1, progress:100,
       customer:'Rahul Verma', product:'Home office + study · 3 modules',
-      city:'BANDRA · MUM', value:'₹96,800', date:'10 MAY', contractor:'Deepak M.', statusLabel:'CNC Cut',
+      city:'BANDRA · MUM', value:'₹96,800', date:'10 MAY', contractor:'Deepak M.', statusLabel:'⚡ Payment due',
       panels:[], events:[
-        {time:'10 MAY',actor:'System',action:'Order confirmed · 16 panels queued for CNC',badge:'qc'},
+        {time:'10 MAY',actor:'System',action:'QC passed · 16 panels kit-packed · final payment pending',badge:'qc'},
+        {time:'10 MAY',actor:'System',action:'Order confirmed · 16 panels to factory',badge:'qc'},
       ]},
-    { id:'KBX-04795', status:'cnc', urgent:false, activeStage:1, progress:30,
+    { id:'KBX-04795', status:'kitready', urgent:false, activeStage:1, progress:100,
       customer:'Suresh Pillai', product:'3-door wardrobe · 1 module',
-      city:'JP · BLR', value:'₹86,000', date:'9 MAY', contractor:'Suresh K.', statusLabel:'CNC Cut',
+      city:'JP · BLR', value:'₹86,000', date:'9 MAY', contractor:'Suresh K.', statusLabel:'Payment due',
       panels:[], events:[
-        {time:'9 MAY',actor:'System',action:'Order confirmed · 7 panels queued for CNC',badge:'qc'},
+        {time:'9 MAY',actor:'System',action:'QC passed · 7 panels kit-packed · final payment pending',badge:'qc'},
+        {time:'9 MAY',actor:'System',action:'Order confirmed · 7 panels to factory',badge:'qc'},
       ]},
     { id:'KBX-04813', status:'ordered', urgent:false, activeStage:0, progress:0,
       customer:'Kavita Rao', product:'L-shape kitchen · 6 modules',
       city:'VIMAN · PUN', value:'₹2,68,000', date:'12 MAY', contractor:'Deepak M.', statusLabel:'Ordered',
       panels:[], events:[
-        {time:'12 MAY',actor:'System',action:'Order confirmed · 36 panels to be CNC cut',badge:'qc'},
+        {time:'12 MAY',actor:'System',action:'Order confirmed · 36 panels sent to factory',badge:'qc'},
       ]},
     { id:'KBX-04814', status:'ordered', urgent:false, activeStage:0, progress:0,
       customer:'Arun Gupta', product:'Studio wardrobe · 1 module',
       city:'GACH · HYD', value:'₹62,000', date:'12 MAY', contractor:'Ajay R.', statusLabel:'Ordered',
       panels:[], events:[
-        {time:'12 MAY',actor:'System',action:'Order confirmed · 6 panels to be CNC cut',badge:'qc'},
+        {time:'12 MAY',actor:'System',action:'Order confirmed · 6 panels sent to factory',badge:'qc'},
       ]},
-    { id:'KBX-04752', status:'done', urgent:false, activeStage:5, progress:100,
+    { id:'KBX-04812', status:'dispatched', urgent:false, activeStage:2, progress:0,
+      customer:'Aishwarya Menon', product:'4-door wardrobe · 4 modules',
+      city:'HSR · BLR', value:'₹1,84,400', date:'12 MAY', contractor:'Suresh K.', statusLabel:'In transit',
+      panels:[], events:[
+        {time:'13 MAY',actor:'System',action:'Kit dispatched · SHP-2218 · ETA 14 MAY 10am',badge:'dispatched'},
+        {time:'13 MAY',actor:'System',action:'Final payment received · ₹1,84,400',badge:'delivered'},
+        {time:'12 MAY',actor:'System',action:'QC passed · 28 panels kit-packed',badge:'qc'},
+        {time:'12 MAY',actor:'System',action:'Order confirmed · 28 panels sent to factory',badge:'qc'},
+      ]},
+    { id:'KBX-04752', status:'done', urgent:false, activeStage:4, progress:100,
       customer:'Kiran Bhat', product:'3-door wardrobe · 1 module',
       city:'HSR · BLR', value:'₹86,000', date:'2 MAY', contractor:'Suresh K.', statusLabel:'Done',
       panels:[], events:[
         {time:'2 MAY',actor:'System',action:'Customer sign-off received · Kiran Bhat',badge:'delivered'},
         {time:'2 MAY',actor:'Suresh K.',action:'Installation complete · 7 panels assembled',badge:'assembled'},
       ]},
-    { id:'KBX-04748', status:'done', urgent:false, activeStage:5, progress:100,
+    { id:'KBX-04748', status:'done', urgent:false, activeStage:4, progress:100,
       customer:'Sonia Malik', product:'Drawer stack ×3',
       city:'KORM · BLR', value:'₹43,000', date:'30 APR', contractor:'Mohammed A.', statusLabel:'Done',
       panels:[], events:[
@@ -2061,8 +2119,8 @@
       if (filter && filter !== 'all') {
         if (filter === 'urgent' && !o.urgent) return;
         if (filter === 'installing' && o.status !== 'installing' && !o.urgent) return;
-        if (filter === 'ready' && o.status !== 'ready') return;
-        if (filter === 'cnc' && o.status !== 'cnc') return;
+        if (filter === 'kitready' && o.status !== 'kitready') return;
+        if (filter === 'dispatched' && o.status !== 'dispatched') return;
         if (filter === 'done' && o.status !== 'done') return;
         if (filter === 'ordered' && o.status !== 'ordered') return;
       }
