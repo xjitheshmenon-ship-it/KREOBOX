@@ -702,7 +702,7 @@
         <div class="n">01</div>
         <svg class="ico"><use href="#step-plan"/></svg>
         <h3>Plan it in your<br/><span class="it">browser.</span></h3>
-        <p>Drag-and-drop wardrobes, kitchens and drawers from a 100-SKU catalog. Pick laminates, handles, dimensions. Live pricing as you go.</p>
+        <p>Drag-and-drop wardrobes, kitchens and drawers from a catalog of 1000+ products — all built from 100 standardised panels and accessories. Pick laminates, handles, dimensions. Live pricing as you go.</p>
         <div class="timing"><strong>15–30 min</strong> · no measurement visit needed</div>
       </div>
       <div class="step">
@@ -728,7 +728,7 @@
   <div class="container">
     <div class="counters">
       <div class="count">
-        <div class="k">SKU catalog</div>
+        <div class="k">1000+ products</div>
         <div class="v" data-target="100">100<span class="unit">+</span></div>
         <div class="sub">Pre-engineered modules</div>
       </div>
@@ -757,20 +757,23 @@
     <div class="s-head">
       <div>
         <span class="tag">02 — Catalog</span>
-        <h2>100 modules.<br/>One real <span class="it">price</span> for each.</h2>
+        <h2>100 SKUs.<br/><span class="it">1000+</span> products.</h2>
       </div>
       <div class="right-col">
-        Every module is SKU-bound. Same dimensions every time. Same panel
-        spec. Same install sequence. Pick from the catalog, mix in the planner,
-        order with the price you see.
+        Every panel, fitting, and accessory is a fixed SKU — same spec, same
+        dimension, every time. From 100 standardised parts we build 1000+
+        catalog products: wardrobes, kitchens, bedroom sets, desks, TV units,
+        office storage, and more. Pick what you need, mix in the planner,
+        order at the price you see.
       </div>
     </div>
     <div class="cat-tabs">
-      <button class="cat-tab active">Wardrobes</button>
+      <button class="cat-tab active">All</button>
+      <button class="cat-tab">Wardrobes</button>
       <button class="cat-tab">Kitchens</button>
-      <button class="cat-tab">Drawers</button>
-      <button class="cat-tab">Shutters</button>
-      <button class="cat-tab">Hardware</button>
+      <button class="cat-tab">Bedroom</button>
+      <button class="cat-tab">Office</button>
+      <button class="cat-tab">Living</button>
       <button class="cat-tab">Laminates</button>
     </div>
     <div class="cat-grid">
@@ -784,15 +787,20 @@
         <div class="cap"><div class="name">4-door wardrobe</div><span class="sku">W-4D</span></div>
         <div class="price"><span class="l">From</span><span class="v">₹1,18,000</span></div>
       </a>
-      <a href="planner.html" class="cat-card">
+      <a href="planner.html?layout=kitchen" class="cat-card">
         <div class="thumb"><svg><use href="#t-k1"/></svg></div>
         <div class="cap"><div class="name">Parallel kitchen</div><span class="sku">K-PR</span></div>
         <div class="price"><span class="l">From</span><span class="v">₹2,24,000</span></div>
       </a>
-      <a href="planner.html" class="cat-card">
+      <a href="planner.html?layout=kitchen" class="cat-card">
         <div class="thumb"><svg><use href="#t-k2"/></svg></div>
         <div class="cap"><div class="name">L-shape kitchen</div><span class="sku">K-LSH</span></div>
         <div class="price"><span class="l">From</span><span class="v">₹2,68,000</span></div>
+      </a>
+      <a href="planner.html?layout=bedroom" class="cat-card">
+        <div class="thumb"><svg><use href="#t-w2"/></svg></div>
+        <div class="cap"><div class="name">Master bedroom set</div><span class="sku">B-MAS</span></div>
+        <div class="price"><span class="l">From</span><span class="v">₹1,42,000</span></div>
       </a>
       <a href="planner.html" class="cat-card">
         <div class="thumb"><svg><use href="#t-d1"/></svg></div>
@@ -801,24 +809,22 @@
       </a>
       <a href="catalog.html" class="cat-card">
         <div class="thumb"><svg><use href="#t-s1"/></svg></div>
-        <div class="cap"><div class="name">Shaker shutter</div><span class="sku">S-SHK</span></div>
-        <div class="price"><span class="l">/ sq ft</span><span class="v">₹420</span></div>
+        <div class="cap"><div class="name">Work desk · plywood</div><span class="sku">O-WD</span></div>
+        <div class="price"><span class="l">From</span><span class="v">₹28,000</span></div>
       </a>
       <a href="catalog.html" class="cat-card">
-        <div class="thumb"><svg><use href="#t-h1"/></svg></div>
-        <div class="cap"><div class="name">Handle set · brass</div><span class="sku">H-BR</span></div>
-        <div class="price"><span class="l">/ piece</span><span class="v">₹680</span></div>
-      </a>
-      <a href="catalog.html" class="cat-card">
-        <div class="thumb"><svg><use href="#t-l1"/></svg></div>
-        <div class="cap"><div class="name">Laminate · 14 finishes</div><span class="sku">L-14</span></div>
-        <div class="price"><span class="l">/ sq ft</span><span class="v">₹85</span></div>
+        <div class="thumb"><svg><use href="#t-k1"/></svg></div>
+        <div class="cap"><div class="name">Office shelving unit</div><span class="sku">O-SH</span></div>
+        <div class="price"><span class="l">From</span><span class="v">₹36,000</span></div>
       </a>
     </div>
-    <div style="margin-top: 36px; display: flex; justify-content: center;">
+    <div style="margin-top: 36px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
       <a href="catalog.html" class="btn paper lg">
-        Open the full 100-SKU catalog
+        Browse 1000+ catalog products
         <svg class="ar"><use href="#i-arrow"/></svg>
+      </a>
+      <a href="catalog.html" class="btn lg" style="background:transparent;border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.7);">
+        View panels &amp; SKUs
       </a>
     </div>
   </div>
@@ -1055,7 +1061,7 @@
       </details>
       <details class="faq-item">
         <summary class="faq-q">What if my room has a weird shape or odd dimensions? <span class="plus">+</span></summary>
-        <p class="faq-a">The planner snaps to your room outline. The 100-SKU catalog covers most real-world configurations — irregular dimensions are handled with filler panels and end-caps that the planner generates automatically. For truly bespoke layouts, your project converts to a designer-assisted mode.</p>
+        <p class="faq-a">The planner snaps to your room outline. With 100 standardised panel SKUs combining into 1000+ catalog products, most real-world configurations are covered — irregular dimensions are handled with filler panels and end-caps that the planner generates automatically. For truly bespoke layouts, your project converts to a designer-assisted mode.</p>
       </details>
       <details class="faq-item">
         <summary class="faq-q">Do I have to be home for the install? <span class="plus">+</span></summary>
