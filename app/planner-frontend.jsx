@@ -884,19 +884,32 @@ function RoomSetupView({ roomW = 3800, roomD = 2840, elements = [], onAdd, onRem
   );
 }
 
-/* ── View toggle ───────────────────────────────────────────── */
-function ViewToggle({ value, onChange }) {
-  const opts = ['Room setup', '2D plan', 'Elevation', '3D walk'];
+/* ── View toolbar (IKEA-style bottom icons) ────────────────── */
+function ViewToolbar({ value, onChange }) {
+  const VIEWS = [
+    { id:'Room setup', label:'Setup',
+      icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="2" y="4" width="20" height="16" rx="1"/><path d="M8 4v16M2 10h6"/></svg> },
+    { id:'2D plan', label:'Floor plan',
+      icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 3v18"/></svg> },
+    { id:'Elevation', label:'Elevation',
+      icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M7 5v14M17 5v14"/></svg> },
+    { id:'3D walk', label:'3D',
+      icon:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> },
+  ];
   return (
-    <div style={{ display:'inline-flex', gap:3, padding:3, background:pPaper, border:`1px solid ${pLine}`, borderRadius:100 }}>
-      {opts.map(o => {
-        const active = value === o;
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', background:pPaper2, borderTop:`1px solid ${pLine}`, flexShrink:0 }}>
+      {VIEWS.map(v => {
+        const active = v.id === value;
         return (
-          <span key={o} onClick={() => onChange(o)} style={{
-            padding:'6px 14px', fontSize:12, fontWeight:500, borderRadius:100, cursor:'pointer',
-            background: active ? pInk : 'transparent',
-            color: active ? pPaper : pMute,
-          }}>{o}</span>
+          <button key={v.id} onClick={() => onChange(v.id)} style={{
+            display:'flex', flexDirection:'column', alignItems:'center', gap:4, padding:'10px 22px',
+            border:'none', borderBottom: active ? `2px solid ${pInk}` : '2px solid transparent',
+            background:'transparent', cursor:'pointer', color: active ? pInk : pMute,
+            transition:'color 0.12s',
+          }}>
+            {v.icon}
+            <span style={{ fontSize:10, fontFamily:'JetBrains Mono,monospace', fontWeight: active ? 700 : 400, letterSpacing:'0.06em', textTransform:'uppercase' }}>{v.label}</span>
+          </button>
         );
       })}
     </div>
@@ -1337,16 +1350,15 @@ const ROOM_SIZES = {
   ],
 };
 
-/* ── Catalog panel ─────────────────────────────────────────── */
+/* ── Catalog panel (IKEA-style) ────────────────────────────── */
 function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, roomD, roomType = 'kitchen' }) {
-  const { useState: useS } = React;
+  const { useState: useS, useRef } = React;
   const setActiveTab = t => { onTabChange && onTabChange(t); };
   const catalogTabs = CATALOG_TABS_BY_ROOM[roomType] || CATALOG_TABS_BY_ROOM.kitchen;
-  // Auto-correct activeTab if it doesn't belong to current room type
   const validActiveTab = catalogTabs.find(t => t.id === activeTab) ? activeTab : catalogTabs[0]?.id;
-  const [search, setSearch]                 = useS('');
-  const [catalogView, setCatalogView]       = useS('grid');
+  const [search, setSearch] = useS('');
   const [selectedVariants, setSelectedVariants] = useS({});
+  const searchRef = useRef(null);
 
   const getSelVariant = (item) => {
     const name = typeof item === 'string' ? item : item.name;
@@ -1367,10 +1379,7 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
   if (tab === 'office')     sections = DESK_SECTIONS;
   if (tab === 'wardrobe')   sections = WARDROBE_SECTIONS;
 
-  // Determine which room type's sizes to show
-  const sizeRoomType = roomType;
-  const roomSizes = ROOM_SIZES[sizeRoomType] || [];
-  const currentSizeLabel = roomSizes.find(s => s.W === roomW && s.D === roomD)?.label || null;
+  const roomSizes = ROOM_SIZES[roomType] || [];
 
   const filtered = sections.map(sec => ({
     ...sec,
@@ -1382,65 +1391,157 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
       : sec.items,
   })).filter(sec => sec.items.length > 0);
 
-  const allItems = filtered.flatMap((sec, si) => sec.items.map((item, ii) => ({ item, idx: si * 20 + ii })));
+  const allItems = filtered.flatMap(sec => sec.items);
+  const activeTabLabel = catalogTabs.find(t => t.id === validActiveTab)?.label || '';
+  const roomTypeLabel = roomType.charAt(0).toUpperCase() + roomType.slice(1);
 
   return (
-    <div style={{ background:pPaper, borderRight:`1px solid ${pLine}`, width:320, flexShrink:0, display:'flex', flexDirection:'column', overflowY:'auto' }}>
-      {/* Library header */}
-      <div style={{ padding:'20px 22px 16px', flexShrink:0 }}>
-        <h2 style={{ fontFamily:'"Fraunces",Georgia,serif', fontWeight:400, fontSize:26, lineHeight:1.05, letterSpacing:'-0.02em', margin:'0 0 4px' }}>
-          Pick your <span style={{ fontStyle:'italic', color:pSienna }}>modules.</span>
-        </h2>
-        <p style={{ fontSize:13, color:pMute, margin:0 }}>Drag any module into the room. Adjust later.</p>
+    <div style={{ background:pPaper, borderRight:`1px solid ${pLine}`, width:320, flexShrink:0, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+
+      {/* Header */}
+      <div style={{ padding:'18px 20px 12px', flexShrink:0 }}>
+        <div style={{ fontSize:11, color:pMute, fontFamily:'JetBrains Mono,monospace', letterSpacing:'0.06em', marginBottom:6 }}>
+          {roomTypeLabel} <span style={{ color:pMute2 }}>/</span> {activeTabLabel}
+        </div>
+        <div style={{ fontSize:20, fontWeight:600, color:pInk, lineHeight:1.2 }}>Add an item</div>
       </div>
 
-      {/* Pill search bar */}
-      <div style={{ margin:'0 22px 0', padding:'10px 14px', borderRadius:100, background:pWarm, border:`1px solid ${pLine}`, display:'flex', alignItems:'center', gap:10, flexShrink:0 }}>
-        <span style={{ color:pMute, fontSize:14 }}>⌕</span>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search ${roomType}…`}
-          style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:13, color:pInk, fontFamily:'"Geist",sans-serif' }} />
-        {search && <span onClick={() => setSearch('')} style={{ cursor:'pointer', fontSize:14, lineHeight:1, color:pMute }}>×</span>}
-        <kbd style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, padding:'2px 6px', borderRadius:4, background:pPaper, border:`1px solid ${pLine2}`, color:pMute }}>⌘K</kbd>
+      {/* Search bar */}
+      <div style={{ margin:'0 20px 12px', flexShrink:0 }}>
+        <div style={{
+          display:'flex', alignItems:'center', gap:8, padding:'9px 12px',
+          border:`1px solid ${pLine2}`, borderRadius:8, background:pPaper2, cursor:'text',
+        }} onClick={() => searchRef.current && searchRef.current.focus()}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={pMute} strokeWidth="2" strokeLinecap="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input ref={searchRef} value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Search…"
+            style={{ border:'none', background:'transparent', outline:'none', flex:1, fontSize:13, color:pInk, fontFamily:'"Geist",sans-serif' }} />
+          {search && (
+            <span onClick={e => { e.stopPropagation(); setSearch(''); }} style={{ cursor:'pointer', color:pMute, fontSize:16, lineHeight:1 }}>×</span>
+          )}
+        </div>
       </div>
 
-      {/* Category tab pills */}
-      <div style={{ display:'flex', gap:4, padding:'14px 22px 4px', overflowX:'auto', scrollbarWidth:'none', flexShrink:0 }}>
-        {catalogTabs.map(tab => {
-          const active = tab.id === validActiveTab;
+      {/* Category tabs — underline style */}
+      <div style={{ borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
+        <div style={{ display:'flex', overflowX:'auto', scrollbarWidth:'none', padding:'0 20px' }}>
+          {catalogTabs.map(t => {
+            const active = t.id === validActiveTab;
+            return (
+              <button key={t.id} onClick={() => { setActiveTab(t.id); setSearch(''); }} style={{
+                padding:'10px 12px', fontSize:12, fontWeight: active ? 600 : 400, cursor:'pointer', whiteSpace:'nowrap',
+                border:'none', background:'transparent',
+                color: active ? pInk : pMute,
+                borderBottom: active ? `2px solid ${pInk}` : '2px solid transparent',
+                marginBottom:'-1px',
+                transition:'color 0.12s',
+              }}>
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Count + filters row */}
+      <div style={{ padding:'10px 20px', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
+        <span style={{ fontSize:12, color:pMute, fontFamily:'JetBrains Mono,monospace' }}>
+          {allItems.length} product{allItems.length !== 1 ? 's' : ''}
+        </span>
+        <button style={{
+          display:'flex', alignItems:'center', gap:5, padding:'5px 10px',
+          border:`1px solid ${pLine2}`, borderRadius:6, background:'transparent', cursor:'pointer',
+          fontSize:11, fontWeight:500, color:pMute,
+        }}>
+          All filters
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+        </button>
+      </div>
+
+      {/* Product list */}
+      <div style={{ flex:1, overflowY:'auto', padding:'0 0 16px' }}>
+        {allItems.length === 0 && (
+          <div style={{ padding:'32px 20px', fontSize:12, color:pMute, textAlign:'center' }}>No results for "{search}"</div>
+        )}
+
+        {allItems.map((item, idx) => {
+          const name = typeof item === 'string' ? item : item.name;
+          const variants = typeof item === 'object' ? (item.variants || []) : [];
+          const price = typeof item === 'object' ? (item.price || '') : '';
+          const selV = getSelVariant(item);
+          const dims = getDefaultDims(name);
+
           return (
-            <button key={tab.id} onClick={() => { setActiveTab(tab.id); setSearch(''); }} style={{
-              padding:'6px 12px', borderRadius:100, fontSize:12, fontWeight:500, cursor:'pointer', whiteSpace:'nowrap',
-              border:'none', background: active ? pInk : 'transparent',
-              color: active ? pPaper : pMute,
-              transition:'background 0.15s, color 0.15s',
-            }}
-            onMouseEnter={e => { if (!active) { e.currentTarget.style.background=pWarm; e.currentTarget.style.color=pInk; } }}
-            onMouseLeave={e => { if (!active) { e.currentTarget.style.background='transparent'; e.currentTarget.style.color=pMute; } }}
+            <div key={`${name}-${idx}`}
+              draggable
+              onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims }))}
+              onClick={() => onAdd && onAdd({ name, variant: selV, price })}
+              style={{
+                display:'flex', alignItems:'center', gap:14, padding:'12px 20px',
+                cursor:'pointer', borderBottom:`1px solid ${pLine}`,
+                transition:'background 0.1s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = pWarm; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
-              {tab.label}
-            </button>
+              {/* Thumbnail */}
+              <div style={{
+                width:64, height:64, borderRadius:6, background:pBg, flexShrink:0,
+                display:'flex', alignItems:'center', justifyContent:'center',
+                border:`1px solid ${pLine}`,
+              }}>
+                <ProductIcon name={name} size={44} />
+              </div>
+
+              {/* Info */}
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontSize:14, fontWeight:600, color:pInk, lineHeight:1.25, marginBottom:2 }}>{name}</div>
+                {selV && <div style={{ fontSize:11, color:pMute, marginBottom:3 }}>{selV}</div>}
+                {price && (
+                  <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:11, color:pSienna, fontWeight:600 }}>{price}</div>
+                )}
+                {variants.length > 1 && (
+                  <div style={{ display:'flex', gap:3, flexWrap:'wrap', marginTop:5 }}>
+                    {variants.slice(0, 3).map(v => (
+                      <span key={v}
+                        onClick={e => { e.stopPropagation(); pickVariant(name, v); }}
+                        style={{
+                          padding:'1px 6px', borderRadius:3, fontSize:9, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
+                          border:`1px solid ${v === selV ? pSienna : pLine}`,
+                          background: v === selV ? pSiennaSoft : 'transparent',
+                          color: v === selV ? pSienna : pMute,
+                        }}>{v}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Add button */}
+              <div
+                onClick={e => { e.stopPropagation(); onAdd && onAdd({ name, variant: selV, price }); }}
+                style={{
+                  width:32, height:32, borderRadius:'50%', flexShrink:0,
+                  background:pInk, color:pPaper,
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize:20, fontWeight:300, lineHeight:1, cursor:'pointer',
+                  transition:'background 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = pSienna; }}
+                onMouseLeave={e => { e.currentTarget.style.background = pInk; }}
+              >+</div>
+            </div>
           );
         })}
-      </div>
 
-      {/* View toggle + Room size selector */}
-      <div style={{ padding:'8px 22px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
-        <div style={{ display:'flex', gap:4, marginBottom: (!search && roomSizes.length > 0) ? 10 : 0 }}>
-          {[['grid','Grid'],['list','List']].map(([v,l]) => (
-            <button key={v} onClick={() => setCatalogView(v)} style={{
-              padding:'5px 12px', border:`1px solid ${v===catalogView?pSienna:pLine}`,
-              borderRadius:100, fontSize:11, fontWeight:500, cursor:'pointer',
-              background: v===catalogView ? pSiennaSoft : 'transparent',
-              color: v===catalogView ? pSienna : pMute,
-            }}>{l}</button>
-          ))}
-        </div>
-        {!search && roomSizes.length > 0 && (
-          <div>
-            <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:6 }}>Room size</div>
+        {/* Room size presets */}
+        {roomSizes.length > 0 && !search && (
+          <div style={{ padding:'16px 20px 8px', borderTop:`1px solid ${pLine}` }}>
+            <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>Room size</div>
             <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
               {roomSizes.map(rs => {
-                const active = currentSizeLabel === rs.label;
+                const active = rs.W === roomW && rs.D === roomD;
                 return (
                   <span key={rs.label} onClick={() => onSizePreset && onSizePreset(rs)} style={{
                     padding:'4px 10px', borderRadius:100, fontSize:10, fontWeight:500,
@@ -1454,153 +1555,17 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
             </div>
           </div>
         )}
-      </div>
-
-      {/* Content */}
-      <div style={{ flex:1, overflowY:'auto', padding:'12px 22px 24px' }}>
-
-        {allItems.length === 0 && (
-          <div style={{ padding:'24px', fontSize:12, color:pMute, textAlign:'center' }}>No results for "{search}"</div>
-        )}
-
-        {catalogView === 'grid' ? (
-          /* ── Reference-style cards: 2-col thumbnail + info ── */
-          <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-            {allItems.map(({ item, idx }) => {
-              const name = typeof item === 'string' ? item : item.name;
-              const variants = typeof item === 'object' ? (item.variants || []) : [];
-              const price = typeof item === 'object' ? (item.price || '') : '';
-              const material = typeof item === 'object' ? (item.material || '') : '';
-              const selV = getSelVariant(item);
-              const dims = getDefaultDims(name);
-              const sku = 'KBX-' + name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,5);
-              return (
-                <div key={name} draggable
-                  onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims }))}
-                  style={{
-                    background:pPaper2, border:`1px solid ${pLine}`, borderRadius:12, padding:12,
-                    display:'grid', gridTemplateColumns:'70px 1fr', gap:14, alignItems:'center',
-                    cursor:'grab', transition:'transform 0.15s, border-color 0.15s, box-shadow 0.15s',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.transform='translateY(-1px)'; e.currentTarget.style.borderColor=pSienna; e.currentTarget.style.boxShadow='0 6px 16px -8px rgba(22,20,15,0.12)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.borderColor=pLine; e.currentTarget.style.boxShadow='none'; }}
-                >
-                  {/* Thumbnail */}
-                  <div style={{ aspectRatio:1, borderRadius:8, background:pWarm, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    <ProductIcon name={name} size={52} />
-                  </div>
-                  {/* Info */}
-                  <div style={{ minWidth:0 }}>
-                    <h4 style={{ fontFamily:'"Fraunces",Georgia,serif', fontSize:15, lineHeight:1.15, letterSpacing:'-0.01em', margin:'0 0 3px' }}>{name}</h4>
-                    {(selV || material) && <p style={{ fontSize:12, color:pMute, margin:'0 0 6px' }}>{selV || material}</p>}
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
-                      <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pMute, letterSpacing:'0.1em' }}>{sku}</span>
-                      {price && <span style={{ fontFamily:'"Fraunces",Georgia,serif', fontSize:14, color:pSienna, fontWeight:500 }}>{price}</span>}
-                    </div>
-                    {variants.length > 0 && (
-                      <div style={{ display:'flex', flexWrap:'wrap', gap:3, marginTop:6 }}>
-                        {variants.slice(0,3).map(v => (
-                          <span key={v} onClick={e => { e.stopPropagation(); pickVariant(name, v); }} style={{
-                            padding:'2px 7px', borderRadius:100, fontSize:9, fontWeight:500, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
-                            border:`1px solid ${v===selV ? pSienna : pLine}`,
-                            background: v===selV ? pSiennaSoft : 'transparent',
-                            color: v===selV ? pSienna : pMute,
-                          }}>{v}</span>
-                        ))}
-                      </div>
-                    )}
-                    <button onClick={e => { e.stopPropagation(); onAdd && onAdd({ name, variant: selV, price }); }} style={{
-                      marginTop:8, padding:'5px 10px', borderRadius:100, fontSize:10, fontWeight:600, border:'none',
-                      background:pInk, color:pPaper, cursor:'pointer',
-                    }}>+ Add</button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          /* ── List view ── */
-          <div>
-            {filtered.map(sec => (
-              <div key={sec.title} style={{ marginBottom:4 }}>
-                <div style={{ padding:'10px 8px 6px', fontSize:10, fontWeight:700, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace' }}>
-                  {sec.title} <span style={{ marginLeft:6, fontSize:9, opacity:0.7 }}>{sec.code}</span>
-                </div>
-                {sec.items.map((item, idx) => {
-                  const name = typeof item === 'string' ? item : item.name;
-                  const variants = typeof item === 'object' ? (item.variants || []) : [];
-                  const price = typeof item === 'object' ? (item.price || '') : '';
-                  const selV = getSelVariant(item);
-                  const dims2 = getDefaultDims(name);
-                  return (
-                    <div key={name} draggable
-                      onDragStart={e => e.dataTransfer.setData('text/plain', JSON.stringify({ name, variant: selV, price, ...dims2 }))}
-                      style={{ padding:'8px 8px 10px', borderLeft:'2px solid transparent', borderRadius:6, transition:'background 0.1s', cursor:'grab' }}
-                      onMouseEnter={e => { e.currentTarget.style.background=pWarm; e.currentTarget.style.borderLeftColor=pSienna; }}
-                      onMouseLeave={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.borderLeftColor='transparent'; }}
-                    >
-                      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                        <div style={{ width:44, height:44, borderRadius:8, background:pWarm, border:`1px solid ${pLine}`, flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
-                          <ProductIcon name={name} size={32} />
-                        </div>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontFamily:'"Fraunces",Georgia,serif', fontSize:14, lineHeight:1.2, letterSpacing:'-0.01em' }}>{name}</div>
-                          {price && <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pSienna, fontWeight:500, marginTop:2 }}>{price}</div>}
-                        </div>
-                        <button onClick={() => onAdd && onAdd({ name, variant: selV, price })} style={{
-                          padding:'5px 10px', borderRadius:100, fontSize:10, fontWeight:600, border:'none', background:pInk, color:pPaper, cursor:'pointer', flexShrink:0,
-                        }}>+</button>
-                      </div>
-                      {variants.length > 0 && (
-                        <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:6, paddingLeft:54 }}>
-                          {variants.map(v => (
-                            <span key={v} onClick={() => pickVariant(name, v)} style={{
-                              padding:'2px 8px', borderRadius:100, fontSize:9, fontWeight:500, fontFamily:'JetBrains Mono,monospace', cursor:'pointer',
-                              border:`1px solid ${v===selV ? pSienna : pLine}`,
-                              background: v===selV ? pSiennaSoft : 'transparent',
-                              color: v===selV ? pSienna : pMute,
-                            }}>{v}</span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Finishes swatch (kitchen cabinets only) */}
-        {tab === 'cabinets' && !search && (
-          <div style={{ paddingTop:12, borderTop:`1px solid ${pLine}`, marginTop:8 }}>
-            <div style={{ fontSize:10, fontWeight:600, letterSpacing:'0.18em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>Finishes</div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:6 }}>
-              {[
-                { tone:['#d4ccbe','#b8a995'], label:'Bali oak' },
-                { tone:['#3a352e','#1a1815'], label:'Espresso' },
-                { tone:['#fafaf7','#dcd8d0'], label:'Bone matte' },
-                { tone:['#c8bfa8','#b0a68e'], label:'Sand grey' },
-                { tone:['#b8b0a0','#a09880'], label:'Linen white' },
-                { tone:['#8c7660','#6e5c48'], label:'Smoked teak' },
-              ].map(sw => (
-                <div key={sw.label} style={{ cursor:'pointer' }}>
-                  <div style={{ height:36, borderRadius:8, marginBottom:4, border:`1px solid ${pLine}`, backgroundImage:`linear-gradient(135deg,${sw.tone[0]},${sw.tone[1]})` }}/>
-                  <div style={{ fontSize:9, fontWeight:500, color:pInk }}>{sw.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Custom module CTA */}
-        <button style={{ marginTop:16, width:'100%', padding:14, borderRadius:12, background:pSiennaSoft, border:`1px dashed ${pSienna}`, display:'flex', alignItems:'center', gap:12, textAlign:'left', cursor:'pointer' }}>
-          <span style={{ fontSize:18, color:pSienna, flexShrink:0 }}>+</span>
-          <div>
-            <p style={{ fontSize:13, fontWeight:500, color:pInk, margin:0, lineHeight:1.3 }}>Need something custom?</p>
-            <p style={{ fontSize:11, color:pMute, margin:'2px 0 0' }}>Talk to a Studio designer.</p>
-          </div>
-        </button>
+        <div style={{ padding:'12px 20px 0' }}>
+          <button style={{ width:'100%', padding:'12px 14px', borderRadius:8, background:pSiennaSoft, border:`1px dashed ${pSienna}`, display:'flex', alignItems:'center', gap:10, textAlign:'left', cursor:'pointer' }}>
+            <span style={{ fontSize:16, color:pSienna, flexShrink:0 }}>+</span>
+            <div>
+              <p style={{ fontSize:12, fontWeight:500, color:pInk, margin:0, lineHeight:1.3 }}>Need something custom?</p>
+              <p style={{ fontSize:10, color:pMute, margin:'2px 0 0' }}>Talk to a Studio designer.</p>
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1834,7 +1799,7 @@ function SuccessView({ order, onReset }) {
 /* ── FRONTEND PLANNER (client) ─────────────────────────────── */
 function PlannerFrontend({ accent = pAccent }) {
   const { useState: useS, useEffect: useE, useMemo: useM } = React;
-  const [view, setView]       = useS('2D plan');
+  const [view, setView]       = useS('3D walk');
   const [roomW, setRoomW]     = useS(3800);
   const [roomD, setRoomD]     = useS(2840);
   const [roomH, setRoomH]     = useS(2400);
@@ -2061,52 +2026,13 @@ function PlannerFrontend({ accent = pAccent }) {
           </span>
         </div>
         {/* RIGHT: actions */}
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <ViewToggle value={view} onChange={setView} />
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <button onClick={handleSave} style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'8px 14px', borderRadius:100, fontSize:13, fontWeight:500, color:pInk, border:'1px solid transparent', background:'transparent', cursor:'pointer' }}>↩ Undo</button>
           <button style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'8px 14px', borderRadius:100, fontSize:13, fontWeight:500, color:pInk, border:'1px solid transparent', background:'transparent', cursor:'pointer' }}>⤴ Share</button>
-          <button onClick={() => setShowModal(true)} style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'8px 14px', borderRadius:100, fontSize:13, fontWeight:500, color:pInk, border:`1px solid ${pLine2}`, background:'transparent', cursor:'pointer' }}>⊡ Render in 3D</button>
+          <button onClick={() => setShowModal(true)} style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'8px 14px', borderRadius:100, fontSize:13, fontWeight:600, color:pPaper, border:`1px solid ${pInk}`, background:pInk, cursor:'pointer', borderRadius:100 }}>Get quote</button>
         </div>
       </div>
 
-      {/* Step progress strip */}
-      {(() => {
-        const STEPS = ['Room', 'Modules', 'Materials', 'Hardware', 'Review & order'];
-        // Determine active step based on view and roomItems
-        const activeStep = view === 'Room setup' ? 0 : roomItems.length > 0 ? 1 : 1;
-        return (
-          <div style={{ height:56, display:'flex', alignItems:'center', justifyContent:'center', background:pWarm, borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
-            {STEPS.map((label, i) => {
-              const isDone   = i < activeStep;
-              const isActive = i === activeStep;
-              return (
-                <React.Fragment key={label}>
-                  {i > 0 && (
-                    <div style={{ width:36, height:1, background: isDone ? pGreen : pLine2, opacity: isDone ? 0.4 : 1, margin:'0 4px' }} />
-                  )}
-                  <div style={{
-                    display:'flex', alignItems:'center', gap:10, padding:'8px 14px', borderRadius:100, cursor:'pointer',
-                    background: isActive ? pInk : 'transparent',
-                  }}>
-                    <span style={{
-                      width:22, height:22, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
-                      fontFamily:'JetBrains Mono,monospace', fontSize:11, fontWeight:700,
-                      background: isDone ? pGreen : isActive ? pSienna : 'rgba(22,20,15,0.06)',
-                      color: isDone || isActive ? pPaper : pMute,
-                    }}>
-                      {isDone ? '✓' : i + 1}
-                    </span>
-                    <span style={{
-                      fontSize:14, fontWeight: isActive ? 600 : 500,
-                      color: isActive ? pPaper : isDone ? pInk : pMute,
-                    }}>{label}</span>
-                  </div>
-                </React.Fragment>
-              );
-            })}
-          </div>
-        );
-      })()}
 
       <div style={pStyles.body}>
         {/* LEFT — Catalog */}
@@ -2212,6 +2138,9 @@ function PlannerFrontend({ accent = pAccent }) {
             </div>
           </div>
 
+          {/* View toolbar — IKEA-style bottom icons */}
+          <ViewToolbar value={view} onChange={setView} />
+
           {/* AI assist strip */}
           <div style={{ margin:'0 24px 16px', background:'#0e0d0b', color:pPaper, borderRadius:12, padding:'14px 18px', display:'flex', alignItems:'center', gap:14 }}>
             <div style={{ width:32, height:32, borderRadius:'50%', background:`linear-gradient(135deg,${accent},#d97042)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:700 }}>K</div>
@@ -2266,7 +2195,7 @@ function PlannerFrontend({ accent = pAccent }) {
             </div>
             {roomItems.length === 0 ? (
               <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'14px 0', fontFamily:'JetBrains Mono,monospace' }}>
-                Drag items from catalog →
+                Click items in catalog to add →
               </div>
             ) : (
               <div style={{ maxHeight:140, overflowY:'auto', marginBottom:16 }}>
@@ -2305,7 +2234,7 @@ function PlannerFrontend({ accent = pAccent }) {
             <div style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:pMute, letterSpacing:'0.14em', textTransform:'uppercase', marginBottom:10 }}>Live BOQ</div>
             {bom.length === 0 ? (
               <div style={{ fontSize:11, color:pMute, textAlign:'center', padding:'12px 0' }}>
-                Drag items to canvas to see cost
+                Add items from catalog to see cost
               </div>
             ) : bom.map((b, i) => (
               <div key={`${b.category}-${i}`} style={{ display:'flex', justifyContent:'space-between', padding:'8px 0', borderTop:i?`1px solid ${pLine}`:'none', fontSize:12 }}>
