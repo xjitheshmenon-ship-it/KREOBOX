@@ -71,95 +71,181 @@ const DOOR_FINISHES = [
 const HANDLE_TYPES = ['Push-to-open', 'Bar handle', 'Cup pull', 'T-bar', 'Recessed'];
 const WORKTOP_TYPES = ['Quartz White', 'Quartz Calacatta', 'Laminate Oak', 'Laminate Concrete', 'Solid Walnut'];
 
+const DOOR_STYLES = ['Hinged', 'Sliding', 'Open (no door)'];
+const INTERIOR_FITTINGS = [
+  { key:'ledStrip',      label:'LED strip lighting' },
+  { key:'pullOutShelf',  label:'Pull-out shelf' },
+  { key:'cutleryTray',   label:'Cutlery tray insert' },
+  { key:'bottleRack',    label:'Bottle rack' },
+  { key:'trashPullOut',  label:'Trash pull-out' },
+  { key:'laundryBag',    label:'Laundry bag insert' },
+];
+
 function ItemModifyPanel({ item, onUpdate, onDuplicate, onDelete, onClose }) {
   const { useState: useS } = React;
-  const isBase = item.name && item.name.toLowerCase().includes('base');
+  const n = (item.name || '').toLowerCase();
+  const isBase    = n.includes('base') || n.includes('sink') || n.includes('hob');
+  const isWardrobe = n.includes('wardrobe') || n.includes('walk-in');
+  const isDrawer   = n.includes('drawer');
+  const isOpen     = n.includes('open') || n.includes('shelf') || n.includes('floating');
   const dims = item.w && item.h ? `${Math.round(item.w)}×600×${Math.round(item.h)} mm` : '';
-  const code = 'KBX-' + item.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,5);
+  const code = 'KBX-' + (item.name||'X').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,5);
 
-  const SECTIONS = [
-    { label:'Door finish', key:'doorFinish', options: DOOR_FINISHES.map(d => d.name) },
-    { label:'Handle', key:'handle', options: HANDLE_TYPES },
-    ...(isBase ? [{ label:'Worktop', key:'worktop', options: WORKTOP_TYPES }] : []),
-  ];
+  const stepper = (label, key, min, max) => {
+    const val = item[key] != null ? item[key] : (key==='shelves' ? 2 : key==='drawers' ? 1 : 1);
+    return (
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        <span style={{ fontSize:11, color:pMute }}>{label}</span>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <button onClick={() => onUpdate({ [key]: Math.max(min, val-1) })} style={{ width:26, height:26, borderRadius:6, border:`1px solid ${pLine}`, background:'transparent', cursor:'pointer', fontSize:14, color:pInk, display:'flex', alignItems:'center', justifyContent:'center' }}>−</button>
+          <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:13, fontWeight:700, minWidth:16, textAlign:'center' }}>{val}</span>
+          <button onClick={() => onUpdate({ [key]: Math.min(max, val+1) })} style={{ width:26, height:26, borderRadius:6, border:`1px solid ${pLine}`, background:'transparent', cursor:'pointer', fontSize:14, color:pInk, display:'flex', alignItems:'center', justifyContent:'center' }}>+</button>
+        </div>
+      </div>
+    );
+  };
 
-  const iconBtn = (label, icon, onClick, danger) => (
-    <button onClick={onClick} style={{
-      display:'flex', flexDirection:'column', alignItems:'center', gap:4,
-      padding:'8px 10px', border:`1px solid ${danger ? '#e05050' : pLine}`,
-      borderRadius:8, background:'transparent', cursor:'pointer',
-      color: danger ? '#e05050' : pMute, fontSize:9, fontWeight:700,
-      fontFamily:'JetBrains Mono,monospace', letterSpacing:'0.06em',
-    }}>
-      <span style={{ fontSize:16 }}>{icon}</span>
-      {label}
-    </button>
+  const secLabel = (text) => (
+    <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8, marginTop:4 }}>
+      {text}
+    </div>
   );
 
   return (
     <div style={{
-      position:'absolute', top:0, right:0, bottom:0, width:260, zIndex:20,
+      position:'absolute', top:0, right:0, bottom:0, width:268, zIndex:20,
       background:pPaper, borderLeft:`1px solid ${pLine}`,
       display:'flex', flexDirection:'column', overflowY:'auto',
-      boxShadow:'-8px 0 32px rgba(0,0,0,0.08)',
+      boxShadow:'-8px 0 24px rgba(0,0,0,0.10)',
     }}>
       {/* Header */}
-      <div style={{ padding:'14px 16px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
+      <div style={{ padding:'14px 16px 12px', borderBottom:`1px solid ${pLine}`, flexShrink:0 }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
           <div>
             <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', fontWeight:700, letterSpacing:'0.16em', color:pMute, marginBottom:3 }}>{code}</div>
             <div style={{ fontFamily:'Fraunces,serif', fontSize:15, fontWeight:400, lineHeight:1.25, color:pInk }}>{item.name}</div>
-            {item.variant && <div style={{ fontSize:10, color:pMute, marginTop:3 }}>{item.variant}</div>}
-            {dims && <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', color:pMute, marginTop:2 }}>{dims}</div>}
+            {item.variant && <div style={{ fontSize:10, color:pMute, marginTop:2 }}>{item.variant}</div>}
+            {dims && <div style={{ fontSize:9, fontFamily:'JetBrains Mono,monospace', color:pMute, marginTop:1 }}>{dims}</div>}
           </div>
           <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:pMute, fontSize:18, lineHeight:1, padding:0 }}>×</button>
         </div>
+        {/* Quick actions */}
+        <div style={{ display:'flex', gap:6, marginTop:10 }}>
+          {[['Duplicate','⧉',false],['Remove','🗑',true]].map(([lbl,ico,danger]) => (
+            <button key={lbl} onClick={lbl==='Duplicate' ? onDuplicate : onDelete} style={{
+              flex:1, padding:'7px 6px', border:`1px solid ${danger ? '#e05050' : pLine}`,
+              borderRadius:7, background:'transparent', cursor:'pointer',
+              color: danger ? '#e05050' : pMute, fontSize:10, fontWeight:600,
+              fontFamily:'JetBrains Mono,monospace', letterSpacing:'0.04em',
+              display:'flex', alignItems:'center', justifyContent:'center', gap:5,
+            }}>
+              <span>{ico}</span>{lbl}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Action buttons */}
-      <div style={{ padding:'12px 16px', borderBottom:`1px solid ${pLine}`, display:'flex', gap:6, flexWrap:'wrap', flexShrink:0 }}>
-        {iconBtn('Duplicate', '⧉', onDuplicate)}
-        {iconBtn('Remove', '🗑', onDelete, true)}
-      </div>
+      {/* Customisation body */}
+      <div style={{ padding:'14px 16px', display:'flex', flexDirection:'column', gap:0, overflowY:'auto' }}>
 
-      {/* Customisation sections */}
-      <div style={{ padding:'12px 16px', display:'flex', flexDirection:'column', gap:16 }}>
-        {SECTIONS.map(sec => (
-          <div key={sec.key}>
-            <div style={{ fontSize:9, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:pMute, fontFamily:'JetBrains Mono,monospace', marginBottom:8 }}>
-              {sec.label}
-            </div>
-            {sec.key === 'doorFinish' ? (
-              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                {DOOR_FINISHES.map(df => (
-                  <div key={df.name} onClick={() => onUpdate({ doorFinish: df.name })}
-                    title={df.name}
-                    style={{
-                      width:28, height:28, borderRadius:6, background:df.color, cursor:'pointer',
-                      border: item.doorFinish === df.name ? `2px solid ${pAccent}` : `2px solid transparent`,
-                      boxShadow: item.doorFinish === df.name ? `0 0 0 1px ${pAccent}` : 'inset 0 0 0 1px rgba(0,0,0,0.1)',
-                    }} />
-                ))}
-              </div>
-            ) : (
-              <div style={{ display:'flex', flexWrap:'wrap', gap:4 }}>
-                {sec.options.map(opt => (
-                  <button key={opt} onClick={() => onUpdate({ [sec.key]: opt })} style={{
-                    padding:'4px 8px', borderRadius:5, fontSize:10, fontWeight:600, cursor:'pointer',
-                    border: `1px solid ${item[sec.key] === opt ? pAccent : pLine}`,
-                    background: item[sec.key] === opt ? 'rgba(201,100,66,0.08)' : 'transparent',
-                    color: item[sec.key] === opt ? pAccent : pMute,
-                  }}>{opt}</button>
-                ))}
-              </div>
-            )}
+        {/* Door style */}
+        {!isOpen && !isDrawer && (<>
+          {secLabel('Door style')}
+          <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginBottom:14 }}>
+            {DOOR_STYLES.map(ds => (
+              <button key={ds} onClick={() => onUpdate({ doorStyle: ds })} style={{
+                padding:'5px 10px', borderRadius:5, fontSize:11, fontWeight:500, cursor:'pointer',
+                border:`1px solid ${(item.doorStyle||'Hinged')===ds ? pAccent : pLine}`,
+                background:(item.doorStyle||'Hinged')===ds ? 'rgba(201,100,66,0.08)' : 'transparent',
+                color:(item.doorStyle||'Hinged')===ds ? pAccent : pMute,
+              }}>{ds}</button>
+            ))}
           </div>
-        ))}
+        </>)}
+
+        {/* Door finish */}
+        {!isOpen && (<>
+          {secLabel('Door finish')}
+          <div style={{ display:'flex', flexWrap:'wrap', gap:5, marginBottom:14 }}>
+            {DOOR_FINISHES.map(df => (
+              <div key={df.name} onClick={() => onUpdate({ doorFinish: df.name })} title={df.name} style={{
+                width:30, height:30, borderRadius:6, background:df.color, cursor:'pointer',
+                border: (item.doorFinish||DOOR_FINISHES[0].name)===df.name ? `2px solid ${pAccent}` : '2px solid transparent',
+                boxShadow: (item.doorFinish||DOOR_FINISHES[0].name)===df.name ? `0 0 0 1px ${pAccent}` : 'inset 0 0 0 1px rgba(0,0,0,0.10)',
+              }} />
+            ))}
+          </div>
+        </>)}
+
+        {/* Handle */}
+        {!isOpen && (<>
+          {secLabel('Handle')}
+          <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginBottom:14 }}>
+            {HANDLE_TYPES.map(ht => (
+              <button key={ht} onClick={() => onUpdate({ handle: ht })} style={{
+                padding:'4px 8px', borderRadius:5, fontSize:10, fontWeight:500, cursor:'pointer',
+                border:`1px solid ${(item.handle||'Push-to-open')===ht ? pAccent : pLine}`,
+                background:(item.handle||'Push-to-open')===ht ? 'rgba(201,100,66,0.08)' : 'transparent',
+                color:(item.handle||'Push-to-open')===ht ? pAccent : pMute,
+              }}>{ht}</button>
+            ))}
+          </div>
+        </>)}
+
+        {/* Worktop (base cabinets only) */}
+        {isBase && (<>
+          {secLabel('Worktop')}
+          <div style={{ display:'flex', flexWrap:'wrap', gap:4, marginBottom:14 }}>
+            {WORKTOP_TYPES.map(wt => (
+              <button key={wt} onClick={() => onUpdate({ worktop: wt })} style={{
+                padding:'4px 8px', borderRadius:5, fontSize:10, fontWeight:500, cursor:'pointer',
+                border:`1px solid ${(item.worktop||WORKTOP_TYPES[0])===wt ? pAccent : pLine}`,
+                background:(item.worktop||WORKTOP_TYPES[0])===wt ? 'rgba(201,100,66,0.08)' : 'transparent',
+                color:(item.worktop||WORKTOP_TYPES[0])===wt ? pAccent : pMute,
+              }}>{wt}</button>
+            ))}
+          </div>
+        </>)}
+
+        {/* Interior — shelves / drawers */}
+        {secLabel('Interior')}
+        <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:14 }}>
+          {!isDrawer && stepper('Shelves', 'shelves', 0, 6)}
+          {stepper('Drawers', 'drawers', 0, 5)}
+          {(isBase || isWardrobe) && stepper('Pull-out trays', 'pullOuts', 0, 3)}
+        </div>
+
+        {/* Interior fittings */}
+        {secLabel('Fittings')}
+        <div style={{ display:'flex', flexDirection:'column', gap:7, marginBottom:14 }}>
+          {INTERIOR_FITTINGS.filter(f => {
+            if (f.key === 'bottleRack' && !isBase) return false;
+            if (f.key === 'trashPullOut' && !isBase) return false;
+            if (f.key === 'laundryBag' && !isWardrobe) return false;
+            return true;
+          }).map(f => {
+            const checked = !!item[f.key];
+            return (
+              <label key={f.key} style={{ display:'flex', alignItems:'center', gap:9, cursor:'pointer', fontSize:12, color: checked ? pInk : pMute }}>
+                <span onClick={() => onUpdate({ [f.key]: !checked })} style={{
+                  width:16, height:16, borderRadius:4, flexShrink:0,
+                  border:`1.5px solid ${checked ? pAccent : pLine}`,
+                  background: checked ? pAccent : 'transparent',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  cursor:'pointer',
+                }}>
+                  {checked && <span style={{ color:'#fff', fontSize:10, lineHeight:1 }}>✓</span>}
+                </span>
+                {f.label}
+              </label>
+            );
+          })}
+        </div>
       </div>
 
       {/* Price */}
       {item.price && (
-        <div style={{ marginTop:'auto', padding:'14px 16px', borderTop:`1px solid ${pLine}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div style={{ marginTop:'auto', padding:'12px 16px', borderTop:`1px solid ${pLine}`, display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0 }}>
           <span style={{ fontSize:11, color:pMute }}>Unit price</span>
           <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:13, fontWeight:700, color:pInk }}>{item.price}</span>
         </div>
@@ -2127,7 +2213,7 @@ function PlannerFrontend({ accent = pAccent }) {
             }}>
               {view === 'Room setup' && <RoomSetupView roomW={roomW} roomD={roomD} elements={roomElements} onAdd={el => setRoomElements(prev => [...prev, el])} onRemove={id => setRoomElements(prev => prev.filter(e => e.id !== id))} onMove={(id, x, y) => setRoomElements(prev => prev.map(e => e.id === id ? { ...e, x, y } : e))} />}
               {view === '2D plan'    && <KitchenPlan2D accent={accent} roomType={roomType} items={placedItems} roomElements={roomElements} onDrop={handleDrop2D} onItemMove={handleItemMove2D} onItemDelete={handleItemDelete2D} onItemSelect={setSelectedItemId} selectedItemId={selectedItemId} roomW={roomW} roomD={roomD} />}
-              {view === '2D plan' && selectedItemId && (() => {
+              {selectedItemId && (() => {
                 const item = placedItems.find(it => it.id === selectedItemId);
                 return item ? (
                   <ItemModifyPanel
@@ -2140,7 +2226,10 @@ function PlannerFrontend({ accent = pAccent }) {
                 ) : null;
               })()}
               {view === 'Elevation'  && <KitchenElevation accent={accent} items={placedItems} roomW={roomW} roomH={roomH} />}
-              {view === '3D walk'    && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH} onMoveItem={(idx, pos) => setPlacedItems(prev => prev.map((it, i) => i === idx ? { ...it, x: pos.x, y: pos.y } : it))} />}
+              {view === '3D walk'    && <KitchenPlan3D accent={accent} items={placedItems} roomW={roomW} roomD={roomD} roomH={roomH}
+                onMoveItem={(idx, pos) => setPlacedItems(prev => prev.map((it, i) => i === idx ? { ...it, x: pos.x, y: pos.y } : it))}
+                onDrop={handleDrop2D}
+                onItemSelect={id => setSelectedItemId(id)} />}
             </div>
           </div>
 
