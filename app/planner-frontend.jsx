@@ -1907,13 +1907,58 @@ function PlannerFrontend({ accent = pAccent }) {
     setPlacedItems(prev => prev.filter(it => !(it.name === name && it.variant === variant)));
   };
 
+  // ── Preset layouts from "Plan this layout" buttons on homepage ──
+  const HOMEPAGE_PRESETS = {
+    studio: {
+      roomType: 'wardrobe', layout: 'Studio', roomW: 1800, roomD: 2400, roomH: 2400,
+      items: [
+        { name:'2-door hinged wardrobe', variant:'100×58×200cm', price:'₹22–48k', w:1000, h:580, x:200,  y:200 },
+        { name:'Drawer insert',          variant:'50cm',          price:'₹3–7k',   w:500,  h:580, x:1300, y:200 },
+      ],
+    },
+    bedroom: {
+      roomType: 'wardrobe', layout: 'Master bedroom', roomW: 3600, roomD: 2400, roomH: 2400,
+      items: [
+        { name:'4-door hinged wardrobe',  variant:'200×58×200cm', price:'₹45–80k', w:2000, h:580, x:200,  y:200 },
+        { name:'Drawer insert',           variant:'75cm',          price:'₹3–7k',   w:600,  h:580, x:2300, y:200 },
+        { name:'Full-length mirror door', variant:'75×195cm',      price:'₹6–16k',  w:750,  h:580, x:3000, y:200 },
+      ],
+    },
+    kitchen: {
+      roomType: 'kitchen', layout: 'L-shape', roomW: 3800, roomD: 2840, roomH: 2400,
+      items: [
+        { name:'Pantry high cabinet',        variant:'600mm', price:'₹28–45k', w:600, h:600, x:200,  y:200 },
+        { name:'Base cabinet with drawers',  variant:'600mm', price:'₹15–24k', w:600, h:600, x:900,  y:200 },
+        { name:'Base cabinet with drawers',  variant:'600mm', price:'₹15–24k', w:600, h:600, x:1600, y:200 },
+        { name:'Base cabinet for sink',      variant:'800mm', price:'₹12–18k', w:800, h:600, x:2300, y:200 },
+        { name:'Base cabinet for hob',       variant:'600mm', price:'₹9–15k',  w:600, h:600, x:200,  y:1000 },
+        { name:'Open base unit',             variant:'600mm', price:'₹7–14k',  w:600, h:600, x:900,  y:1000 },
+      ],
+    },
+  };
+
   useE(() => {
+    // Load draft first
     const draft = KreoStore.getDraft();
     if (draft && draft.room) {
       setRoomW(draft.room.W || 3800); setRoomD(draft.room.D || 2840); setRoomH(draft.room.H || 2400);
       setLayout(draft.room.layout || 'L-shape');
       if (draft.finish)   setFinish(draft.finish);
       if (draft.hardware) setHardware(draft.hardware);
+    }
+    // Then check for ?layout= preset from homepage pricing cards
+    const urlLayout = new URLSearchParams(window.location.search).get('layout');
+    const preset = urlLayout && HOMEPAGE_PRESETS[urlLayout];
+    if (preset) {
+      handleRoomType(preset.roomType);
+      setLayout(preset.layout);
+      setRoomW(preset.roomW); setRoomD(preset.roomD); setRoomH(preset.roomH);
+      const items = preset.items.map((it, i) => ({
+        ...it,
+        id: `preset-${i}-${Date.now()}`,
+        color: getCabColor(it.name),
+      }));
+      setPlacedItems(items);
     }
   }, []);
 
