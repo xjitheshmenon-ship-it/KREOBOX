@@ -741,7 +741,7 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
 
   return (
     <div style={{ position:'relative', width:'100%', height:'100%' }}
-      onDrop={e => { e.preventDefault(); try { const data = JSON.parse(e.dataTransfer.getData('text/plain')); onDrop && onDrop({ ...data, x: RW*0.15 + items.length * 650, y: 200 }); } catch {} }}
+      onDrop={e => { e.preventDefault(); try { const data = JSON.parse(e.dataTransfer.getData('text/plain')); const iw = data.w || 600; const usedW = items.reduce((s,it) => s + (it.w||600), 0); const x = usedW + iw > RW ? 0 : usedW; onDrop && onDrop({ ...data, x, y: 300 }); } catch {} }}
       onDragOver={e => e.preventDefault()}>
       <svg ref={svgRef} viewBox={`0 0 ${SVG_W} ${SVG_H}`}
         style={{ width:'100%', height:'100%', display:'block', userSelect:'none',
@@ -1612,7 +1612,7 @@ function CatalogPanel({ onAdd, activeTab, onTabChange, onSizePreset, roomW, room
 
               {/* Add button */}
               <div
-                onClick={e => { e.stopPropagation(); onAdd && onAdd({ name, variant: selV, price }); }}
+                onClick={e => { e.stopPropagation(); if (!dragActive.current) onAdd && onAdd({ name, variant: selV, price }); }}
                 style={{
                   width:32, height:32, borderRadius:'50%', flexShrink:0,
                   background:pInk, color:pPaper,
