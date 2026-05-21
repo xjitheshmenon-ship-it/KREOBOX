@@ -647,21 +647,74 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
     return ps;
   }, [items.length, RW, RD, RH]);
 
-  /* item polys grouped by index */
+  /* item polys grouped by index — reflects door finish, drawers, handle, door style */
   const allItemPolys = useM(() =>
     items.map((item, idx) => {
       const { bx, bz, bw, bd, by0, by1 } = itemDims(item);
-      const fc = item.color || '#c8c0b0';
+      const finishColor = item.doorFinish
+        ? (DOOR_FINISHES.find(d => d.name === item.doorFinish)?.color || null)
+        : null;
+      const fc  = finishColor || item.color || '#c8c0b0';
       const sel = idx === selIdx;
-      const hi = sel ? '#fff' : '#00000022';
-      const sw = sel ? 2 : 1.2;
-      return [
-        { pts3:[[bx,by0,bz+bd],[bx+bw,by0,bz+bd],[bx+bw,by1,bz+bd],[bx,by1,bz+bd]], fill:fc, stroke:hi, sw, itemIdx:idx },
+      const hi  = sel ? '#ffffff' : '#00000022';
+      const sw  = sel ? 2 : 1.2;
+      const dz  = bz + bd; // front face z
+
+      const polys = [
+        { pts3:[[bx,by0,dz],[bx+bw,by0,dz],[bx+bw,by1,dz],[bx,by1,dz]],               fill:fc, stroke:hi, sw, itemIdx:idx },
         { pts3:[[bx,by0,bz],[bx+bw,by0,bz],[bx+bw,by1,bz],[bx,by1,bz]],               fill:fc, stroke:'#00000015', sw:0.5, itemIdx:idx },
-        { pts3:[[bx,by1,bz],[bx+bw,by1,bz],[bx+bw,by1,bz+bd],[bx,by1,bz+bd]],          fill:fc, stroke:'#00000012', sw:0.4, itemIdx:idx },
-        { pts3:[[bx+bw,by0,bz],[bx+bw,by0,bz+bd],[bx+bw,by1,bz+bd],[bx+bw,by1,bz]],   fill:fc, stroke:'#00000030', sw:0.5, itemIdx:idx },
-        { pts3:[[bx,by0,bz],[bx,by0,bz+bd],[bx,by1,bz+bd],[bx,by1,bz]],                fill:fc, stroke:'#00000028', sw:0.5, itemIdx:idx },
+        { pts3:[[bx,by1,bz],[bx+bw,by1,bz],[bx+bw,by1,dz],[bx,by1,dz]],               fill:fc, stroke:'#00000012', sw:0.4, itemIdx:idx },
+        { pts3:[[bx+bw,by0,bz],[bx+bw,by0,dz],[bx+bw,by1,dz],[bx+bw,by1,bz]],         fill:fc, stroke:'#00000030', sw:0.5, itemIdx:idx },
+        { pts3:[[bx,by0,bz],[bx,by0,dz],[bx,by1,dz],[bx,by1,bz]],                      fill:fc, stroke:'#00000028', sw:0.5, itemIdx:idx },
       ];
+
+      const n          = (item.name || '').toLowerCase();
+      const doorStyle  = item.doorStyle || 'Hinged';
+      const drawers    = typeof item.drawers === 'number' ? item.drawers : (n.includes('drawer') ? 3 : 0);
+      const handle     = item.handle || 'Push-to-open';
+      const eps        = 3; // mm in front of face to avoid z-fighting
+
+      const quad = (x0,y0,x1,y1,z,fill,stroke='none',strokeW=0) =>
+        ({ pts3:[[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]], fill, stroke, sw:strokeW, itemIdx:idx });
+
+      if (drawers > 0) {
+        /* ── Drawer stack ──────────────────────── */
+        const dh = (by1 - by0) / drawers;
+        const ins = Math.min(18, bw * 0.04);
+        for (let i = 0; i < drawers; i++) {
+          const dy0 = by0 + i * dh, dy1 = dy0 + dh;
+          /* inset drawer panel */
+          polys.push(quad(bx+ins, dy0+ins, bx+bw-ins, dy1-ins, dz+eps, 'rgba(0,0,0,0.09)', '#00000030', 0.5));
+          /* handle bar */
+          if (handle !== 'Push-to-open') {
+            const hcx = bx + bw / 2, hcy = (dy0 + dy1) / 2, hw = Math.min(bw * 0.22, 70);
+            polys.push(quad(hcx-hw, hcy-5, hcx+hw, hcy+5, dz+eps+2, '#7a7060'));
+          }
+        }
+      } else if (doorStyle !== 'Open (no door)') {
+        /* ── Door panels ───────────────────────── */
+        const numDoors = bw > 900 ? 2 : 1;
+        const dw = bw / numDoors;
+        const ins = 12;
+        for (let d = 0; d < numDoors; d++) {
+          const dx0 = bx + d * dw, dx1 = dx0 + dw;
+          /* inset door panel */
+          polys.push(quad(dx0+ins, by0+ins, dx1-ins, by1-ins, dz+eps, 'rgba(255,255,255,0.13)', '#00000022', 0.5));
+          /* gap between double doors */
+          if (d < numDoors - 1)
+            polys.push(quad(dx1-3, by0, dx1+3, by1, dz+eps+1, 'rgba(0,0,0,0.18)'));
+          /* handle */
+          if (handle !== 'Push-to-open') {
+            const hx = dx1 - ins - 22, hy = (by0 + by1) / 2;
+            if (handle === 'Bar handle' || handle === 'T-bar')
+              polys.push(quad(hx-7, hy-55, hx+7, hy+55, dz+eps+2, '#7a7060'));
+            else
+              polys.push(quad(hx-30, hy-6, hx+30, hy+6, dz+eps+2, '#7a7060'));
+          }
+        }
+      }
+
+      return polys;
     })
   , [items, selIdx]);
 
