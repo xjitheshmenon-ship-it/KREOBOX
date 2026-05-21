@@ -601,6 +601,7 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
   const [selIdx, setSelIdx] = useS(null);
   const [zoom, setZoom]     = useS(1);
   const [zoomCtr, setZoomCtr] = useS({ x: SVG_W/2, y: SVG_H/2 });
+  const [openDoors, setOpenDoors] = useS({});
   const drag = useRef(null);
   const svgRef = useRef(null);
 
@@ -647,76 +648,130 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
     return ps;
   }, [items.length, RW, RD, RH]);
 
-  /* item polys grouped by index — reflects door finish, drawers, handle, door style */
+  /* item polys — reflects finish colour, drawers, handle, door style, open/closed state */
   const allItemPolys = useM(() =>
     items.map((item, idx) => {
       const { bx, bz, bw, bd, by0, by1 } = itemDims(item);
       const finishColor = item.doorFinish
-        ? (DOOR_FINISHES.find(d => d.name === item.doorFinish)?.color || null)
-        : null;
+        ? (DOOR_FINISHES.find(d => d.name === item.doorFinish)?.color || null) : null;
       const fc  = finishColor || item.color || '#c8c0b0';
       const sel = idx === selIdx;
       const hi  = sel ? '#ffffff' : '#00000022';
       const sw  = sel ? 2 : 1.2;
-      const dz  = bz + bd; // front face z
+      const dz  = bz + bd;
 
+      const n         = (item.name || '').toLowerCase();
+      const doorStyle = item.doorStyle || 'Hinged';
+      const drawers   = typeof item.drawers === 'number' ? item.drawers : (n.includes('drawer') ? 3 : 0);
+      const shelves   = typeof item.shelves === 'number' ? item.shelves : 2;
+      const handle    = item.handle || 'Push-to-open';
+      const isDoorOpen = !!openDoors[idx] && doorStyle !== 'Open (no door)';
+      const eps = 3;
+
+      const face  = (pts3, fill, stroke='none', strokeW=0) => ({ pts3, fill, stroke, sw:strokeW, itemIdx:idx });
+      const quad  = (x0,y0,x1,y1,z,fill,stroke='none',strokeW=0) =>
+        face([[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]], fill, stroke, strokeW);
+      const hface = (x0,z0,x1,z1,y,fill) =>
+        face([[x0,y,z0],[x1,y,z0],[x1,y,z1],[x0,y,z1]], fill);
+
+      /* carcass — always present (back, top, sides) */
       const polys = [
-        { pts3:[[bx,by0,dz],[bx+bw,by0,dz],[bx+bw,by1,dz],[bx,by1,dz]],               fill:fc, stroke:hi, sw, itemIdx:idx },
-        { pts3:[[bx,by0,bz],[bx+bw,by0,bz],[bx+bw,by1,bz],[bx,by1,bz]],               fill:fc, stroke:'#00000015', sw:0.5, itemIdx:idx },
-        { pts3:[[bx,by1,bz],[bx+bw,by1,bz],[bx+bw,by1,dz],[bx,by1,dz]],               fill:fc, stroke:'#00000012', sw:0.4, itemIdx:idx },
-        { pts3:[[bx+bw,by0,bz],[bx+bw,by0,dz],[bx+bw,by1,dz],[bx+bw,by1,bz]],         fill:fc, stroke:'#00000030', sw:0.5, itemIdx:idx },
-        { pts3:[[bx,by0,bz],[bx,by0,dz],[bx,by1,dz],[bx,by1,bz]],                      fill:fc, stroke:'#00000028', sw:0.5, itemIdx:idx },
+        face([[bx,by0,bz],[bx+bw,by0,bz],[bx+bw,by1,bz],[bx,by1,bz]],     fc,'#00000015',0.5),
+        hface(bx,bz, bx+bw,dz, by1, fc),
+        face([[bx+bw,by0,bz],[bx+bw,by0,dz],[bx+bw,by1,dz],[bx+bw,by1,bz]], fc,'#00000030',0.5),
+        face([[bx,by0,bz],[bx,by0,dz],[bx,by1,dz],[bx,by1,bz]],             fc,'#00000028',0.5),
       ];
 
-      const n          = (item.name || '').toLowerCase();
-      const doorStyle  = item.doorStyle || 'Hinged';
-      const drawers    = typeof item.drawers === 'number' ? item.drawers : (n.includes('drawer') ? 3 : 0);
-      const handle     = item.handle || 'Push-to-open';
-      const eps        = 3; // mm in front of face to avoid z-fighting
+      if (isDoorOpen) {
+        /* ── OPEN STATE: interior + swung door(s) ── */
+        const W = 18; // carcass wall thickness
+        const ix0 = bx+W, ix1 = bx+bw-W;
+        const iy0 = by0+W, iy1 = by1-W;
+        const iz0 = bz+W,  iz1 = dz-W;
 
-      const quad = (x0,y0,x1,y1,z,fill,stroke='none',strokeW=0) =>
-        ({ pts3:[[x0,y0,z],[x1,y0,z],[x1,y1,z],[x0,y1,z]], fill, stroke, sw:strokeW, itemIdx:idx });
+        /* interior walls */
+        polys.push(face([[ix0,iy0,iz0],[ix1,iy0,iz0],[ix1,iy1,iz0],[ix0,iy1,iz0]], '#e0dbd0','#c0bab0',0.3)); // back
+        polys.push(face([[ix0,iy0,iz0],[ix0,iy0,iz1],[ix0,iy1,iz1],[ix0,iy1,iz0]], '#d6d0c6')); // left inner
+        polys.push(face([[ix1,iy0,iz0],[ix1,iy0,iz1],[ix1,iy1,iz1],[ix1,iy1,iz0]], '#d6d0c6')); // right inner
+        polys.push(hface(ix0,iz0,ix1,iz1, iy0, '#ccc8bc')); // floor
+        polys.push(hface(ix0,iz0,ix1,iz1, iy1, '#d6d0c6')); // ceiling
 
-      if (drawers > 0) {
-        /* ── Drawer stack ──────────────────────── */
-        const dh = (by1 - by0) / drawers;
-        const ins = Math.min(18, bw * 0.04);
-        for (let i = 0; i < drawers; i++) {
-          const dy0 = by0 + i * dh, dy1 = dy0 + dh;
-          /* inset drawer panel */
-          polys.push(quad(bx+ins, dy0+ins, bx+bw-ins, dy1-ins, dz+eps, 'rgba(0,0,0,0.09)', '#00000030', 0.5));
-          /* handle bar */
-          if (handle !== 'Push-to-open') {
-            const hcx = bx + bw / 2, hcy = (dy0 + dy1) / 2, hw = Math.min(bw * 0.22, 70);
-            polys.push(quad(hcx-hw, hcy-5, hcx+hw, hcy+5, dz+eps+2, '#7a7060'));
+        /* LED strip */
+        if (item.ledStrip)
+          polys.push(hface(ix0,iz0,ix1,iz1, iy1-8, 'rgba(255,245,190,0.7)'));
+
+        if (drawers > 0) {
+          /* stacked drawers — slightly pulled out */
+          const dh  = (iy1 - iy0) / drawers;
+          const pullOut = Math.min(120, (iz1-iz0) * 0.4);
+          for (let i = 0; i < drawers; i++) {
+            const dy0d = iy0 + i*dh, dy1d = iy0 + (i+1)*dh - 3;
+            const df = dz - W - pullOut;
+            polys.push(quad(ix0+4, dy0d+4, ix1-4, dy1d-4, df, fc, '#00000025', 0.6)); // drawer front
+            polys.push(hface(ix0+4, iz0, ix1-4, df, dy1d-4, '#d0ccc0')); // drawer top visible
+            if (handle !== 'Push-to-open') {
+              const hcx=(ix0+ix1)/2, hcy=(dy0d+dy1d)/2, hw=Math.min((ix1-ix0)*0.2,50);
+              polys.push(quad(hcx-hw,hcy-4,hcx+hw,hcy+4, df-2, '#8a8070'));
+            }
+          }
+        } else if (shelves > 0) {
+          /* shelf boards */
+          const sh = (iy1 - iy0) / (shelves + 1);
+          for (let i = 1; i <= shelves; i++) {
+            const sy = iy0 + i * sh;
+            polys.push(hface(ix0, iz0, ix1, iz1, sy, '#cec8b8')); // shelf top
+            polys.push(face([[ix0,sy-16,iz1],[ix1,sy-16,iz1],[ix1,sy,iz1],[ix0,sy,iz1]], '#c4bead')); // shelf edge
           }
         }
-      } else if (doorStyle !== 'Open (no door)') {
-        /* ── Door panels ───────────────────────── */
+
+        /* open door(s) — rotate 90° outward from front face */
         const numDoors = bw > 900 ? 2 : 1;
         const dw = bw / numDoors;
-        const ins = 12;
-        for (let d = 0; d < numDoors; d++) {
-          const dx0 = bx + d * dw, dx1 = dx0 + dw;
-          /* inset door panel */
-          polys.push(quad(dx0+ins, by0+ins, dx1-ins, by1-ins, dz+eps, 'rgba(255,255,255,0.13)', '#00000022', 0.5));
-          /* gap between double doors */
-          if (d < numDoors - 1)
-            polys.push(quad(dx1-3, by0, dx1+3, by1, dz+eps+1, 'rgba(0,0,0,0.18)'));
-          /* handle */
-          if (handle !== 'Push-to-open') {
-            const hx = dx1 - ins - 22, hy = (by0 + by1) / 2;
-            if (handle === 'Bar handle' || handle === 'T-bar')
-              polys.push(quad(hx-7, hy-55, hx+7, hy+55, dz+eps+2, '#7a7060'));
-            else
-              polys.push(quad(hx-30, hy-6, hx+30, hy+6, dz+eps+2, '#7a7060'));
+        if (numDoors === 1) {
+          polys.push(face([[bx,by0,dz],[bx,by0,dz+dw],[bx,by1,dz+dw],[bx,by1,dz]], fc,'#00000018',0.8));
+          polys.push(face([[bx+8,by0+8,dz+8],[bx+8,by0+8,dz+dw-8],[bx+8,by1-8,dz+dw-8],[bx+8,by1-8,dz+8]], 'rgba(255,255,255,0.12)','#00000015',0.4));
+        } else {
+          polys.push(face([[bx,by0,dz],[bx,by0,dz+dw],[bx,by1,dz+dw],[bx,by1,dz]], fc,'#00000018',0.8));
+          polys.push(face([[bx+bw,by0,dz],[bx+bw,by0,dz+dw],[bx+bw,by1,dz+dw],[bx+bw,by1,dz]], fc,'#00000018',0.8));
+        }
+
+      } else {
+        /* ── CLOSED STATE: front face + door/drawer details ── */
+        polys.push(quad(bx,by0,bx+bw,by1, dz, fc, hi, sw));
+
+        if (drawers > 0) {
+          const dh = (by1 - by0) / drawers;
+          const ins = Math.min(18, bw * 0.04);
+          for (let i = 0; i < drawers; i++) {
+            const dy0d = by0 + i*dh, dy1d = dy0d + dh;
+            polys.push(quad(bx+ins, dy0d+ins, bx+bw-ins, dy1d-ins, dz+eps, 'rgba(0,0,0,0.09)','#00000030',0.5));
+            if (handle !== 'Push-to-open') {
+              const hcx=bx+bw/2, hcy=(dy0d+dy1d)/2, hw=Math.min(bw*0.22,70);
+              polys.push(quad(hcx-hw,hcy-5,hcx+hw,hcy+5, dz+eps+2,'#7a7060'));
+            }
+          }
+        } else if (doorStyle !== 'Open (no door)') {
+          const numDoors = bw > 900 ? 2 : 1;
+          const dw = bw / numDoors;
+          const ins = 12;
+          for (let d = 0; d < numDoors; d++) {
+            const dx0 = bx + d*dw, dx1 = dx0 + dw;
+            polys.push(quad(dx0+ins,by0+ins,dx1-ins,by1-ins, dz+eps,'rgba(255,255,255,0.13)','#00000022',0.5));
+            if (d < numDoors-1) polys.push(quad(dx1-3,by0,dx1+3,by1, dz+eps+1,'rgba(0,0,0,0.18)'));
+            if (handle !== 'Push-to-open') {
+              const hx = dx1-ins-22, hy = (by0+by1)/2;
+              if (handle === 'Bar handle' || handle === 'T-bar')
+                polys.push(quad(hx-7,hy-55,hx+7,hy+55, dz+eps+2,'#7a7060'));
+              else
+                polys.push(quad(hx-30,hy-6,hx+30,hy+6, dz+eps+2,'#7a7060'));
+            }
           }
         }
       }
 
       return polys;
     })
-  , [items, selIdx]);
+  , [items, selIdx, openDoors]);
 
   /* project + sort all polys together for painter's algorithm */
   const projected = useM(() => {
@@ -744,7 +799,7 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
       onItemSelect && onItemSelect(items[clickedItemIdx]?.id || null);
       setZoomCtr({ x: c2.x, y: c2.y });
       setZoom(2);
-      drag.current = { type: 'move', idx: clickedItemIdx, ox: item.x, oy: item.y, depth: c2.z };
+      drag.current = { type: 'move', idx: clickedItemIdx, ox: item.x, oy: item.y, depth: c2.z, sx: e.clientX, sy: e.clientY, hasMoved: false };
     } else {
       if (selIdx !== null) { setSelIdx(null); onItemSelect && onItemSelect(null); setZoom(1); drag.current = null; return; }
       drag.current = { type: 'rotate', sx: e.clientX, sy: e.clientY, y0: yaw, p0: pitch };
@@ -756,7 +811,10 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
     if (drag.current.type === 'rotate') {
       setYaw(drag.current.y0 + (e.clientX - drag.current.sx) * 0.4);
       setPitch(Math.max(-80, Math.min(80, drag.current.p0 - (e.clientY - drag.current.sy) * 0.25)));
-    } else if (drag.current.type === 'move' && onMoveItem) {
+    } else if (drag.current.type === 'move') {
+      if (Math.abs(e.clientX - drag.current.sx) > 4 || Math.abs(e.clientY - drag.current.sy) > 4)
+        drag.current.hasMoved = true;
+      if (!onMoveItem || !drag.current.hasMoved) return;
       const rect = svgRef.current ? svgRef.current.getBoundingClientRect() : { width: SVG_W, height: SVG_H };
       const svgScale = SVG_W / rect.width;
       const dmx = e.movementX * svgScale / zoom;
@@ -774,7 +832,6 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
       drag.current.ox = newX;
       drag.current.oy = newY;
       onMoveItem(drag.current.idx, { x: newX, y: newY });
-      /* keep zoom centered on updated item position */
       const item = items[drag.current.idx];
       if (item) {
         const c2 = project(newX + (item.w||600)/2, (itemDims(item).by0+itemDims(item).by1)/2, newY + (item.h||580)/2);
@@ -783,7 +840,13 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
     }
   };
 
-  const onUp = () => { drag.current = null; };
+  const onUp = () => {
+    if (drag.current?.type === 'move' && !drag.current.hasMoved) {
+      const idx = drag.current.idx;
+      setOpenDoors(prev => ({ ...prev, [idx]: !prev[idx] }));
+    }
+    drag.current = null;
+  };
 
   const confirmMove = (e) => {
     e.stopPropagation();
@@ -812,7 +875,7 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
           ))}
         </g>
         <text x={12} y={SVG_H-12} fill={pMute} fontSize="9" fontFamily="JetBrains Mono,monospace" style={{ pointerEvents:'none' }}>
-          {selIdx !== null ? `3D · drag to move · click ✓ to confirm` : '3D PERSPECTIVE · drag to rotate · click item to select'}
+          {selIdx !== null ? '3D · click item to open/close door · drag to move · ✓ to confirm' : '3D · click item to open door · drag to rotate'}
         </text>
       </svg>
 
