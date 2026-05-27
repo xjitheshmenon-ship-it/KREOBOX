@@ -58,7 +58,8 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 .job-h .badge.green{background:rgba(111,191,122,.14);color:var(--green);}
 
 /* CANVAS */
-.canvas-wrap{grid-area:canvas;background:var(--canvas-bg);position:relative;overflow:hidden;display:flex;flex-direction:column;border-right:1px solid var(--line);}
+.canvas-wrap{grid-area:canvas;background:var(--canvas-bg);position:relative;overflow:hidden;display:flex;flex-direction:row;border-right:1px solid var(--line);}
+.canvas-inner{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
 .canvas-toolbar{display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid var(--canvas-line-2);background:rgba(245,243,237,.75);backdrop-filter:blur(8px);flex-shrink:0;gap:12px;}
 .view-tabs{display:inline-flex;gap:3px;padding:3px;background:var(--canvas-paper);border:1px solid var(--canvas-line-2);border-radius:100px;}
 .view-tab{padding:5px 14px;border-radius:100px;font-size:12px;font-weight:500;color:var(--canvas-mute);transition:background .15s,color .15s;cursor:pointer;}
@@ -67,6 +68,46 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 .otog{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:100px;background:var(--canvas-paper);border:1px solid var(--canvas-line-2);font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--canvas-mute);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .15s,color .15s,border-color .15s;user-select:none;}
 .otog.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .otog .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+
+/* ── MODULE CATALOG SIDEBAR ── */
+.planner-catalog{width:216px;flex-shrink:0;display:flex;flex-direction:column;background:var(--surface);border-right:1px solid var(--line);overflow:hidden;}
+.cat-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;flex-shrink:0;border-bottom:1px solid var(--line);}
+.cat-head-title{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);}
+.cat-filter{display:flex;gap:3px;padding:8px 10px 6px;flex-shrink:0;flex-wrap:wrap;}
+.ct{padding:3px 9px;border-radius:100px;font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:transparent;border:1px solid transparent;cursor:pointer;transition:all .15s;}
+.ct.active,.ct:hover{background:var(--surface-3);color:var(--paper);border-color:var(--line);}
+.cat-items{flex:1;overflow-y:auto;padding:4px 8px 8px;}
+.cat-items::-webkit-scrollbar{width:2px;}.cat-items::-webkit-scrollbar-thumb{background:var(--surface-4);}
+.cat-section-lbl{font-family:"JetBrains Mono",monospace;font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);padding:8px 4px 4px;opacity:.7;}
+.cat-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;margin-bottom:3px;cursor:pointer;background:var(--surface-2);border:1px solid var(--line);transition:border-color .15s,background .15s;}
+.cat-item:hover{border-color:var(--line-2);background:var(--surface-3);}
+.cat-item.in-room{border-color:rgba(78,162,90,.4);background:rgba(78,162,90,.06);}
+.cat-item.in-room .cat-item-nm::after{content:" ✓";color:#4ea25a;font-size:9px;}
+.cat-item-th{width:34px;height:34px;border-radius:6px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--mute);}
+.cat-item-th svg{width:70%;height:70%;}
+.cat-item-info{flex:1;min-width:0;}
+.cat-item-nm{font-size:11px;font-weight:500;color:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cat-item-sub{font-family:"JetBrains Mono",monospace;font-size:8.5px;color:var(--mute);letter-spacing:.04em;margin-top:1px;}
+.cat-item-pr{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--sienna-2);margin-top:1px;}
+.cat-item-add{width:22px;height:22px;border-radius:100px;background:var(--surface-3);border:1px solid var(--line);color:var(--mute);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;line-height:1;padding-bottom:1px;}
+.cat-item-add:hover{background:var(--sienna);border-color:var(--sienna);color:#fff;}
+
+/* ── MODULE CONFIG CARD in detail panel ── */
+.mod-cfg{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:12px;margin-bottom:12px;}
+.mod-cfg-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
+.mod-cfg-nm{font-size:12px;font-weight:500;color:var(--paper);}
+.mod-cfg-sku{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--sienna-2);letter-spacing:.12em;}
+.mod-cfg-section{margin-top:10px;}
+.mod-cfg-lbl{font-family:"JetBrains Mono",monospace;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin-bottom:5px;}
+.mod-cfg-sizes{display:flex;gap:4px;flex-wrap:wrap;}
+.cfg-size{padding:4px 10px;border-radius:100px;font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--mute);background:var(--surface-3);border:1px solid var(--line);cursor:pointer;transition:all .15s;}
+.cfg-size.active{background:var(--sienna);border-color:var(--sienna);color:#fff;}
+.mod-cfg-swatches{display:flex;gap:5px;flex-wrap:wrap;}
+.cfg-sw{width:20px;height:20px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:border-color .15s;outline:2px solid transparent;outline-offset:1px;}
+.cfg-sw.active{outline-color:var(--sienna);}
+.mod-cfg-int{display:flex;gap:4px;flex-wrap:wrap;}
+.cfg-int{padding:3px 9px;border-radius:5px;font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);background:var(--surface-3);border:1px solid var(--line);cursor:pointer;transition:all .15s;}
+.cfg-int.active{background:rgba(61,122,191,.15);border-color:rgba(61,122,191,.3);color:#3d7abf;}
 
 .canvas-body{flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:24px 28px;}
 .view-panel{display:none;width:100%;height:100%;}
@@ -124,7 +165,30 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 .hw-row .qty{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--sienna-2);font-weight:600;}
 .hw-row .sku{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.1em;}
 
-/* Assembly guide */
+/* Module detail — panels + hardware with serials */
+.mod-detail{margin-top:10px;border-top:1px solid var(--line);padding-top:10px;}
+.mod-detail-sec{margin-bottom:12px;}
+.mod-detail-sec-h{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--sienna-2);letter-spacing:.16em;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:8px;}
+.mod-detail-sec-h::after{content:'';flex:1;height:1px;background:var(--line);}
+.mpanel-row{display:grid;grid-template-columns:auto 1fr auto;gap:7px;align-items:center;padding:7px 9px;border-radius:6px;background:var(--surface-3);margin-bottom:4px;cursor:pointer;transition:background .12s;}
+.mpanel-row:hover{background:var(--surface-4);}
+.mpanel-row.assembled{opacity:.6;}
+.mpr-serial{font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;background:rgba(107,157,189,.22);border:1px solid rgba(107,157,189,.4);color:#a8cde0;letter-spacing:.08em;white-space:nowrap;}
+.mpr-serial.glass{background:rgba(107,157,189,.1);color:rgba(168,205,224,.7);}
+.mpr-info{min-width:0;}
+.mpr-nm{font-size:11.5px;font-weight:500;color:var(--paper);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mpr-dims{font-family:"JetBrains Mono",monospace;font-size:8.5px;color:var(--mute);letter-spacing:.07em;margin-top:1px;}
+.mpr-status{font-family:"JetBrains Mono",monospace;font-size:8px;padding:2px 6px;border-radius:3px;white-space:nowrap;}
+.mpr-status.assembled{background:rgba(111,191,122,.12);color:var(--green);}
+.mpr-status.scanned{background:rgba(107,157,189,.1);color:var(--blue);}
+.mpr-status.placed{background:rgba(212,164,74,.1);color:var(--amber);}
+.mpr-status.drilled{background:rgba(201,100,66,.1);color:var(--sienna-2);}
+.mpr-status.pending{background:var(--surface-4);color:var(--mute);}
+.mhw-row{display:grid;grid-template-columns:auto 1fr auto;gap:7px;align-items:center;padding:6px 9px;border-radius:6px;background:var(--surface-3);margin-bottom:4px;}
+.mhw-serial{font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;background:rgba(212,164,74,.18);border:1px solid rgba(212,164,74,.38);color:#e6c06a;letter-spacing:.08em;white-space:nowrap;}
+.mhw-nm{font-size:11.5px;color:var(--paper);}
+.mhw-spec{font-family:"JetBrains Mono",monospace;font-size:8.5px;color:var(--mute);letter-spacing:.07em;margin-top:1px;}
+.mhw-qty{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--sienna-2);font-weight:600;white-space:nowrap;}
 .guide-header{padding:0 0 12px;border-bottom:1px solid var(--line);margin-bottom:14px;}
 .guide-context{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}
 .guide-context span{color:var(--sienna-2);}
@@ -152,6 +216,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 .asm-time-tag{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--sienna-2);letter-spacing:.1em;white-space:nowrap;margin-top:1px;}
 .asm-note-line{font-family:"JetBrains Mono",monospace;font-size:9px;color:#d4a44a;letter-spacing:.08em;margin-top:5px;padding-left:8px;border-left:2px solid rgba(212,164,74,.4);}
 .asm-diag{width:100%;background:#faf8f2;border-radius:5px;border:1px solid rgba(22,20,15,.1);margin-top:9px;display:block;}
+.asm-diag-3d{background:rgba(15,14,12,.55)!important;border-color:var(--line)!important;}
 .guide-module-sel{display:inline-flex;gap:3px;padding:3px;border-radius:7px;background:var(--surface-3);border:1px solid var(--line);margin-bottom:12px;}
 .guide-module-sel button{padding:4px 9px;border-radius:4px;font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.1em;text-transform:uppercase;transition:background .12s,color .12s;}
 .guide-module-sel button.active{background:var(--surface-4);color:var(--sienna-2);}
@@ -359,6 +424,59 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 .item-mat .mat-txt strong{color:var(--paper);display:block;letter-spacing:.08em;}
 .item-factory{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:100px;background:var(--surface-2);border:1px solid var(--line);font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.12em;text-transform:uppercase;margin-top:8px;}
 
+/* 3D design context bar */
+.canvas-design-ctx{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(22,20,15,.82);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:100px;padding:8px 16px;font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--paper);z-index:20;white-space:nowrap;transition:opacity .2s,transform .2s;}
+.canvas-design-ctx.hidden{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(6px);}
+.canvas-design-ctx .ctx-sep{width:1px;height:14px;background:rgba(255,255,255,.15);}
+.canvas-design-ctx .ctx-sel{color:var(--sienna-2);letter-spacing:.1em;text-transform:uppercase;font-weight:700;}
+.canvas-design-ctx .ctx-nm{color:rgba(255,255,255,.6);letter-spacing:.06em;}
+.canvas-design-ctx .ctx-btn{padding:4px 12px;border-radius:100px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.65);font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+.canvas-design-ctx .ctx-btn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.3);}
+.canvas-design-ctx .ctx-btn.danger:hover{background:rgba(201,100,66,.25);color:var(--sienna-2);border-color:rgba(201,100,66,.4);}
+.canvas-design-ctx .ctx-label{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-right:4px;}
+
+/* Elevation badge */
+.elev-badge-wrap{position:absolute;top:10px;right:14px;display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:100px;background:rgba(22,20,15,.06);border:1px solid rgba(22,20,15,.1);font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--canvas-mute);letter-spacing:.14em;text-transform:uppercase;pointer-events:none;}
+.view-panel{position:relative;}
+
+/* 3D canvas cursor hint */
+#view-3d svg{cursor:crosshair;}
+
+/* Fabrication live feed (internal mode only) */
+.fab-stage-wrap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);}
+.fab-stage-wrap.hidden{display:none;}
+.fab-stage-row{display:flex;align-items:center;gap:0;margin-bottom:5px;}
+.fab-stage-row .fs{flex:1;height:4px;background:var(--line);border-radius:0;position:relative;margin-right:2px;border-radius:2px;}
+.fab-stage-row .fs:last-child{margin-right:0;}
+.fab-stage-row .fs.done{background:#4ea25a;}
+.fab-stage-row .fs.active{background:var(--amber);animation:fabpulse 1.2s infinite ease-in-out;}
+@keyframes fabpulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.fab-stage-lbls{display:flex;gap:0;margin-bottom:4px;}
+.fab-stage-lbls span{flex:1;font-family:"JetBrains Mono",monospace;font-size:8px;color:var(--mute);letter-spacing:.06em;text-transform:uppercase;text-align:center;padding-right:2px;}
+.fab-stage-lbls span.done{color:#4ea25a;}
+.fab-stage-lbls span.active{color:var(--amber);}
+.fab-pct-row{display:flex;align-items:center;justify-content:space-between;margin-top:3px;}
+.fab-pct-row .fp-pct{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--green);letter-spacing:.1em;}
+.fab-pct-row .fp-eta{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.08em;}
+.fab-section{display:none;margin-top:14px;}
+.app.internal-mode .fab-section{display:block;}
+.fab-section-h{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.fab-section-h .fs-label{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);}
+.fab-section-h .live-dot{width:6px;height:6px;border-radius:50%;background:#4ea25a;animation:pulse 1.6s infinite ease-out;flex-shrink:0;}
+.fab-feed-box{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+.fab-feed-hd{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--surface-3);}
+.fab-feed-hd span{font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);}
+.fab-evt{display:grid;grid-template-columns:38px 90px 1fr auto;gap:8px;align-items:center;padding:7px 12px;border-bottom:1px solid var(--line);}
+.fab-evt:last-child{border-bottom:none;}
+.fab-evt .fe-t{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--mute);letter-spacing:.06em;}
+.fab-evt .fe-loc{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--sienna-2);letter-spacing:.08em;text-transform:uppercase;}
+.fab-evt .fe-msg{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--paper);letter-spacing:.04em;}
+.fab-evt .fe-badge{font-family:"JetBrains Mono",monospace;font-size:8px;padding:2px 7px;border-radius:100px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;}
+.fab-evt .fe-badge.done{background:rgba(78,162,90,.15);color:#4ea25a;}
+.fab-evt .fe-badge.active{background:rgba(212,164,74,.15);color:var(--amber);}
+.fab-evt .fe-badge.queue{background:rgba(140,140,140,.12);color:var(--mute);}
+.fab-evt .fe-badge.pass{background:rgba(61,122,191,.15);color:var(--blue);}
+
 /* Internal footer */
 .int-footer{grid-area:int-foot;display:none;background:var(--surface);border-top:1px solid var(--line);align-items:center;padding:0 20px;gap:24px;}
 .int-footer .f-stat{display:flex;align-items:center;gap:8px;font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--mute);letter-spacing:.12em;text-transform:uppercase;}
@@ -464,11 +582,28 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
 <!-- CANVAS -->
 <main class="canvas-wrap">
+
+  <!-- ── LEFT: Module catalog ── -->
+  <nav class="planner-catalog" id="plannerCatalog">
+    <div class="cat-head">
+      <span class="cat-head-title">Add modules</span>
+    </div>
+    <div class="cat-filter" id="catFilter">
+      <button class="ct active" data-cat="all">All</button>
+      <button class="ct" data-cat="wardrobe">Wardrobe</button>
+      <button class="ct" data-cat="storage">Storage</button>
+      <button class="ct" data-cat="accent">Accent</button>
+    </div>
+    <div class="cat-items" id="catItems"></div>
+  </nav>
+
+  <!-- ── RIGHT: canvas viewport ── -->
+  <div class="canvas-inner">
   <div class="canvas-toolbar">
     <div class="view-tabs" id="viewTabs">
-      <button class="view-tab active" data-view="front">Front view</button>
-      <button class="view-tab" data-view="top">Top view</button>
-      <button class="view-tab" data-view="3d">3D</button>
+      <button class="view-tab active" data-view="3d">3D Design</button>
+      <button class="view-tab" data-view="front">Elevation</button>
+      <button class="view-tab" data-view="top">Top plan</button>
     </div>
     <div class="overlay-toggles" id="overlayToggles">
       <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--canvas-mute);letter-spacing:.14em;text-transform:uppercase;">Overlays</span>
@@ -481,8 +616,9 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
   <div class="canvas-body">
 
-    <!-- FRONT VIEW -->
-    <div class="view-panel active" id="view-front">
+    <!-- FRONT VIEW (Elevation — output only) -->
+    <div class="view-panel" id="view-front">
+      <div class="elev-badge-wrap">Elevation · view only</div>
       <svg viewBox="0 0 860 580" xmlns="http://www.w3.org/2000/svg" id="frontSvg">
         <!-- Wall + floor -->
         <rect x="0" y="0" width="860" height="490" fill="url(#wall-g)"/>
@@ -738,70 +874,26 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
       </svg>
     </div>
 
-    <!-- 3D VIEW -->
-    <div class="view-panel" id="view-3d">
-      <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
-        <rect x="0" y="0" width="800" height="500" fill="#f0ece2"/>
-        <!-- Floor plane (isometric) -->
-        <polygon points="80,340 680,340 740,380 20,380" fill="#d9c19a" stroke="rgba(120,80,40,.2)" stroke-width="1"/>
-        <!-- Back wall -->
-        <polygon points="80,80 680,80 680,340 80,340" fill="url(#wall-g)" stroke="rgba(22,20,15,.1)" stroke-width="1"/>
-        <!-- Side wall left -->
-        <polygon points="20,120 80,80 80,340 20,380" fill="#ebe5d6" stroke="rgba(22,20,15,.12)" stroke-width="1"/>
-
-        <!-- W-2D isometric -->
-        <g class="module-g" data-module="W2D">
-          <polygon points="96,340 166,340 166,80 96,80" fill="url(#grain)" stroke="#3e2a1d" stroke-width=".8"/>
-          <polygon points="96,80 166,80 174,72 104,72" fill="#5a3e2c" stroke="#3e2a1d" stroke-width=".8"/>
-          <polygon points="166,340 174,332 174,72 166,80" fill="#4a3020" stroke="#3e2a1d" stroke-width=".8"/>
-          <line x1="131" y1="80" x2="131" y2="340" stroke="#3e2a1d" stroke-width="1"/>
-        </g>
-        <!-- W-3D isometric (selected) -->
-        <g class="module-g" data-module="W3D">
-          <polygon points="168,340 308,340 308,80 168,80" fill="url(#grain)" stroke="#c96442" stroke-width="1.5"/>
-          <polygon points="168,80 308,80 316,72 176,72" fill="#5a3e2c" stroke="#c96442" stroke-width="1"/>
-          <polygon points="308,340 316,332 316,72 308,80" fill="#4a3020" stroke="#3e2a1d" stroke-width=".8"/>
-          <line x1="215" y1="80" x2="215" y2="340" stroke="#3e2a1d" stroke-width="1"/>
-          <line x1="262" y1="80" x2="262" y2="340" stroke="#3e2a1d" stroke-width="1"/>
-          <!-- Hanging rod 3d -->
-          <line x1="222" y1="158" x2="256" y2="158" stroke="rgba(22,20,15,.5)" stroke-width="2.5" stroke-linecap="round"/>
-        </g>
-        <!-- D-3S isometric -->
-        <g class="module-g" data-module="D3S">
-          <polygon points="310,340 410,340 410,80 310,80" fill="url(#grain)" stroke="#3e2a1d" stroke-width=".8"/>
-          <polygon points="310,80 410,80 418,72 318,72" fill="#5a3e2c" stroke="#3e2a1d" stroke-width=".8"/>
-          <polygon points="410,340 418,332 418,72 410,80" fill="#4a3020" stroke="#3e2a1d" stroke-width=".8"/>
-          <line x1="310" y1="160" x2="410" y2="160" stroke="#3e2a1d" stroke-width="1"/>
-          <line x1="310" y1="240" x2="410" y2="240" stroke="#3e2a1d" stroke-width="1"/>
-          <line x1="310" y1="320" x2="410" y2="320" stroke="#3e2a1d" stroke-width="1"/>
-        </g>
-        <!-- W-MR isometric -->
-        <g class="module-g" data-module="WMR">
-          <polygon points="412,340 552,340 552,80 412,80" fill="url(#grain)" stroke="#3e2a1d" stroke-width=".8"/>
-          <polygon points="412,80 552,80 560,72 420,72" fill="#5a3e2c" stroke="#3e2a1d" stroke-width=".8"/>
-          <polygon points="552,340 560,332 560,72 552,80" fill="#4a3020" stroke="#3e2a1d" stroke-width=".8"/>
-          <rect x="424" y="96" width="116" height="228" fill="url(#mirror)" opacity=".9"/>
-          <path d="M 436 112 L 524 112" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>
-          <path d="M 436 112 L 436 240" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>
-          <path d="M 444 124 L 488 260" stroke="rgba(255,255,255,.1)" stroke-width="14" stroke-linecap="round"/>
-        </g>
-
-        <!-- Floor lines -->
-        <line x1="96" y1="340" x2="104" y2="348" stroke="rgba(120,80,40,.2)" stroke-width=".6"/>
-        <line x1="168" y1="340" x2="176" y2="348" stroke="rgba(120,80,40,.2)" stroke-width=".6"/>
-        <line x1="310" y1="340" x2="318" y2="348" stroke="rgba(120,80,40,.2)" stroke-width=".6"/>
-        <line x1="412" y1="340" x2="420" y2="348" stroke="rgba(120,80,40,.2)" stroke-width=".6"/>
-        <line x1="552" y1="340" x2="560" y2="348" stroke="rgba(120,80,40,.2)" stroke-width=".6"/>
-
-        <!-- Labels -->
-        <text x="131" y="360" fill="rgba(22,20,15,.45)" font-family="JetBrains Mono" font-size="8.5" text-anchor="middle" letter-spacing=".12em">W-2D</text>
-        <text x="238" y="360" fill="#c96442" font-family="JetBrains Mono" font-size="9" text-anchor="middle" letter-spacing=".12em" font-weight="600">W-3D</text>
-        <text x="360" y="360" fill="rgba(22,20,15,.45)" font-family="JetBrains Mono" font-size="8.5" text-anchor="middle" letter-spacing=".12em">D-3S</text>
-        <text x="482" y="360" fill="rgba(22,20,15,.45)" font-family="JetBrains Mono" font-size="8.5" text-anchor="middle" letter-spacing=".12em">W-MR</text>
+    <!-- 3D VIEW (primary design surface) -->
+    <div class="view-panel active" id="view-3d">
+      <svg viewBox="0 0 1000 560" xmlns="http://www.w3.org/2000/svg" id="room3dSvg">
+        <!-- populated by renderRoom3D() -->
       </svg>
     </div>
 
-  </div>
+    <!-- 3D design context bar -->
+    <div class="canvas-design-ctx hidden" id="designCtx">
+      <span class="ctx-label">Designing</span>
+      <span class="ctx-sel" id="ctxSel">W-3D</span>
+      <span class="ctx-nm" id="ctxNm">3-door wardrobe</span>
+      <div class="ctx-sep"></div>
+      <button class="ctx-btn" onclick="showToast('SWAP MODULE — COMING SOON')">Swap</button>
+      <button class="ctx-btn" onclick="setDetailTab('bom')">Configure</button>
+      <button class="ctx-btn danger" onclick="removeSelectedModule()">Remove</button>
+    </div>
+
+  </div><!-- /.canvas-body -->
+  </div><!-- /.canvas-inner -->
 </main>
 
 <!-- DETAIL PANEL -->
@@ -819,6 +911,45 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
     <!-- BOM TAB -->
     <div class="tab-panel active" id="tab-bom">
+
+      <!-- Module config card — updates when a module is selected in 3D -->
+      <div class="mod-cfg" id="modCfgCard">
+        <div class="mod-cfg-head">
+          <div>
+            <div class="mod-cfg-nm" id="cfgName">W-3D · 3-door wardrobe</div>
+            <div class="mod-cfg-sku" id="cfgSku">W-3D · 1200 × 2400 × 600 MM</div>
+          </div>
+        </div>
+        <div class="mod-cfg-section">
+          <div class="mod-cfg-lbl">Width</div>
+          <div class="mod-cfg-sizes" id="cfgSizes">
+            <button class="cfg-size" onclick="setCfgSize(this,'800mm')">800mm</button>
+            <button class="cfg-size active" onclick="setCfgSize(this,'1200mm')">1200mm</button>
+            <button class="cfg-size" onclick="setCfgSize(this,'1500mm')">1500mm</button>
+          </div>
+        </div>
+        <div class="mod-cfg-section">
+          <div class="mod-cfg-lbl">Material</div>
+          <div class="mod-cfg-swatches" id="cfgSwatches">
+            <div class="cfg-sw active" title="Walnut Matt" style="background:linear-gradient(135deg,#8a6a52,#4d3527)" onclick="setCfgSwatch(this)"></div>
+            <div class="cfg-sw" title="Ivory Gloss" style="background:linear-gradient(135deg,#f0ece2,#ddd8ce)" onclick="setCfgSwatch(this)"></div>
+            <div class="cfg-sw" title="Graphite Matt" style="background:linear-gradient(135deg,#5a5450,#2e2c2a)" onclick="setCfgSwatch(this)"></div>
+            <div class="cfg-sw" title="Natural Oak" style="background:linear-gradient(135deg,#c8aa7a,#a0834e)" onclick="setCfgSwatch(this)"></div>
+            <div class="cfg-sw" title="Smoke Oak" style="background:linear-gradient(135deg,#6e6256,#4a3e34)" onclick="setCfgSwatch(this)"></div>
+            <div class="cfg-sw" title="White Matt" style="background:linear-gradient(135deg,#f5f3ed,#e0ddd6)" onclick="setCfgSwatch(this)"></div>
+          </div>
+        </div>
+        <div class="mod-cfg-section">
+          <div class="mod-cfg-lbl">Interior</div>
+          <div class="mod-cfg-int" id="cfgInt">
+            <button class="cfg-int active" onclick="toggleCfgInt(this)">Hanging rod</button>
+            <button class="cfg-int active" onclick="toggleCfgInt(this)">3 × shelf</button>
+            <button class="cfg-int" onclick="toggleCfgInt(this)">Drawers</button>
+            <button class="cfg-int" onclick="toggleCfgInt(this)">Shoe rack</button>
+          </div>
+        </div>
+      </div>
+
       <div class="d-section">
         <div class="d-h"><span>Modules in kit</span><span class="cnt">4 modules · 28 panels</span></div>
         <div class="mod-row" id="row-W2D" data-module="W2D">
@@ -827,13 +958,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
             <div><div class="nm">2-door wardrobe</div><div class="sub">800 × 2400 × 600 MM</div></div>
             <span class="sku">W-2D</span>
           </div>
-          <div class="mod-expand">
-            <div class="l"><span class="k">Carcass panels</span><span class="v">6 × 18mm ply</span></div>
-            <div class="l"><span class="k">Shutters</span><span class="v">2 × 400 × 2380 mm</span></div>
-            <div class="l"><span class="k">Internal shelves</span><span class="v">3 × adjustable</span></div>
-            <div class="l"><span class="k">Edge banding</span><span class="v">EB-09 · 5.6 m</span></div>
-            <div class="l"><span class="k">Soft-close mech</span><span class="v">4 × Hettich Sensys</span></div>
-          </div>
+          <div class="mod-expand" id="expand-W2D"></div>
         </div>
         <div class="mod-row selected" id="row-W3D" data-module="W3D">
           <div class="mod-row-h">
@@ -841,15 +966,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
             <div><div class="nm">3-door wardrobe</div><div class="sub">1200 × 2400 × 600 MM</div></div>
             <span class="sku">W-3D</span>
           </div>
-          <div class="mod-expand">
-            <div class="l"><span class="k">Carcass panels</span><span class="v">8 × 18mm ply</span></div>
-            <div class="l"><span class="k">Shutters</span><span class="v">3 × 400 × 2380 mm</span></div>
-            <div class="l"><span class="k">Internal shelves</span><span class="v">4 × adjustable</span></div>
-            <div class="l"><span class="k">Hanging rod</span><span class="v">1 × 1132mm chrome</span></div>
-            <div class="l"><span class="k">Drawer block</span><span class="v">3 × tandem 600mm</span></div>
-            <div class="l"><span class="k">Edge banding</span><span class="v">EB-09 · 8.2 m</span></div>
-            <div class="l"><span class="k">Soft-close mech</span><span class="v">6 × Hettich Sensys</span></div>
-          </div>
+          <div class="mod-expand" id="expand-W3D"></div>
         </div>
         <div class="mod-row" id="row-D3S" data-module="D3S">
           <div class="mod-row-h">
@@ -857,13 +974,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
             <div><div class="nm">Drawer stack</div><div class="sub">600 × 2400 × 600 MM · 4 drawers</div></div>
             <span class="sku">D-3S</span>
           </div>
-          <div class="mod-expand">
-            <div class="l"><span class="k">Drawer fronts</span><span class="v">4 × 556 × 195 mm</span></div>
-            <div class="l"><span class="k">Drawer boxes</span><span class="v">4 × tandem 600mm</span></div>
-            <div class="l"><span class="k">Carcass panels</span><span class="v">4 × 18mm ply</span></div>
-            <div class="l"><span class="k">Drawer slides</span><span class="v">Blum 562H · 30KG</span></div>
-            <div class="l"><span class="k">Edge banding</span><span class="v">EB-09 · 3.8 m</span></div>
-          </div>
+          <div class="mod-expand" id="expand-D3S"></div>
         </div>
         <div class="mod-row" id="row-WMR" data-module="WMR">
           <div class="mod-row-h">
@@ -871,12 +982,7 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
             <div><div class="nm">Mirror unit</div><div class="sub">800 × 2400 × 400 MM</div></div>
             <span class="sku">W-MR</span>
           </div>
-          <div class="mod-expand">
-            <div class="l"><span class="k">Mirror panel</span><span class="v">1 × 736 × 2320 mm</span></div>
-            <div class="l"><span class="k">Frame</span><span class="v">Walnut Matt laminate</span></div>
-            <div class="l"><span class="k">Mirror clips</span><span class="v">4 × chrome Ø10mm</span></div>
-            <div class="l"><span class="k">Back panel</span><span class="v">1 × 6mm HDF</span></div>
-          </div>
+          <div class="mod-expand" id="expand-WMR"></div>
         </div>
       </div>
     </div>
@@ -1091,7 +1197,6 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
           </div>
         </div>
       </div>
-    </div>
 
       <div class="proj-item" data-proj="KBX-04798">
         <div class="pi-top">
@@ -1191,7 +1296,6 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
     </div>
   </div>
-</aside>
 
   <!-- Project Detail -->
   <div class="proj-detail" id="projDetail">
@@ -1243,14 +1347,289 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     WMR:  [538, 47, 682, 495]
   };
 
+  // ── CATALOG DATA ──
+  // ── PLANNER STATE ──
+  const ROOM_STATE = { width: 3600 };  // total room wall width in mm
+  const SVG_WALL_L=160, SVG_WALL_R=840, SVG_MOD_T=106, SVG_MOD_B=474;
+  const DEPTH_DX=20, DEPTH_DY=-28;
+
+  // DesignOS internal tool — order arrives pre-configured from customer planner
+  // Default view shows a sample order for demo/internal use
+  let placed = [
+    { id:'W2D-1', type:'W2D', width:800,  x:0,    renderType:'wardrobe', doors:2, drawers:0, shelves:3 },
+    { id:'W3D-1', type:'W3D', width:1200, x:800,  renderType:'wardrobe', doors:3, drawers:0, shelves:3 },
+    { id:'D3S-1', type:'D3S', width:600,  x:2000, renderType:'drawer',   doors:0, drawers:4, shelves:0 },
+    { id:'WMR-1', type:'WMR', width:800,  x:2600, renderType:'mirror',   doors:0, drawers:0, shelves:0 },
+  ];
+  let selectedId = 'W3D-1';
+  let nextModId = 5;
+
+  const CATALOG_MODULES = [
+    { id:'W2D', cat:'wardrobe', nm:'2-door wardrobe',       widths:[800,1000],       sku:'W-2D',  price:'₹38,200', thumb:'m-w2d', renderType:'wardrobe', doors:2  },
+    { id:'W3D', cat:'wardrobe', nm:'3-door wardrobe',       widths:[1200,1500],      sku:'W-3D',  price:'₹52,400', thumb:'m-w3d', renderType:'wardrobe', doors:3  },
+    { id:'W4D', cat:'wardrobe', nm:'4-door wardrobe',       widths:[1600,2000],      sku:'W-4D',  price:'₹68,000', thumb:'m-w3d', renderType:'wardrobe', doors:4  },
+    { id:'WSL', cat:'wardrobe', nm:'Sliding door',          widths:[1200,1800],      sku:'W-SL',  price:'₹65,000', thumb:'m-w2d', renderType:'wardrobe', doors:2  },
+    { id:'D2S', cat:'storage',  nm:'Drawer × 2',            widths:[400,600],        sku:'D-2S',  price:'₹18,500', thumb:'m-dr',  renderType:'drawer',   drawers:3 },
+    { id:'D3S', cat:'storage',  nm:'Drawer × 3',            widths:[600,800],        sku:'D-3S',  price:'₹24,800', thumb:'m-dr',  renderType:'drawer',   drawers:4 },
+    { id:'D4S', cat:'storage',  nm:'Drawer × 4',            widths:[600,800],        sku:'D-4S',  price:'₹32,000', thumb:'m-dr',  renderType:'drawer',   drawers:5 },
+    { id:'OS1', cat:'storage',  nm:'Open shelf unit',       widths:[600,900,1200],   sku:'OS-1',  price:'₹12,400', thumb:'m-w2d', renderType:'open',     shelves:4 },
+    { id:'TLP', cat:'storage',  nm:'Tall pantry',           widths:[600],            sku:'T-LP',  price:'₹34,000', thumb:'m-w2d', renderType:'wardrobe', doors:2  },
+    { id:'WMR', cat:'accent',   nm:'Mirror unit',           widths:[600,800],        sku:'W-MR',  price:'₹22,600', thumb:'m-mr',  renderType:'mirror'               },
+    { id:'WLF', cat:'accent',   nm:'Loft unit',             widths:[1200,1600],      sku:'W-LF',  price:'₹18,000', thumb:'m-w2d', renderType:'loft'                 },
+    { id:'WTV', cat:'accent',   nm:'TV panel unit',         widths:[1200,1600],      sku:'W-TV',  price:'₹28,000', thumb:'m-w2d', renderType:'open',     shelves:3 },
+  ];
+
+  // ── ROOM RENDERER ──
+  function mmToSvgX(mm, roomW) {
+    return SVG_WALL_L + (mm / roomW) * (SVG_WALL_R - SVG_WALL_L);
+  }
+
+  function roomSurfacesSVG() {
+    return `
+      <polygon points="40,0 960,0 960,62 840,62 160,62 40,62" fill="#f2ede3"/>
+      <rect x="160" y="62" width="680" height="430" fill="url(#wall-g)"/>
+      <polygon points="40,62 160,62 160,492 40,556" fill="#e8e2d4"/>
+      <line x1="160" y1="62" x2="160" y2="492" stroke="rgba(22,20,15,.14)" stroke-width="1"/>
+      <polygon points="840,62 960,62 960,556 840,492" fill="#e2dbd0"/>
+      <line x1="840" y1="62" x2="840" y2="492" stroke="rgba(22,20,15,.14)" stroke-width="1"/>
+      <polygon points="40,556 160,492 840,492 960,556" fill="#d9c19a"/>
+      <line x1="40" y1="510" x2="960" y2="510" stroke="rgba(120,80,40,.07)" stroke-width=".8"/>
+      <line x1="40" y1="528" x2="960" y2="528" stroke="rgba(120,80,40,.06)" stroke-width=".8"/>
+      <line x1="40" y1="543" x2="960" y2="543" stroke="rgba(120,80,40,.07)" stroke-width=".8"/>
+      <rect x="160" y="474" width="680" height="18" fill="rgba(22,20,15,.06)"/>`;
+  }
+
+  function moduleContentSVG(m, sx, ex, w, T, B) {
+    const mid = (sx + ex) / 2;
+    let h = '';
+    if (m.renderType === 'wardrobe') {
+      const doors = m.doors || 2;
+      const dw = w / doors;
+      for (let d = 1; d < doors; d++)
+        h += `<line x1="${sx+d*dw}" y1="${T}" x2="${sx+d*dw}" y2="${B}" stroke="#3e2a1d" stroke-width="1.2"/>`;
+      for (let d = 0; d < doors; d++) {
+        const hx1 = sx + d*dw + dw*0.35, hx2 = sx + d*dw + dw*0.58;
+        const hy = T + (B-T)*0.48;
+        h += `<line x1="${hx1}" y1="${hy}" x2="${hx1}" y2="${hy+24}" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>`;
+        h += `<line x1="${hx2}" y1="${hy}" x2="${hx2}" y2="${hy+24}" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>`;
+      }
+      if (w > 100)
+        h += `<line x1="${sx+8}" y1="${T+100}" x2="${sx+w/doors-8}" y2="${T+100}" stroke="rgba(22,20,15,.3)" stroke-width="2" stroke-linecap="round"/>`;
+    } else if (m.renderType === 'drawer') {
+      const n = m.drawers || 4;
+      const dh = (B - T) / n;
+      for (let d = 1; d < n; d++)
+        h += `<line x1="${sx}" y1="${T+d*dh}" x2="${ex}" y2="${T+d*dh}" stroke="#3e2a1d" stroke-width="1.2"/>`;
+      for (let d = 0; d < n; d++) {
+        const hy = T + d*dh + dh*0.5;
+        h += `<line x1="${mid-w*0.25}" y1="${hy}" x2="${mid+w*0.25}" y2="${hy}" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>`;
+      }
+    } else if (m.renderType === 'mirror') {
+      const mx=sx+w*0.08, mex=ex-w*0.08, my=T+12, mby=T+(B-T)*0.72;
+      h += `<rect x="${mx}" y="${my}" width="${mex-mx}" height="${mby-my}" fill="url(#mirror)" opacity=".92" rx="2"/>`;
+      h += `<line x1="${mx+10}" y1="${my+14}" x2="${mex-10}" y2="${my+14}" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>`;
+      h += `<line x1="${mx+10}" y1="${my+14}" x2="${mx+10}" y2="${my+(mby-my)*0.5}" stroke="rgba(255,255,255,.4)" stroke-width=".8"/>`;
+      h += `<path d="M ${mx+14} ${my+20} L ${mid} ${mby-20}" stroke="rgba(255,255,255,.07)" stroke-width="${Math.min(w*0.18,18)}" stroke-linecap="round"/>`;
+    } else if (m.renderType === 'open') {
+      const n = m.shelves || 4;
+      const sh = (B-T)/(n+1);
+      for (let s=1; s<=n; s++)
+        h += `<line x1="${sx+2}" y1="${T+s*sh}" x2="${ex-2}" y2="${T+s*sh}" stroke="#3e2a1d" stroke-width="1.5"/>`;
+    } else if (m.renderType === 'loft') {
+      const split = T+(B-T)*0.52;
+      h += `<line x1="${sx}" y1="${split}" x2="${ex}" y2="${split}" stroke="#3e2a1d" stroke-width="1.5"/>`;
+      h += `<line x1="${mid}" y1="${T}" x2="${mid}" y2="${split}" stroke="#3e2a1d" stroke-width="1.2"/>`;
+      const hy = T+(split-T)*0.48;
+      h += `<line x1="${sx+w*0.22}" y1="${hy}" x2="${sx+w*0.22}" y2="${hy+22}" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>`;
+      h += `<line x1="${ex-w*0.22}" y1="${hy}" x2="${ex-w*0.22}" y2="${hy+22}" stroke="#b08a3e" stroke-width="2.5" stroke-linecap="round"/>`;
+    }
+    return h;
+  }
+
+  function moduleBoxSVG(m, roomW) {
+    const isSel = m.id === selectedId;
+    const sx = mmToSvgX(m.x, roomW), ex = mmToSvgX(m.x + m.width, roomW);
+    const w = ex - sx, T = SVG_MOD_T, B = SVG_MOD_B;
+    const col = isSel ? '#c96442' : '#3e2a1d';
+    const sw  = isSel ? '1.8' : '.8';
+    const tf  = isSel ? '#6a4838' : '#5a3e2c';
+    const cx  = (sx+ex)/2;
+    const lbl = m.type.replace(/([A-Z])(\d)/g,'$1-$2');
+
+    return `<g class="module-g" data-mid="${m.id}" style="cursor:pointer">
+      <polygon points="${sx},${T} ${ex},${T} ${ex+DEPTH_DX},${T+DEPTH_DY} ${sx+DEPTH_DX},${T+DEPTH_DY}" fill="${tf}" stroke="${col}" stroke-width="${isSel?'1':'.7'}"/>
+      <rect x="${sx}" y="${T}" width="${w}" height="${B-T}" fill="url(#grain)" stroke="${col}" stroke-width="${sw}"/>
+      ${moduleContentSVG(m, sx, ex, w, T, B)}
+      <polygon points="${ex},${T} ${ex+DEPTH_DX},${T+DEPTH_DY} ${ex+DEPTH_DX},${B+DEPTH_DY} ${ex},${B}" fill="#4a3020" stroke="${col}" stroke-width=".5"/>
+      ${isSel
+        ? `<rect x="${sx-2}" y="${T-2}" width="${w+4}" height="${B-T+4}" fill="none" stroke="#c96442" stroke-width="2.5" rx="2"/>`
+        : `<rect x="${sx-2}" y="${T-2}" width="${w+4}" height="${B-T+4}" fill="none" stroke="var(--sienna)" stroke-width="0" rx="2" class="mod-hover" opacity=".6"/>`}
+      <text x="${cx}" y="510" fill="${isSel?'#c96442':'rgba(22,20,15,.4)'}" font-family="JetBrains Mono" font-size="9" text-anchor="middle" letter-spacing=".12em" ${isSel?'font-weight="700"':''}>${lbl}</text>
+      <line x1="${sx}" y1="502" x2="${ex}" y2="502" stroke="${isSel?'rgba(201,100,66,.3)':'rgba(22,20,15,.15)'}" stroke-width=".8"/>
+      <text x="${cx}" y="500" fill="${isSel?'rgba(201,100,66,.5)':'rgba(22,20,15,.28)'}" font-family="JetBrains Mono" font-size="7.5" text-anchor="middle" letter-spacing=".1em">${m.width}MM</text>
+    </g>`;
+  }
+
+  function renderRoom3D() {
+    const svg = document.getElementById('room3dSvg');
+    if (!svg) return;
+    let xPos = 0;
+    placed.forEach(m => { m.x = xPos; xPos += m.width; });
+    const totalW = xPos;
+    const roomW = Math.max(ROOM_STATE.width, totalW);
+    const shadowCx = mmToSvgX(totalW/2, roomW);
+    const shadowRx = Math.max(10, (mmToSvgX(totalW, roomW) - SVG_WALL_L) / 2);
+
+    let html = roomSurfacesSVG();
+    if (placed.length > 0) {
+      html += `<ellipse cx="${shadowCx}" cy="494" rx="${shadowRx}" ry="5" fill="rgba(22,20,15,.18)" opacity=".6"/>`;
+      html += placed.map(m => moduleBoxSVG(m, roomW)).join('');
+    }
+
+    // Empty slot — full-width when room is bare, partial when modules exist
+    const slotSx = mmToSvgX(totalW, roomW);
+    const slotEx = mmToSvgX(roomW, roomW);
+    if (slotEx - slotSx > 14) {
+      const sm = (slotSx+slotEx)/2, smv = (SVG_MOD_T+SVG_MOD_B)/2;
+      if (placed.length === 0) {
+        // Full empty-state: centred prompt
+        html += `<g style="cursor:pointer" onclick="document.querySelector('.cat-items .cat-item-add') && document.querySelector('.cat-items .cat-item-add').click()">
+          <rect x="${slotSx}" y="${SVG_MOD_T}" width="${slotEx-slotSx}" height="${SVG_MOD_B-SVG_MOD_T}" fill="rgba(201,100,66,.03)" stroke="rgba(201,100,66,.22)" stroke-width="1.5" stroke-dasharray="6,5" rx="4"/>
+          <line x1="${sm}" y1="${smv-26}" x2="${sm}" y2="${smv+26}" stroke="rgba(201,100,66,.4)" stroke-width="3" stroke-linecap="round"/>
+          <line x1="${sm-26}" y1="${smv}" x2="${sm+26}" y2="${smv}" stroke="rgba(201,100,66,.4)" stroke-width="3" stroke-linecap="round"/>
+          <text x="${sm}" y="${smv+64}" fill="rgba(201,100,66,.55)" font-family="JetBrains Mono" font-size="9.5" text-anchor="middle" letter-spacing=".18em">ADD MODULES FROM THE SIDEBAR</text>
+          <text x="${sm}" y="${smv+80}" fill="rgba(22,20,15,.2)" font-family="JetBrains Mono" font-size="7.5" text-anchor="middle" letter-spacing=".12em">CLICK  +  ON ANY MODULE TO PLACE IT IN THE ROOM</text>
+        </g>`;
+      } else {
+        html += `<g onclick="showToast('CLICK + IN CATALOG TO ADD A MODULE')" style="cursor:pointer">
+          <rect x="${slotSx}" y="${SVG_MOD_T}" width="${slotEx-slotSx}" height="${SVG_MOD_B-SVG_MOD_T}" fill="rgba(201,100,66,.04)" stroke="rgba(201,100,66,.3)" stroke-width="1.5" stroke-dasharray="5,4" rx="3"/>
+          <line x1="${sm}" y1="${smv-18}" x2="${sm}" y2="${smv+18}" stroke="rgba(201,100,66,.5)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="${sm-18}" y1="${smv}" x2="${sm+18}" y2="${smv}" stroke="rgba(201,100,66,.5)" stroke-width="2.5" stroke-linecap="round"/>
+        </g>`;
+      }
+    }
+    // Room dimension label
+    html += `<line x1="${SVG_WALL_L}" y1="50" x2="${SVG_WALL_R}" y2="50" stroke="rgba(22,20,15,.18)" stroke-width=".8"/>`;
+    html += `<text x="${(SVG_WALL_L+SVG_WALL_R)/2}" y="46" fill="rgba(22,20,15,.28)" font-family="JetBrains Mono" font-size="8" text-anchor="middle" letter-spacing=".14em">ROOM · ${roomW}MM</text>`;
+
+    svg.innerHTML = html;
+    // Click handlers
+    svg.querySelectorAll('[data-mid]').forEach(el => {
+      el.addEventListener('click', () => selectPlacedModule(el.dataset.mid));
+    });
+  }
+
+  function selectPlacedModule(id) {
+    if (selectedId === id) return;
+    selectedId = id;
+    const m = placed.find(p => p.id === id);
+    if (m) { selectedModule = m.type; updateModuleSelection(); updateDesignCtx(); renderModuleConfig(m.type); }
+    renderRoom3D();
+  }
+
+  function addModuleFromCatalog(typeId, e) {
+    if (e) e.stopPropagation();
+    const cat = CATALOG_MODULES.find(c => c.id === typeId);
+    if (!cat) return;
+    const totalW = placed.reduce((s, m) => s + m.width, 0);
+    const newM = {
+      id: typeId + '-' + (++nextModId),
+      type: typeId, width: cat.widths[0],
+      x: totalW,
+      renderType: cat.renderType || 'wardrobe',
+      doors: cat.doors || 2, drawers: cat.drawers || 0, shelves: cat.shelves || 0,
+    };
+    placed.push(newM);
+    selectedId = newM.id;
+    selectedModule = typeId;
+    renderRoom3D();
+    updateModuleSelection();
+    updateDesignCtx();
+    renderModuleConfig(typeId);
+    renderCatalog(document.querySelector('.ct.active')?.dataset.cat || 'all');
+    showToast(cat.sku + ' · ' + cat.nm.toUpperCase() + ' ADDED TO ROOM');
+  }
+
+  function removeSelectedModule() {
+    const idx = placed.findIndex(m => m.id === selectedId);
+    if (idx < 0) return;
+    const lbl = placed[idx].type;
+    placed.splice(idx, 1);
+    selectedId = placed.length ? placed[Math.min(idx, placed.length-1)].id : null;
+    if (selectedId) { selectedModule = placed.find(m => m.id === selectedId)?.type; updateModuleSelection(); updateDesignCtx(); renderModuleConfig(selectedModule); }
+    renderRoom3D();
+    renderCatalog(document.querySelector('.ct.active')?.dataset.cat || 'all');
+    showToast(lbl.replace(/([A-Z])(\d)/g,'$1-$2') + ' REMOVED FROM ROOM');
+  }
+
+  function renderCatalog(cat) {
+    const items = cat === 'all' ? CATALOG_MODULES : CATALOG_MODULES.filter(m => m.cat === cat);
+    const catLabels = { wardrobe:'Wardrobes', storage:'Storage', accent:'Accent' };
+    let html = '', lastCat = '';
+    items.forEach(m => {
+      if (cat === 'all' && m.cat !== lastCat) { html += `<div class="cat-section-lbl">${catLabels[m.cat]}</div>`; lastCat = m.cat; }
+      const inRoom = placed.some(p => p.type === m.id);
+      html += `<div class="cat-item${inRoom?' in-room':''}" data-cid="${m.id}">
+        <div class="cat-item-th"><svg width="34" height="34"><use href="#${m.thumb}"/></svg></div>
+        <div class="cat-item-info">
+          <div class="cat-item-nm">${m.nm}</div>
+          <div class="cat-item-sub">${m.widths.map(w=>w+'mm').join(' · ')}</div>
+          <div class="cat-item-pr">${m.price}</div>
+        </div>
+        <button class="cat-item-add" title="Add to room" onclick="addModuleFromCatalog('${m.id}',event)">+</button>
+      </div>`;
+    });
+    document.getElementById('catItems').innerHTML = html;
+  }
+
+  // Module config card
+  const MOD_INT_OPTS = {
+    wardrobe: ['Hanging rod','Shelves','Drawers','Shoe rack'],
+    drawer:   ['Soft-close','Lockable top','Dividers'],
+    mirror:   ['Full mirror','Half mirror','Shelf below'],
+    open:     ['Fixed shelves','Adjustable shelves','Basket pull-out'],
+    loft:     ['Hinged doors','Open front','Interior light'],
+  };
+  function renderModuleConfig(typeId) {
+    const cat = CATALOG_MODULES.find(c => c.id === typeId);
+    const m   = placed.find(p => p.id === selectedId);
+    if (!cat) return;
+    const w   = m ? m.width : cat.widths[0];
+    document.getElementById('cfgName').textContent = cat.nm;
+    document.getElementById('cfgSku').textContent  = cat.sku + ' · ' + w + ' × 2400 × 600 MM';
+    document.getElementById('cfgSizes').innerHTML  = cat.widths.map(sw =>
+      `<button class="cfg-size${sw===w?' active':''}" onclick="setModuleWidth(${sw})">${sw}mm</button>`
+    ).join('');
+    const intOpts = MOD_INT_OPTS[cat.renderType] || MOD_INT_OPTS.wardrobe;
+    document.getElementById('cfgInt').innerHTML = intOpts.map((opt, i) =>
+      `<button class="cfg-int${i<2?' active':''}" onclick="this.classList.toggle('active')">${opt}</button>`
+    ).join('');
+  }
+  function setModuleWidth(w) {
+    const m = placed.find(p => p.id === selectedId);
+    if (!m) return;
+    m.width = w;
+    renderRoom3D();
+    renderModuleConfig(m.type);
+    showToast('WIDTH SET TO ' + w + 'MM');
+  }
+  function setCfgSwatch(el) {
+    document.querySelectorAll('.cfg-sw').forEach(s => s.classList.remove('active'));
+    el.classList.add('active');
+    showToast('MATERIAL: ' + el.title.toUpperCase());
+  }
+  function toggleCfgInt(btn) { btn.classList.toggle('active'); }
+
   // ── STATE ──
   let selectedModule = 'W3D';
   let activeDetailTab = 'bom';
-  let activeView = 'front';
+  let activeView = '3d';
   let overlays = { dim: true, hw: true, drill: true, edge: false };
   let completedSteps = new Set([1, 2]);
   let activeStep = 3;
   const TOTAL_STEPS = 9;
+  // Maps checklist pill step# → assembly guide module
+  const STEP_MODULE_MAP = { 3:'W2D', 4:'W3D', 5:'D3S', 6:'WMR' };
 
   // ── TOAST ──
   let toastTimer;
@@ -1268,6 +1647,8 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     if (selectedModule === id) return;
     selectedModule = id;
     updateModuleSelection();
+    updateDesignCtx();
+    renderModuleConfig(id);
   }
 
   function updateModuleSelection() {
@@ -1323,8 +1704,23 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     activeView = v;
     document.querySelectorAll('.view-tab').forEach(el => el.classList.toggle('active', el.dataset.view === v));
     document.querySelectorAll('.view-panel').forEach(el => el.classList.toggle('active', el.id === 'view-'+v));
-    // Only show overlay toggles in front view
-    document.getElementById('overlayToggles').style.visibility = v === 'front' ? 'visible' : 'hidden';
+    // Overlays make sense in 3D design view and elevation; not in top plan
+    document.getElementById('overlayToggles').style.visibility = v === 'top' ? 'hidden' : 'visible';
+    // Design context bar only in 3D view
+    updateDesignCtx();
+  }
+
+  const MODULE_NAMES = { W2D:'2-door wardrobe', W3D:'3-door wardrobe', D3S:'Drawer stack', WMR:'Mirror unit' };
+
+  function updateDesignCtx() {
+    const ctx = document.getElementById('designCtx');
+    if (!ctx) return;
+    const visible = activeView === '3d' && selectedModule;
+    ctx.classList.toggle('hidden', !visible);
+    if (visible) {
+      document.getElementById('ctxSel').textContent = selectedModule.replace('W2D','W-2D').replace('W3D','W-3D').replace('D3S','D-3S').replace('WMR','W-MR');
+      document.getElementById('ctxNm').textContent = MODULE_NAMES[selectedModule] || selectedModule;
+    }
   }
 
   // ── OVERLAY TOGGLES ──
@@ -1341,11 +1737,22 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
   function markStepComplete() {
     if (activeStep > TOTAL_STEPS) { showToast('ALL STEPS COMPLETE · GREAT WORK!', 'green'); return; }
     completedSteps.add(activeStep);
+    const justDone = activeStep;
     activeStep = Math.min(activeStep + 1, TOTAL_STEPS + 1);
     updateSteps();
-    showToast('STEP ' + (activeStep-1) + ' MARKED COMPLETE', 'green');
-    // Switch to install tab to show progress
+    showToast('STEP ' + justDone + ' MARKED COMPLETE', 'green');
     setDetailTab('install');
+    // If next phase maps to a module, load it in the guide automatically
+    const mod = STEP_MODULE_MAP[activeStep];
+    if (mod) switchGuideModule(mod);
+  }
+
+  function switchGuideModule(mod) {
+    activeGuideModule = mod;
+    document.querySelectorAll('[data-gmod]').forEach(b => b.classList.toggle('active', b.dataset.gmod === mod));
+    renderAssemblyGuide(mod);
+    const gb = document.getElementById('guideBody');
+    if (gb) { const wrap = gb.closest('.detail-scroll, .tab-panel, #tab-install'); if (wrap) wrap.scrollTop = 0; }
   }
 
   function updateSteps() {
@@ -1400,24 +1807,31 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     if (row) selectModule(row.dataset.module);
   });
 
-  // Module clicks in SVG canvases (all views)
+  // Module clicks in SVG canvases
   document.querySelector('.canvas-body').addEventListener('click', e => {
     const g = e.target.closest('.module-g[data-module]');
-    if (g) {
-      selectModule(g.dataset.module);
-      // Switch to BOM tab to show the selected module
-      setDetailTab('bom');
+    if (!g) return;
+    selectModule(g.dataset.module);
+    setDetailTab('bom');
+    // Nudge users to design in 3D when they click the elevation view
+    if (activeView === 'front') {
+      showToast('SWITCH TO 3D DESIGN TO CONFIGURE THIS MODULE');
     }
   });
 
-  // Checklist pills — click to jump to step
+  // Checklist pills — click to jump to phase / module
   document.getElementById('chkSteps').addEventListener('click', e => {
     const chk = e.target.closest('.chk[data-step]');
-    if (chk) {
-      setDetailTab('install');
-      const stepEl = document.querySelector('#stepList .step-item[data-step="'+chk.dataset.step+'"]');
-      if (stepEl) stepEl.scrollIntoView({ behavior:'smooth', block:'center' });
-    }
+    if (!chk) return;
+    const step = +chk.dataset.step;
+    // Allow jumping to any step that isn't already done (or the current active)
+    if (completedSteps.has(step)) return;
+    activeStep = step;
+    updateSteps();
+    setDetailTab('install');
+    // Load the module that corresponds to this phase
+    const mod = STEP_MODULE_MAP[step];
+    if (mod) switchGuideModule(mod);
   });
 
   // ── INTERNAL TEAM MODE ──
@@ -1525,6 +1939,107 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
   const ITEM_THUMB_MAP = { 'W-2D':'m-w2d','W-3D':'m-w3d','D-3S':'m-dr','W-MR':'m-mr' };
 
+  // Stages that happen PER ORDER after panels are pulled from depot.
+  // CNC Cut / Edge Band / Laminate are factory batch stages tracked
+  // in the admin depot restock pipeline — not per-order stages.
+  const FAB_STAGE_NAMES = ['Depot alloc','Pre-drill','QC check','Kit pack','Dispatch ready'];
+  const FAB_DATA = {
+    'KBX-04812': {
+      items: {
+        'W-2D':  { s:[1,1,0,0,0], active:2, eta:'ETA 3 hrs' },
+        'W-3D':  { s:[1,0,0,0,0], active:1, eta:'ETA 5 hrs' },
+        'D-3S':  { s:[0,0,0,0,0], active:0, eta:'Awaiting depot alloc' },
+        'W-MR':  { s:[0,0,0,0,0], active:0, eta:'Awaiting depot alloc' },
+      },
+      feed: [
+        { t:'14:52', loc:'BLR-14 · DEPOT',   msg:'W-2D · 6 panels allocated (serials P-BLR-1186–1191)', badge:'done' },
+        { t:'14:38', loc:'F-01 · PRE-DRILL',  msg:'W-2D pre-drill started — hinge cups + dowel marks', badge:'active' },
+        { t:'14:10', loc:'BLR-14 · DEPOT',   msg:'W-3D · 8 panels allocated (serials P-BLR-1188–1195)', badge:'done' },
+        { t:'13:48', loc:'F-01 · ALLOC',      msg:'D-3S panels pending — BLR-14 stock check in progress', badge:'queue' },
+        { t:'13:30', loc:'F-01 · ALLOC',      msg:'W-MR panels pending — BLR-14 stock check in progress', badge:'queue' },
+      ]
+    },
+    'KBX-04798': {
+      items: {
+        'OFC-01':  { s:[1,1,0,0,0], active:2, eta:'ETA 4 hrs' },
+        'BOOK-01': { s:[1,0,0,0,0], active:1, eta:'ETA 7 hrs' },
+        'CAB-03':  { s:[1,1,1,1,1], active:-1, eta:'Dispatch ready' },
+      },
+      feed: [
+        { t:'14:38', loc:'MUM-07 · DEPOT',   msg:'CAB-03 · 4 panels allocated & confirmed', badge:'done' },
+        { t:'14:25', loc:'F-02 · PRE-DRILL', msg:'OFC-01 pre-drill started — cable grommet + dowel marks', badge:'active' },
+        { t:'14:10', loc:'MUM-07 · DEPOT',   msg:'OFC-01 · 4 panels allocated (serials M-002-441–444)', badge:'done' },
+        { t:'13:52', loc:'MUM-07 · DEPOT',   msg:'BOOK-01 · 3 panels allocated', badge:'done' },
+        { t:'13:44', loc:'F-02 · KIT PACK',  msg:'CAB-03 kit packed & sealed — dispatch ready', badge:'pass' },
+        { t:'13:28', loc:'F-02 · QC',        msg:'CAB-03 QC check passed · all panels verified', badge:'done' },
+      ]
+    },
+    'KBX-04811': {
+      items: {
+        'KIT-UPR-1': { s:[1,1,1,0,0], active:3, eta:'ETA 5 hrs' },
+        'KIT-LWR-1': { s:[1,1,0,0,0], active:2, eta:'ETA 8 hrs' },
+        'KIT-ISL-1': { s:[1,0,0,0,0], active:1, eta:'ETA 12 hrs' },
+        'KIT-PAN-1': { s:[0,0,0,0,0], active:0, eta:'Awaiting depot alloc' },
+      },
+      feed: [
+        { t:'15:10', loc:'DEL-03 · DEPOT',   msg:'KIT-UPR-1 · 12 panels allocated from DEL-03', badge:'done' },
+        { t:'15:00', loc:'F-03 · PRE-DRILL', msg:'KIT-UPR-1 shelf pin holes pre-drilled · 48 holes', badge:'done' },
+        { t:'14:55', loc:'F-03 · QC',        msg:'KIT-UPR-1 QC check in progress', badge:'active' },
+        { t:'14:30', loc:'DEL-03 · DEPOT',   msg:'KIT-LWR-1 · 14 panels allocated', badge:'done' },
+        { t:'14:12', loc:'F-03 · PRE-DRILL', msg:'KIT-LWR-1 pre-drill started', badge:'active' },
+        { t:'13:50', loc:'DEL-03 · DEPOT',   msg:'KIT-PAN-1 alloc pending — min stock check running', badge:'queue' },
+      ]
+    },
+    'KBX-04807': {
+      items: {
+        'LIV-TV-1':  { s:[1,1,1,1,1], active:-1, eta:'Dispatch ready' },
+        'LIV-CAB-2': { s:[1,1,1,1,1], active:-1, eta:'Dispatch ready' },
+      },
+      feed: [
+        { t:'11:24', loc:'F-01 · DISPATCH',  msg:'LIV-TV-1 kit sealed · dispatch label printed', badge:'pass' },
+        { t:'11:10', loc:'F-01 · DISPATCH',  msg:'LIV-CAB-2 kit sealed · dispatch label printed', badge:'pass' },
+        { t:'10:52', loc:'F-01 · QC',        msg:'LIV-TV-1 QC passed · 8 panels verified', badge:'done' },
+        { t:'10:38', loc:'F-01 · QC',        msg:'LIV-CAB-2 QC passed · 6 panels verified', badge:'done' },
+        { t:'09:30', loc:'BLR-14 · DEPOT',   msg:'All panels allocated — 14 serials assigned', badge:'done' },
+      ]
+    },
+    'KBX-04803': {
+      items: {
+        'W-2D':  { s:[1,1,1,1,1], active:-1, eta:'Dispatch ready' },
+        'BED-1': { s:[1,1,1,0,0], active:3,  eta:'ETA 1 hr' },
+      },
+      feed: [
+        { t:'14:18', loc:'F-02 · DISPATCH',  msg:'W-2D kit sealed — dispatch ready', badge:'pass' },
+        { t:'13:55', loc:'F-02 · KIT PACK',  msg:'W-2D kit packing complete · 6 panels', badge:'done' },
+        { t:'13:44', loc:'F-02 · QC',        msg:'BED-1 QC check passed', badge:'done' },
+        { t:'13:40', loc:'F-02 · PRE-DRILL', msg:'BED-1 headboard mounting holes pre-drilled', badge:'done' },
+        { t:'12:50', loc:'MUM-07 · DEPOT',   msg:'BED-1 · 3 panels allocated', badge:'done' },
+      ]
+    },
+    'KBX-04799': {
+      items: {
+        'KIDS-BED': { s:[0,0,0,0,0], active:0, eta:'Design phase' },
+        'KIDS-STU': { s:[0,0,0,0,0], active:0, eta:'Design phase' },
+      },
+      feed: [
+        { t:'—', loc:'DESIGN',  msg:'KIDS-BED awaiting design sign-off before depot alloc', badge:'queue' },
+        { t:'—', loc:'DESIGN',  msg:'KIDS-STU material selection pending', badge:'queue' },
+      ]
+    },
+    'KBX-04795': {
+      items: {
+        'DIN-BUF-1': { s:[1,1,0,0,0], active:2, eta:'ETA 6 hrs' },
+        'DIN-WINE':  { s:[1,0,0,0,0], active:1, eta:'ETA 9 hrs' },
+      },
+      feed: [
+        { t:'14:44', loc:'BLR-14 · DEPOT',   msg:'DIN-BUF-1 · 6 panels allocated (serials P-BLR-1820–1825)', badge:'done' },
+        { t:'14:20', loc:'F-01 · PRE-DRILL', msg:'DIN-BUF-1 pre-drill in progress — drawer runners', badge:'active' },
+        { t:'13:58', loc:'BLR-14 · DEPOT',   msg:'DIN-WINE · 4 panels allocated', badge:'done' },
+        { t:'13:30', loc:'F-01 · PRE-DRILL', msg:'DIN-WINE pre-drill queued', badge:'queue' },
+      ]
+    },
+  };
+
   let activeProject = 'KBX-04812';
   let expandedItem = null;
   let isInternalMode = false;
@@ -1552,6 +2067,31 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     expandedItem = null;
     const body = document.getElementById('projDetailBody');
     const statusLabels = { ready:'Ready', 'in-prod':'In production', design:'Design phase' };
+    const fabProj = FAB_DATA[projId] || { items:{}, feed:[] };
+
+    function fabStageHTML(sku) {
+      const fd = fabProj.items[sku];
+      if (!fd) return '';
+      const doneCount = fd.s.filter(Boolean).length;
+      const pct = Math.round((doneCount / FAB_STAGE_NAMES.length) * 100);
+      const lbls = FAB_STAGE_NAMES.map((n,i) => {
+        const cls = fd.s[i] ? 'done' : (i === fd.active ? 'active' : '');
+        return `<span class="${cls}">${n}</span>`;
+      }).join('');
+      const bars = fd.s.map((done, i) => {
+        const cls = done ? 'done' : (i === fd.active ? 'active' : '');
+        return `<div class="fs ${cls}"></div>`;
+      }).join('');
+      return `<div class="fab-stage-wrap">
+        <div class="fab-stage-lbls">${lbls}</div>
+        <div class="fab-stage-row">${bars}</div>
+        <div class="fab-pct-row">
+          <span class="fp-pct">${pct}% complete · ${doneCount}/${FAB_STAGE_NAMES.length} stages</span>
+          <span class="fp-eta">${fd.eta}</span>
+        </div>
+      </div>`;
+    }
+
     body.innerHTML = '<div style="margin-bottom:10px" class="item-section-h"><span>' + proj.modules + ' items in order</span><span class="cnt">' + proj.panels + ' panels total</span></div>' +
       proj.items.map((item, i) => {
         const thumbId = getThumbId(item.sku);
@@ -1575,9 +2115,29 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
               <div class="mat-txt"><strong>${item.mat.name}</strong>${item.mat.sub}</div>
             </div>
             <span class="item-factory">Factory · ${item.factory}</span>
+            ${fabStageHTML(item.sku)}
           </div>
         </div>`;
-      }).join('');
+      }).join('') +
+      // Live fabrication feed (visible in internal mode via CSS)
+      `<div class="fab-section">
+        <div class="fab-section-h">
+          <div class="live-dot"></div>
+          <span class="fs-label">Live fabrication feed · ${projId}</span>
+        </div>
+        <div class="fab-feed-box">
+          <div class="fab-feed-hd">
+            <span>Factory events · today</span>
+            <span>${fabProj.feed.length} updates</span>
+          </div>
+          ${fabProj.feed.map(ev => `<div class="fab-evt">
+            <span class="fe-t">${ev.t}</span>
+            <span class="fe-loc">${ev.loc}</span>
+            <span class="fe-msg">${ev.msg}</span>
+            <span class="fe-badge ${ev.badge}">${ev.badge}</span>
+          </div>`).join('')}
+        </div>
+      </div>`;
 
     // Add click handlers for expand/collapse
     body.querySelectorAll('.item-card').forEach(card => {
@@ -1680,6 +2240,98 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
   // ── ASSEMBLY GUIDE DATA ──
   // Each step: panel serial ID from factory, instruction, hardware, time, diagram type, tip
+  // ── MODULE HARDWARE — serial-allocated accessories per module ──
+  const MODULE_HARDWARE = {
+    W2D: [
+      { nm:'Dowel', spec:'Ø8 × 35mm · hardwood', serial:'A-BLR-D001…D011', qty:11 },
+      { nm:'Confirmat screw', spec:'Ø5 × 50mm', serial:'A-BLR-C001…C012', qty:12 },
+      { nm:'Leveller foot', spec:'M8 × 80mm adjustable', serial:'A-BLR-L001…L004', qty:4 },
+      { nm:'Blum Sensys hinge', spec:'110° · Ø35 cup · clip-on', serial:'A-BLR-H001…H006', qty:6 },
+      { nm:'Brass bar handle', spec:'128mm c/c · satin brass', serial:'A-BLR-BH001…BH002', qty:2 },
+      { nm:'Hinge mounting screw', spec:'Ø3.5 × 16mm', serial:'A-BLR-SC001', qty:12 },
+    ],
+    W3D: [
+      { nm:'Dowel', spec:'Ø8 × 35mm · hardwood', serial:'A-BLR-D012…D027', qty:16 },
+      { nm:'Confirmat screw', spec:'Ø5 × 50mm', serial:'A-BLR-C013…C030', qty:18 },
+      { nm:'Leveller foot', spec:'M8 × 80mm adjustable', serial:'A-BLR-L005…L008', qty:4 },
+      { nm:'Blum Sensys hinge', spec:'110° · Ø35 cup · clip-on', serial:'A-BLR-H007…H015', qty:9 },
+      { nm:'Brass bar handle', spec:'128mm c/c · satin brass', serial:'A-BLR-BH003…BH005', qty:3 },
+      { nm:'Shelf pin', spec:'Ø5 × 16mm · zinc', serial:'A-BLR-S001…S016', qty:16 },
+      { nm:'Hanging rod + cups', spec:'Brass Ø25mm · 1132mm', serial:'A-BLR-R001', qty:1 },
+      { nm:'Hinge mounting screw', spec:'Ø3.5 × 16mm', serial:'A-BLR-SC013', qty:18 },
+    ],
+    D3S: [
+      { nm:'Dowel', spec:'Ø8 × 35mm · hardwood', serial:'A-BLR-D028…D039', qty:12 },
+      { nm:'Confirmat screw', spec:'Ø5 × 50mm', serial:'A-BLR-C031…C042', qty:12 },
+      { nm:'Leveller foot', spec:'M8 × 80mm adjustable', serial:'A-BLR-L009…L012', qty:4 },
+      { nm:'Blum Tandem slide pair', spec:'500mm full extension · 30kg', serial:'A-BLR-T001…T004', qty:4 },
+      { nm:'Drawer front adj. plate', spec:'Blum Tip-On clip', serial:'A-BLR-DF001…DF004', qty:4 },
+      { nm:'Brass bar handle', spec:'128mm c/c · satin brass', serial:'A-BLR-BH006…BH009', qty:4 },
+      { nm:'Tandem mounting screw', spec:'Ø3.5 × 12mm', serial:'A-BLR-SC031', qty:16 },
+    ],
+    WMR: [
+      { nm:'Dowel', spec:'Ø8 × 35mm · hardwood', serial:'A-BLR-D040…D048', qty:9 },
+      { nm:'Confirmat screw', spec:'Ø5 × 50mm', serial:'A-BLR-C043…C054', qty:12 },
+      { nm:'Leveller foot', spec:'M8 × 80mm adjustable', serial:'A-BLR-L013…L016', qty:4 },
+      { nm:'Mirror clip set', spec:'SS · neoprene pad · 4-point', serial:'A-BLR-MC001', qty:1 },
+      { nm:'Hinge mounting screw', spec:'Ø3.5 × 16mm', serial:'A-BLR-SC044', qty:8 },
+    ]
+  };
+
+  function renderModuleDetail(moduleId) {
+    const panels = PANEL_DATA[moduleId] ? PANEL_DATA[moduleId].panels : [];
+    const hardware = MODULE_HARDWARE[moduleId] || [];
+
+    // Find scan state for each panel via ASSEMBLY_GUIDE
+    function getPanelState(panelId) {
+      const ag = ASSEMBLY_GUIDE[moduleId];
+      if (!ag) return 'pending';
+      for (const ph of ag.phases) {
+        for (const s of ph.steps) {
+          if (s.panel === panelId) {
+            return getStepState(moduleId, s.n);
+          }
+        }
+      }
+      return 'pending';
+    }
+
+    const STATE_LABEL = { pending:'Pending', scanned:'Scanned', placed:'Placed', drilled:'Drilled', assembled:'Assembled ✓' };
+
+    const panelsHtml = panels.map(p => {
+      const state = getPanelState(p.id);
+      return `<div class="mpanel-row ${state}" onclick="showToast('${p.serial||p.id} · ${p.name.toUpperCase()}')">
+        <span class="mpr-serial ${p.type==='mirror'?'glass':''}">${p.serial || '—'}</span>
+        <div class="mpr-info">
+          <div class="mpr-nm">${p.id} · ${p.name}</div>
+          <div class="mpr-dims">${p.dims} · ${p.mat}</div>
+        </div>
+        <span class="mpr-status ${state}">${STATE_LABEL[state]}</span>
+      </div>`;
+    }).join('');
+
+    const hwHtml = hardware.map(h => `
+      <div class="mhw-row">
+        <span class="mhw-serial">${h.serial}</span>
+        <div>
+          <div class="mhw-nm">${h.nm}</div>
+          <div class="mhw-spec">${h.spec}</div>
+        </div>
+        <span class="mhw-qty">× ${h.qty}</span>
+      </div>`).join('');
+
+    return `<div class="mod-detail">
+      <div class="mod-detail-sec">
+        <div class="mod-detail-sec-h">Panels · ${panels.length}</div>
+        ${panelsHtml}
+      </div>
+      <div class="mod-detail-sec">
+        <div class="mod-detail-sec-h">Hardware · accessories</div>
+        ${hwHtml}
+      </div>
+    </div>`;
+  }
+
   const ASSEMBLY_GUIDE = {
     W2D: {
       label: '2-door wardrobe · W-2D', totalTime: '3h 15m',
@@ -1973,6 +2625,137 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     return d[type] || '';
   }
 
+  // ── 3D ISOMETRIC MODULE VIEW ──
+  function draw3DModuleView(moduleId, assembledPanels, activePanelId) {
+    const T = 0.2, TH = 0.08;
+    const GEOM = {
+      W2D: { panels:{
+        'W2D-SL': [[0,0,0, T,24,6]],
+        'W2D-SR': [[8-T,0,0, 8,24,6]],
+        'W2D-B':  [[0,0,0, 8,T,6]],
+        'W2D-T':  [[0,24-T,0, 8,24,6]],
+        'W2D-BK': [[T,T,0, 8-T,24-T,TH]],
+        'W2D-D1': [[T,T,6, 4,24-T,6+T],[4,T,6, 8-T,24-T,6+T]],
+      }},
+      W3D: { panels:{
+        'W3D-SL':  [[0,0,0, T,24,6]],
+        'W3D-SR':  [[12-T,0,0, 12,24,6]],
+        'W3D-B':   [[0,0,0, 12,T,6]],
+        'W3D-T':   [[0,24-T,0, 12,24,6]],
+        'W3D-BK':  [[T,T,0, 12-T,24-T,TH]],
+        'W3D-MID': [[6-T/2,T,TH, 6+T/2,24-T,6-TH]],
+        'W3D-SH':  [[T,8,TH, 12-T,8+T,6-TH],[T,16,TH, 12-T,16+T,6-TH]],
+        'W3D-D1':  [[T,T,6, 4.1,24-T,6+T],[4.1,T,6, 7.9,24-T,6+T],[7.9,T,6, 12-T,24-T,6+T]],
+      }},
+      D3S: { panels:{
+        'D3S-SL': [[0,0,0, T,24,6]],
+        'D3S-SR': [[6-T,0,0, 6,24,6]],
+        'D3S-B':  [[0,0,0, 6,T,6]],
+        'D3S-T':  [[0,24-T,0, 6,24,6]],
+        'D3S-BK': [[T,T,0, 6-T,24-T,TH]],
+        'D3S-DF': [[T,T,6, 6-T,6.4,6+T],[T,6.4,6, 6-T,12.8,6+T],[T,12.8,6, 6-T,19.2,6+T],[T,19.2,6, 6-T,24-T,6+T]],
+      }},
+      WMR: { panels:{
+        'WMR-SL': [[0,0,0, T,24,4]],
+        'WMR-SR': [[8-T,0,0, 8,24,4]],
+        'WMR-B':  [[0,0,0, 8,T,4]],
+        'WMR-T':  [[0,24-T,0, 8,24,4]],
+        'WMR-MR': [[T,T,2-0.04, 8-T,24-T,2+0.04]],
+      }},
+    };
+
+    const gm = GEOM[moduleId];
+    if (!gm) return '';
+
+    const S = 4.5, CX = 0.866, CZ = 0.5;
+    const OX = 62, OY = 128;
+
+    function pt(x, y, z) {
+      return [+(OX + (x - z) * CX * S).toFixed(1), +(OY - y * S + (x + z) * CZ * S).toFixed(1)];
+    }
+
+    function face(pts, fill, stroke) {
+      return `<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="${fill}" stroke="${stroke||'rgba(0,0,0,.35)'}" stroke-width=".5" stroke-linejoin="round"/>`;
+    }
+
+    function drawBox(x1,y1,z1, x2,y2,z2, fc, rc, tc, ghost) {
+      if (ghost) {
+        const p = [pt(x1,y1,z2), pt(x2,y1,z2), pt(x2,y2,z2), pt(x1,y2,z2)];
+        return face(p, 'rgba(200,185,155,.05)', 'rgba(200,185,155,.14)');
+      }
+      const bbl=pt(x1,y1,z1), bbr=pt(x2,y1,z1), btl=pt(x1,y2,z1), btr=pt(x2,y2,z1);
+      const fbl=pt(x1,y1,z2), fbr=pt(x2,y1,z2), ftl=pt(x1,y2,z2), ftr=pt(x2,y2,z2);
+      const str = 'rgba(0,0,0,.32)';
+      // Draw: top face, right face, front face (painter's order within one box)
+      return face([btl,btr,ftr,ftl],tc,str) + face([bbr,fbr,ftr,btr],rc,str) + face([fbl,fbr,ftr,ftl],fc,str);
+    }
+
+    const WOOD  = ['#c8b89a','#9e8a6e','#ddd0bc'];
+    const ACT   = ['#c96442','#9c4928','#e08060'];
+    const HDF   = ['#ddd8cc','#b8b0a0','#edeae0'];
+    const DOOR  = ['#b8a884','#907860','#ccbfa0'];
+    const SHELF = ['#ccc0a8','#a89070','#ddd4c0'];
+    const MIRR  = ['rgba(175,210,228,.75)','rgba(140,178,205,.55)','rgba(215,238,248,.5)'];
+
+    function colorsFor(pid, active) {
+      if (active) return ACT;
+      if (pid.includes('BK')) return HDF;
+      if (pid.includes('MR')) return MIRR;
+      if (pid.endsWith('D1') || pid.includes('DF')) return DOOR;
+      if (pid.includes('SH') || pid.includes('MID')) return SHELF;
+      return WOOD;
+    }
+
+    const items = [];
+    for (const [pid, boxes] of Object.entries(gm.panels)) {
+      const isActive = pid === activePanelId;
+      const isBuilt = assembledPanels.has(pid);
+      for (const box of boxes) {
+        const [x1,y1,z1,x2,y2,z2] = box;
+        items.push({x1,y1,z1,x2,y2,z2, pid, isActive, isBuilt});
+      }
+    }
+
+    // Painter's: back (low z) first, right panels before left (high x first so left draws over), bottom before top
+    items.sort((a, b) => {
+      const za = (a.z1+a.z2)/2, zb = (b.z1+b.z2)/2;
+      if (Math.abs(za-zb) > 0.3) return za - zb;
+      const xa = (a.x1+a.x2)/2, xb = (b.x1+b.x2)/2;
+      if (Math.abs(xa-xb) > 0.5) return xb - xa;
+      return (a.y1+a.y2)/2 - (b.y1+b.y2)/2;
+    });
+
+    let svg = '';
+    for (const {x1,y1,z1,x2,y2,z2, pid, isActive, isBuilt} of items) {
+      const ghost = !isActive && !isBuilt;
+      const [fc,rc,tc] = colorsFor(pid, isActive);
+      svg += drawBox(x1,y1,z1,x2,y2,z2, fc,rc,tc, ghost);
+    }
+
+    // Serial badge on active panel face
+    if (activePanelId && gm.panels[activePanelId]) {
+      const [x1,y1,z1,x2,y2,z2] = gm.panels[activePanelId][0];
+      const cx=(x1+x2)/2, cy=(y1+y2)/2;
+      const [lx,ly] = pt(cx, cy, z2);
+      const serial = getPanelSerial(moduleId, activePanelId);
+      svg += `<circle cx="${lx}" cy="${ly}" r="4" fill="#c96442" stroke="#7a3010" stroke-width="1"/>`;
+      if (serial) {
+        const tw = serial.length * 5.5 + 8;
+        svg += `<rect x="${+lx+8}" y="${+ly-8}" width="${tw}" height="13" rx="3" fill="rgba(12,10,8,.82)"/>`;
+        svg += `<text x="${+lx+12}" y="${+ly+3}" fill="#e0795a" font-family="JetBrains Mono" font-size="7.5" font-weight="600" letter-spacing=".07em">${serial}</text>`;
+      }
+    }
+
+    // Axis legend (bottom-right)
+    const lx=185, ly=175;
+    svg += `<text x="${lx}" y="${ly}" fill="rgba(200,185,155,.4)" font-family="JetBrains Mono" font-size="6" letter-spacing=".08em">3D VIEW</text>`;
+
+    return `<svg class="asm-diag asm-diag-3d" viewBox="0 0 220 185" xmlns="http://www.w3.org/2000/svg">
+      <rect width="220" height="185" fill="rgba(15,14,12,.5)" rx="5"/>
+      ${svg}
+    </svg>`;
+  }
+
   function renderAssemblyGuide(moduleId) {
     const data = ASSEMBLY_GUIDE[moduleId];
     if (!data) return;
@@ -1993,12 +2776,16 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     document.getElementById('guideEta').textContent = etaStr;
 
     let html = '';
+    // Track assembled panels progressively for 3D view
+    const builtPanels3D = new Set();
     data.phases.forEach(ph => {
       html += `<div class="asm-phase-label">${ph.phase}</div>`;
       ph.steps.forEach(s => {
         const state = getStepState(moduleId, s.n);
         const isDone = state === 'assembled';
         const serial = s.panel ? getPanelSerial(moduleId, s.panel) : null;
+        // 3D view: show wardrobe state at this step (active panel highlighted)
+        const view3D = draw3DModuleView(moduleId, new Set(builtPanels3D), isDone ? null : s.panel);
         // Build scan row
         let scanRow = '';
         if (isDone) {
@@ -2037,10 +2824,13 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
             <div class="asm-instr">${s.instr}</div>
             ${s.hw ? `<div class="asm-foot"><div class="asm-hw"><b>HW:</b> ${s.hw}</div><span class="asm-time-tag">${s.time}</span></div>` : `<div class="asm-foot"><div></div><span class="asm-time-tag">${s.time}</span></div>`}
             ${s.tip ? `<div class="asm-note-line">⚑ ${s.tip}</div>` : ''}
+            ${view3D}
             ${drawStepDiagram(s.diag)}
             ${scanRow}
           </div>
         </div>`;
+        // Track which panels are assembled so each subsequent step shows them built
+        if (isDone && s.panel) builtPanels3D.add(s.panel);
       });
     });
     document.getElementById('guideBody').innerHTML = html;
@@ -2142,6 +2932,30 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
 
   // Initial render
   renderAssemblyGuide('W2D');
+  renderRoom3D();
+  updateDesignCtx();
+  renderModuleConfig('W3D');
+  renderCatalog('all');
+
+  // Catalog category filter
+  document.getElementById('catFilter').addEventListener('click', e => {
+    const btn = e.target.closest('.ct[data-cat]');
+    if (!btn) return;
+    document.querySelectorAll('.ct').forEach(b => b.classList.toggle('active', b === btn));
+    renderCatalog(btn.dataset.cat);
+  });
+
+  // Catalog item click → select module if in room
+  document.getElementById('catItems').addEventListener('click', e => {
+    const item = e.target.closest('.cat-item[data-cid]');
+    if (!item || e.target.closest('.cat-item-add')) return;
+    const id = item.dataset.cid;
+    const inRoom = placed.find(p => p.type === id);
+    if (inRoom) {
+      selectPlacedModule(inRoom.id);
+      setDetailTab('bom');
+    }
+  });
 
   // SVG panel diagrams — draw panel face with pre-printed hole positions
   function drawPanelSVG(panel) {
@@ -2305,14 +3119,67 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
     </svg>`;
   }
 
+  // Pre-mark drilling positions per panel type (applied at factory before dispatch)
+  const DRILL_MARKS = {
+    'side': [
+      { type:'dowel', sym:'●', color:'#3d7abf', label:'Dowel Ø8', count:6, pos:'3× top edge · 3× bottom edge', marked:'ink stamp' },
+      { type:'confirmat', sym:'■', color:'#c96442', label:'Confirmat Ø5', count:6, pos:'3× top edge · 3× bottom edge', marked:'ink stamp' },
+      { type:'shelf-pin', sym:'○', color:'#6b9dbd', label:'Shelf pin Ø5', count:20, pos:'10× each side channel · 32mm pitch', marked:'printed jig template' },
+    ],
+    'horiz': [
+      { type:'dowel', sym:'●', color:'#3d7abf', label:'Dowel Ø8', count:6, pos:'3× front · 3× back face-edge', marked:'ink stamp' },
+      { type:'confirmat', sym:'■', color:'#c96442', label:'Confirmat Ø5', count:6, pos:'3× each end', marked:'ink stamp' },
+      { type:'leveller', sym:'◆', color:'#d4a44a', label:'Leveller M8', count:4, pos:'4× on underside · 80mm inset from corners', marked:'printed jig template' },
+    ],
+    'divider': [
+      { type:'dowel', sym:'●', color:'#3d7abf', label:'Dowel Ø8', count:4, pos:'2× top edge · 2× bottom edge', marked:'ink stamp' },
+      { type:'confirmat', sym:'■', color:'#c96442', label:'Confirmat Ø5', count:4, pos:'2× top · 2× bottom', marked:'ink stamp' },
+    ],
+    'door': [
+      { type:'hinge-cup', sym:'○', color:'#4ea25a', label:'Hinge cup Ø35', count:6, pos:'3× positions per door · 22mm from edge · 100·1400·2280mm from top', marked:'CNC pre-drilled at factory' },
+      { type:'handle', sym:'◆', color:'#d4a44a', label:'Handle Ø5 × 2', count:2, pos:'900mm AFL · 128mm c/c', marked:'ink stamp' },
+    ],
+    'drawer-front': [
+      { type:'handle', sym:'◆', color:'#d4a44a', label:'Handle Ø5 × 2', count:2, pos:'centre of face · 128mm c/c', marked:'ink stamp' },
+      { type:'clip-hole', sym:'●', color:'#3d7abf', label:'Front adj. clip Ø5', count:4, pos:'4 corners · 32mm inset', marked:'CNC pre-drilled at factory' },
+    ],
+    'shelf': [
+      { type:'none', sym:'—', color:'var(--mute)', label:'No pre-drilling', count:0, pos:'Shelf rests on pins — no holes needed', marked:'—' },
+    ],
+    'back': [
+      { type:'none', sym:'—', color:'var(--mute)', label:'No pre-drilling', count:0, pos:'Back panel nailed/glued at installation', marked:'—' },
+    ],
+    'mirror': [
+      { type:'clip', sym:'○', color:'#6b9dbd', label:'Mirror clip pos × 4', count:4, pos:'Marked on frame inner face — not drilled', marked:'factory adhesive dot' },
+    ],
+  };
+
   function renderPanelDiagrams(moduleId) {
     const data = PANEL_DATA[moduleId];
     if (!data) return;
     document.getElementById('panels-head').textContent = data.label;
     document.getElementById('panels-cnt').textContent = data.count + ' panels';
     const list = document.getElementById('panelsList');
-    list.innerHTML = data.panels.map(p => `
-      <div class="panel-diagram-card">
+    list.innerHTML = data.panels.map(p => {
+      const marks = DRILL_MARKS[p.type] || [];
+      const hasDrilling = marks.some(m => m.count > 0);
+      const preMarkHtml = `<div style="border-top:1px solid var(--line);padding:10px 12px 6px;background:rgba(201,100,66,.03);">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute);letter-spacing:.14em;text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:8px;">
+          <span style="display:inline-flex;align-items:center;gap:5px;padding:2px 7px;border-radius:100px;background:rgba(111,191,122,.12);border:1px solid rgba(111,191,122,.2);color:var(--green);">✓ Pre-marked at factory</span>
+          <span>Ink + jig applied before dispatch</span>
+        </div>
+        ${hasDrilling ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px;">
+          ${marks.map(m => `<div style="display:flex;align-items:flex-start;gap:7px;padding:5px 8px;border-radius:5px;background:var(--surface-3);">
+            <span style="font-size:12px;color:${m.color};flex-shrink:0;margin-top:1px;">${m.sym}</span>
+            <div>
+              <div style="font-size:11px;font-weight:500;color:var(--paper);">${m.label}${m.count > 0 ? ` <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:${m.color};">×${m.count}</span>` : ''}</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--mute);letter-spacing:.06em;margin-top:1px;">${m.pos}</div>
+              <div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;color:rgba(111,191,122,.7);margin-top:1px;">⚙ ${m.marked}</div>
+            </div>
+          </div>`).join('')}
+        </div>` : `<div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--mute);letter-spacing:.08em;">No pre-drilling required for this panel type</div>`}
+      </div>`;
+      return `<div class="panel-diagram-card">
         <div class="pdc-head">
           <div>
             <div class="pdc-id" style="display:flex;gap:8px;align-items:center;">
@@ -2332,28 +3199,41 @@ a{color:inherit;text-decoration:none;} button{font:inherit;cursor:pointer;border
           <span class="pdc-leg-item"><span class="pdc-leg-sym" style="background:none;border:1px solid #6b9dbd;"></span> Shelf pin Ø5</span>
           <span class="pdc-leg-item"><span class="pdc-leg-sym" style="background:#d4a44a;"></span> Handle drill</span>
         </div>
+        ${preMarkHtml}
         <div class="pdc-actions">
           <button class="pdc-download" onclick="showToast('PACK SLIP · ${p.serial || p.id} PRINTING…')">Print pack slip</button>
+          <button class="pdc-download" onclick="showToast('DRILL TEMPLATE · ${p.serial || p.id} PRINTING…','green')" style="color:var(--green);border-color:rgba(111,191,122,.3);">⚙ Print drill template</button>
           <button class="pdc-download" onclick="showToast('${p.serial || p.id} DXF EXPORTED', 'green')">Export DXF</button>
         </div>
-      </div>
-    `).join('');
+      </div>`;
+    }).join('');
   }
 
   // Render panels/guide when tab switches, or module changes
+  // Use assignment (not declaration) to avoid hoisting overwriting the originals
   const origSetDetailTab = setDetailTab;
-  function setDetailTab(tab) {
+  setDetailTab = function(tab) {
     origSetDetailTab(tab);
     if (tab === 'panels') renderPanelDiagrams(selectedModule);
     if (tab === 'install') renderAssemblyGuide(activeGuideModule);
     if (tab === 'track') renderTrackTab();
-  }
+  };
 
   const origSelectModule = selectModule;
-  function selectModule(id) {
+  selectModule = function(id) {
     origSelectModule(id);
     if (activeDetailTab === 'panels') renderPanelDiagrams(id);
-  }
+    // Inject panel+hardware detail into the BOM expand row
+    const expandEl = document.getElementById('expand-' + id);
+    if (expandEl) expandEl.innerHTML = renderModuleDetail(id);
+    // Do NOT force tab switch here — canvas click handler does it explicitly
+  };
+
+  // Initial render for all modules (so expand content is ready for any selection)
+  ['W2D','W3D','D3S','WMR'].forEach(id => {
+    const el = document.getElementById('expand-' + id);
+    if (el) el.innerHTML = renderModuleDetail(id);
+  });
 
   // Initial render if panels tab is active
   renderPanelDiagrams('W3D');
