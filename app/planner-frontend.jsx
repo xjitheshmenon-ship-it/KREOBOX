@@ -603,6 +603,7 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
   const [zoomCtr, setZoomCtr] = useS({ x: SVG_W/2, y: SVG_H/2 });
   const [openDoors, setOpenDoors] = useS({});
   const drag = useRef(null);
+  const lastClickIdx = useRef(null);
   const svgRef = useRef(null);
 
   const project = useCB((wx, wy, wz) => {
@@ -683,56 +684,49 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
       ];
 
       if (isDoorOpen) {
-        /* ── OPEN STATE: interior + swung door(s) ── */
-        const W = 18; // carcass wall thickness
-        const ix0 = bx+W, ix1 = bx+bw-W;
-        const iy0 = by0+W, iy1 = by1-W;
-        const iz0 = bz+W,  iz1 = dz-W;
+        /* ── OPEN STATE ──────────────────────────────────────────
+           Interior content sits at dz-6 (just inside the opening)
+           so it's visible from ANY camera angle, not buried at back. */
 
-        /* interior walls */
-        polys.push(face([[ix0,iy0,iz0],[ix1,iy0,iz0],[ix1,iy1,iz0],[ix0,iy1,iz0]], '#e0dbd0','#c0bab0',0.3)); // back
-        polys.push(face([[ix0,iy0,iz0],[ix0,iy0,iz1],[ix0,iy1,iz1],[ix0,iy1,iz0]], '#d6d0c6')); // left inner
-        polys.push(face([[ix1,iy0,iz0],[ix1,iy0,iz1],[ix1,iy1,iz1],[ix1,iy1,iz0]], '#d6d0c6')); // right inner
-        polys.push(hface(ix0,iz0,ix1,iz1, iy0, '#ccc8bc')); // floor
-        polys.push(hface(ix0,iz0,ix1,iz1, iy1, '#d6d0c6')); // ceiling
-
-        /* LED strip */
-        if (item.ledStrip)
-          polys.push(hface(ix0,iz0,ix1,iz1, iy1-8, 'rgba(255,245,190,0.7)'));
+        /* interior backdrop — slightly recessed from opening */
+        polys.push(quad(bx, by0, bx+bw, by1, dz-6, '#d4cfc5', '#00000018', 0.4));
 
         if (drawers > 0) {
-          /* stacked drawers — slightly pulled out */
-          const dh  = (iy1 - iy0) / drawers;
-          const pullOut = Math.min(120, (iz1-iz0) * 0.4);
+          /* stacked drawer faces */
+          const dh = (by1 - by0) / drawers;
           for (let i = 0; i < drawers; i++) {
-            const dy0d = iy0 + i*dh, dy1d = iy0 + (i+1)*dh - 3;
-            const df = dz - W - pullOut;
-            polys.push(quad(ix0+4, dy0d+4, ix1-4, dy1d-4, df, fc, '#00000025', 0.6)); // drawer front
-            polys.push(hface(ix0+4, iz0, ix1-4, df, dy1d-4, '#d0ccc0')); // drawer top visible
+            const dy0d = by0 + i*dh + 5, dy1d = by0 + (i+1)*dh - 5;
+            polys.push(quad(bx+8, dy0d, bx+bw-8, dy1d, dz-4, fc, '#00000030', 0.7));
             if (handle !== 'Push-to-open') {
-              const hcx=(ix0+ix1)/2, hcy=(dy0d+dy1d)/2, hw=Math.min((ix1-ix0)*0.2,50);
-              polys.push(quad(hcx-hw,hcy-4,hcx+hw,hcy+4, df-2, '#8a8070'));
+              const hcx = bx+bw/2, hcy = (dy0d+dy1d)/2, hw = Math.min(bw*0.2, 60);
+              polys.push(quad(hcx-hw, hcy-5, hcx+hw, hcy+5, dz-2, '#7a7060'));
             }
           }
-        } else if (shelves > 0) {
-          /* shelf boards */
-          const sh = (iy1 - iy0) / (shelves + 1);
-          for (let i = 1; i <= shelves; i++) {
-            const sy = iy0 + i * sh;
-            polys.push(hface(ix0, iz0, ix1, iz1, sy, '#cec8b8')); // shelf top
-            polys.push(face([[ix0,sy-16,iz1],[ix1,sy-16,iz1],[ix1,sy,iz1],[ix0,sy,iz1]], '#c4bead')); // shelf edge
+        } else {
+          /* shelf boards — show as horizontal insets */
+          const numSh = Math.max(1, shelves);
+          const sh = (by1 - by0) / (numSh + 1);
+          for (let i = 1; i <= numSh; i++) {
+            const sy = by0 + i * sh;
+            polys.push(quad(bx+6, sy-10, bx+bw-6, sy+6, dz-4, '#bfb9ad', '#00000025', 0.5));
           }
         }
 
-        /* open door(s) — rotate 90° outward from front face */
+        /* LED strip glow at top of interior */
+        if (item.ledStrip)
+          polys.push(quad(bx+6, by1-16, bx+bw-6, by1-2, dz-3, 'rgba(255,245,160,0.75)'));
+
+        /* open door(s) — rotate 90° forward from pivot edge */
         const numDoors = bw > 900 ? 2 : 1;
         const dw = bw / numDoors;
         if (numDoors === 1) {
-          polys.push(face([[bx,by0,dz],[bx,by0,dz+dw],[bx,by1,dz+dw],[bx,by1,dz]], fc,'#00000018',0.8));
-          polys.push(face([[bx+8,by0+8,dz+8],[bx+8,by0+8,dz+dw-8],[bx+8,by1-8,dz+dw-8],[bx+8,by1-8,dz+8]], 'rgba(255,255,255,0.12)','#00000015',0.4));
+          /* single door: pivot at left edge, swings left */
+          polys.push(face([[bx,by0,dz],[bx,by0,dz+dw],[bx,by1,dz+dw],[bx,by1,dz]], fc,'#00000020',0.9));
+          polys.push(quad(bx+12,by0+12, bx+12, by1-12, dz+10, 'rgba(255,255,255,0.10)', '#00000015', 0.4));
         } else {
-          polys.push(face([[bx,by0,dz],[bx,by0,dz+dw],[bx,by1,dz+dw],[bx,by1,dz]], fc,'#00000018',0.8));
-          polys.push(face([[bx+bw,by0,dz],[bx+bw,by0,dz+dw],[bx+bw,by1,dz+dw],[bx+bw,by1,dz]], fc,'#00000018',0.8));
+          /* double doors: left pivots left, right pivots right */
+          polys.push(face([[bx,    by0,dz],[bx,    by0,dz+dw],[bx,    by1,dz+dw],[bx,    by1,dz]], fc,'#00000020',0.9));
+          polys.push(face([[bx+bw, by0,dz],[bx+bw, by0,dz+dw],[bx+bw, by1,dz+dw],[bx+bw, by1,dz]], fc,'#00000020',0.9));
         }
 
       } else {
@@ -795,12 +789,13 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
     if (clickedItemIdx !== null) {
       const item = items[clickedItemIdx];
       const c2 = itemCenter2D(item);
+      lastClickIdx.current = clickedItemIdx;
       setSelIdx(clickedItemIdx);
       onItemSelect && onItemSelect(items[clickedItemIdx]?.id || null);
-      setZoomCtr({ x: c2.x, y: c2.y });
-      setZoom(2);
-      drag.current = { type: 'move', idx: clickedItemIdx, ox: item.x, oy: item.y, depth: c2.z, sx: e.clientX, sy: e.clientY, hasMoved: false };
+      // store c2 so onMove can zoom lazily on first real drag movement
+      drag.current = { type: 'move', idx: clickedItemIdx, ox: item.x, oy: item.y, depth: c2.z, c2, sx: e.clientX, sy: e.clientY, hasMoved: false };
     } else {
+      lastClickIdx.current = null;
       if (selIdx !== null) { setSelIdx(null); onItemSelect && onItemSelect(null); setZoom(1); drag.current = null; return; }
       drag.current = { type: 'rotate', sx: e.clientX, sy: e.clientY, y0: yaw, p0: pitch };
     }
@@ -812,8 +807,13 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
       setYaw(drag.current.y0 + (e.clientX - drag.current.sx) * 0.4);
       setPitch(Math.max(-80, Math.min(80, drag.current.p0 - (e.clientY - drag.current.sy) * 0.25)));
     } else if (drag.current.type === 'move') {
-      if (Math.abs(e.clientX - drag.current.sx) > 4 || Math.abs(e.clientY - drag.current.sy) > 4)
+      const moved = Math.abs(e.clientX - drag.current.sx) > 4 || Math.abs(e.clientY - drag.current.sy) > 4;
+      if (moved && !drag.current.hasMoved) {
+        // first real drag movement — now zoom in for precise positioning
         drag.current.hasMoved = true;
+        setZoomCtr({ x: drag.current.c2.x, y: drag.current.c2.y });
+        setZoom(2);
+      }
       if (!onMoveItem || !drag.current.hasMoved) return;
       const rect = svgRef.current ? svgRef.current.getBoundingClientRect() : { width: SVG_W, height: SVG_H };
       const svgScale = SVG_W / rect.width;
@@ -841,10 +841,12 @@ function KitchenPlan3D({ accent = pAccent, items = [], roomW: RW = 3800, roomD: 
   };
 
   const onUp = () => {
-    if (drag.current?.type === 'move' && !drag.current.hasMoved) {
-      const idx = drag.current.idx;
+    const wasPureClick = lastClickIdx.current !== null && drag.current?.type === 'move' && !drag.current.hasMoved;
+    if (wasPureClick) {
+      const idx = lastClickIdx.current;
       setOpenDoors(prev => ({ ...prev, [idx]: !prev[idx] }));
     }
+    lastClickIdx.current = null;
     drag.current = null;
   };
 
